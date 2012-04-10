@@ -1,0 +1,65 @@
+\documentclass{article}
+\usepackage{delarray}
+\usepackage{amsmath}
+\title{Gradients of determinant wave functions}
+\author{Kenneth P. Esler Jr.}
+\date{\today}
+
+\newenvironment{DMatrix}{\begin{array}|{*{20}{c}}|}{\end{array}}
+\newenvironment{Matrix}{\begin{array}[{*{20}{c}}]}{\end{array}}
+\begin{document}
+\maketitle
+
+\section{Problem}
+Consider a wave function of the form
+\begin{equation}
+  \psi(r_0  \dots r_N) = 
+\begin{DMatrix}
+\phi_0(r_0) & \phi_1(r_0) & \phi_2(r_0) & \dots  & \phi_N(r_0) \\
+\phi_0(r_1) & \phi_1(r_1) & \phi_2(r_1) & \dots  & \phi_2(r_1) \\
+\phi_0(r_2) & \phi_1(r_2) & \phi_2(r_2) & \dots  & \phi_2(r_2) \\
+\vdots      & \vdots      & \vdots      & \ddots &  \vdots     \\
+\phi_0(r_N) & \phi_1(r_N) & \phi_2(r_N) & \dots  & \phi_N(r_N)
+\end{DMatrix}
+\equiv \det A
+\end{equation}
+Recall that in the Laplace expansion, a determinant can be written as
+a sum over any row or column of the matrix element times its cofactor,
+\begin{equation}
+\det A = \sum_i A_{ij} (\text{cof}\ A)_{ij}.
+\end{equation}
+In the Laplace expansion, the cofactor of a given element $A_{ij}$ is
+given by $(-1)^{i+j}$ times the determinant of the matrix constructed
+by removing the $i^\text{th}$ row and $j^\text{th}$ column from $A$.
+It is clear, then, that if we use the cofactor expansion along the
+$n^\text{th}$ row, the cofactors will not depend on $r_n$.  This
+greatly simplifies the gradient calculation since no chain rule will
+come in.  
+
+Unfortunately, the Laplace expansion, while illustrative, is
+computationally extremely costly.  Fortunately, the reader may 
+recall that the cofactor matrix can be given by
+\begin{equation}
+\text{cof}\ A = \det(A) \left(A^{-1}\right)^T.
+\end{equation}
+The determinant may be computed by $LU$ factorization in
+$\mathcal{O}(N^3)$ operations.  Let us then write the tensor
+formed by taking the gradients of the elements of $A$,
+\begin{equation}
+\mathbf{G}_{ij} \equiv \nabla \phi_j (r_i)
+\end{equation}
+Then, we can write
+\begin{eqnarray}
+\nabla_{r_j} \psi(r_0 \dots r_N) & = &
+\sum_i G_{ij} (\text{cof}\  A)_{ij} \\
+& = & \sum_i \det(A) \ G_{ij} \left( A^{-1}\right)_{ji}
+\end{eqnarray}
+Often, the quantity we require is $\nabla_{r_j} \ln(\psi)$, which is
+then given by
+\begin{equation}
+\nabla_{r_j} \ln\left[\psi(r_0 \dots r_N)\right] =
+\sum_i G_{ij} \left( A^{-1}\right)_{ji}
+\end{equation}
+
+
+\end{document}

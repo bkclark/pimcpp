@@ -1,0 +1,183 @@
+\documentclass{article}
+\usepackage{draftcopy}
+\usepackage{graphicx}
+\usepackage{psfrag}
+\usepackage{amsmath}
+\title{Fixed-Phase Path Integral Monte Carlo}
+\author{K.P. Esler and D.M. Ceperley}
+\begin{document}
+\maketitle
+\section{Introduction}
+Here we work out the details necessary to implement the {\em fixed-phase} method\cite{Ortiz93}.
+\section{The trial function}
+For ground-state calculations, we use a function of the form
+\begin{equation}
+\Psi^\mathbf{k}_T(\{r_i\}) = 
+\det |u^\mathbf{k}_j(r^\uparrow_i)| 
+\det |u^\mathbf{k}_j(r^\downarrow_i)| 
+\exp\left[i\sum_i \mathbf{k} \cdot r_i \right],
+\end{equation}
+where $\{r^\uparrow_i\}$ and $\{r^\downarrow_i\}$ refer to the
+positions of the up and down electrons, respectively.  For
+convenience, let us represent the collection of all (up and down)
+electron positions by a single $3N$-dimensional vector, $R$.
+
+\section{The Action}
+Let us define
+\renewcommand{\Im}{\mathrm{Im}\,}
+\renewcommand{\Re}{\mathrm{Re}\,}
+%\newcommand{\myIm}{\mathit{\Im \!}}
+%\newcommand{\myRe}{\mathit{\Re\! e}}
+\begin{eqnarray}
+\Phi^\mathbf{k}(R) & \equiv &\arg\left[\Psi^\mathbf{k}(R)\right] \\
+& = & \tan^{-1} \left\{ \frac{\Im \left[\Psi^\mathbf{k}(R)\right]}{\Re \left[\Psi^{\mathbf{k}}(R)\right]}
+\right\}
+\end{eqnarray}
+Then the action may be written as
+\begin{equation}
+\mathcal{S}_{\text{FP}}(R_1,R_2;\tau) = 
+-\ln \left\langle
+\exp\left[-\lambda\int_0^\tau dt\ |\nabla \Phi^{k}(R(t))|^2 \right]
+\right\rangle_\text{B.R.W},
+\end{equation}
+where the average is over all brownian random walks which start at
+$R_1$ at $t=0$ and end at $R_2$ at $t=\tau$.
+
+\subsection{The primitive approximation}
+In the simplest approximation, we may assume that the gradient changes
+very little within the range of the brownian random walks.  In this
+case, we approximate
+\begin{equation}
+\mathcal{S}_\text{FP}^\text{prim} = \frac{\lambda\tau}{2} 
+\left[ \left|\nabla \Phi\right|_{R_1}^2 + \left|\nabla \Phi\right|_{R_2}^2 
+\rule{0cm}{0.5cm}\right]
+\end{equation}
+
+\begin{figure}
+\centering
+\psfrag{R1}[tc][tc]{$R_1$}
+\psfrag{R2}[tc][tc]{$R_2$}
+\psfrag{v1}[cr][cr]{$-\pi$}
+\psfrag{v2}[cr][cr]{$-\pi$}
+\includegraphics[width=3in]{PhasePlot.eps}
+\caption{Example of a phase which fail in the primitive
+  approximation.  The gradients are small at both endpoints, but it is
+  clear that there must be a region of large gradient in between.}
+\label{fig:phaseplot}
+\end{figure}
+
+\subsubsection{Shortcomings}
+For simplicity, let us consider a single particle in one dimension.
+Consider the plot of the phase in Figure~\ref{fig:phaseplot}.  The
+gradient of the phase at the two endpoints is small, but it is clear
+from the large change in the value of the function that there must be
+a region of large gradient in between.  
+
+\subsection{Cubic construction}
+To compensate for this possibility, we construct a new approximate
+action.  We begin by defining the unit vector, $\hat{u}$ in the
+direction of the path, i.e.
+\begin{equation}
+\hat{u} \equiv \frac{R_2 - R_1}{|R_2 - R_1|}
+\end{equation}
+Define $G_1$ and $G_2$ to be the phase gradients evaluated at $R_1$
+and $R_2$, respectively.  
+\begin{eqnarray}
+G_1 & \equiv & \left. \nabla \Phi \right|_{R_1} \\
+G_2 & \equiv & \left. \nabla \Phi \right|_{R_2} 
+\end{eqnarray}
+Let us determine the components of $G_1$ and $G_2$ in the $\hat{u}$
+direction.
+\begin{eqnarray}
+g_1 & \equiv & G_1 \cdot \hat{u} \\
+g_2 & \equiv & G_2 \cdot \hat{u}
+\end{eqnarray}
+We will handle these separately, so we define a gradient vector with
+these components subtracted,
+\begin{eqnarray}
+\tilde{G_1} & = & G_1 - g_1 \hat{u} \\
+\tilde{G_2} & = & G_2 - g_2 \hat{u} 
+\end{eqnarray}
+Similarly, we define the values of the phase at these same points,
+\begin{eqnarray}
+v_1 & \equiv \Phi(R_1) \\
+v_2 & \equiv \Phi(R_2) 
+\end{eqnarray}
+Now, we construct a cubic polynomial representing the phase in the
+$\hat{u}$ direction.  We then define the function $\phi(u)$, such that
+\begin{eqnarray}
+\phi(0) & = & v_1 \\
+\phi(1) & = & v_2 \\
+\left.\frac{d\phi}{du}\right|_0 & = & \tilde{g}_1 \\
+\left.\frac{d\phi}{du}\right|_1 & = & \tilde{g}_2 ,
+\end{eqnarray}
+where $\tilde{g}_1 = |R_2-R_1|g_1$ and $\tilde{g_2} = |R_2-R_1| g_2$.
+We now write
+\begin{equation}
+\phi(u) = c_3 u^3 + c_2 u^2 + c_1 u + c_0
+\end{equation}
+Solving for $c_n$, yields
+\begin{eqnarray}
+c_0 & = & v_1 \\
+c_1 & = & \tilde{g}_1 \\
+c_2 & = & 3(v_2-v_1) - 2\tilde{g}_1 -\tilde{g}_2 \\
+c_3 & = & (\tilde{g}_1+\tilde{g}_2) - 2(v_2-v_1)
+\end{eqnarray}
+Now, we may calculate the gradient in the $\hat{u}$ direction:
+\begin{eqnarray}
+G_u(u) & = & \frac{1}{|R_2-R_1|} \frac{d\phi}{du} \\
+& = & \frac{3c_3 u^2 + 2 c_2 u + c_1}{|R_2-R_1|}
+\end{eqnarray}
+We write our our corrected approximation as 
+\begin{eqnarray}
+\mathcal{S}(R_1,R_2;\tau)_\text{FP}^\text{corr} & = &
+\frac{\lambda\tau}{2} \left[\tilde{G}_1^2 + \tilde{G}_2^2 \right]
++ \lambda\tau \int_0^1 du \, G_u(u)^2 \\
+ & = & \frac{\lambda\tau}{2} \left[\tilde{G}_1^2 + \tilde{G}_2^2 \right]
++ \\
+& & \frac{\lambda\tau}{|R_2-R_1|^2} \int_0^1 du\, 
+\left[9c_3^2u^4 + 6c_2c_3u^3 +(4c_2^2 + 3c_1c_3)u^2 + 2c_1c_2u +
+  c_1^2\right] \nonumber \\ 
+& = & \lambda \tau \left\{ \frac{1}{2} \left[\tilde{G}_1^2 + \tilde{G}_2^2 \right] + \frac{\left[\frac{9}{5} c_3^2 + \frac{3}{2} c_2 c_3 + 
+\frac{4}{3} c_2^2 + c_1 c_3 + c_1c_2 + c_1 ^2 \right]}{|R_2-R_1|^2} \right\}
+\end{eqnarray}
+Expanding this, we have
+\begin{equation}
+\mathcal{S}^\text{corr}_\phi(R_1, R_2; \tau)
+= \lambda \tau \left\{
+\frac{1}{2}\left[\tilde{G}_1^2 + \tilde{G}_2^2 \right]
++ \frac{2(\tilde{g}_1^2+\tilde{g}_2^2) + 3(\tilde{g}_1 +
+  \tilde{g}_2)(v_1-v_2) + 18(v_1-v_2)^2 - g_1
+  g_2}{15\left|R_2-R_1\right|^2}
+\right\}
+\end{equation}
+As a check of our algebra, we consider the swapping of the
+1 and 2 indices.  We recall, then, because of our definitions, $\tilde{g}_1$
+and $\tilde{g}_2$ will flip sign.  Hence the $3(\tilde{g}_1 +
+\tilde{g}_2)(v_1-v_2)$ term will retain its value.  Hence, we do have
+the expected symmetry under the exchange of labels.
+
+\section{Calculating gradients}
+We recall that
+\begin{equation}
+\Phi = \arg (\Psi).
+\end{equation}
+Then,
+\begin{eqnarray}
+\nabla \Phi & = & \nabla \left[ \tan^{-1} \left(\frac{\Im \Psi}{\Re
+    \Psi} \right) \right] \\
+& = & \left[ \frac{1}{1 + \left(\frac{\Im \Psi}{\Re \Psi}\right)^2}
+    \right] \nabla \left( \frac{\Im \Psi}{ \Re \Psi} \right) \\
+& = & \left[\frac{(\Re \Psi)^2}{(\Re\Psi)^2 + (\Im \Psi)^2} \right]
+\frac{\Re \Psi \nabla(\Im \Psi) - \Im \Psi \nabla (\Re \Psi)}{(\Re
+    \Psi)^2} \\
+& = & \frac{\Re \Psi \nabla(\Im \Psi) - \Im \Psi \nabla (\Re
+    \Psi)}{\left| \Psi \right|^2}
+\end{eqnarray}
+
+\begin{thebibliography}{5}
+\bibitem{Ortiz93} G. Ortiz, D.M. Ceperley, and R.M. Martin, Phy Rev. Lett {\bf
+  71}, 2777 (1993)
+\end{thebibliography}
+
+\end{document}

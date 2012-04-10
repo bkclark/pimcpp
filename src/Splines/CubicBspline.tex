@@ -1,0 +1,40 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{array}
+\title{Interpolating Cubic B-Splines in One, Two, and Three Dimensions}
+\author{Kenneth P. Esler Jr.}
+
+\begin{document}
+\maketitle
+\section{Introduction to B-splines}
+
+
+\subsection{The basis functions}
+
+
+\begin{equation}
+S_i(t) = \frac{1}{6} \left[
+\begin{array}{cccc}
+t^3 & t^2 & t & 1
+\end{array}
+\right]
+\left[\begin{array}{rrrr}
+-1 &  3 & -3 & 1 \\
+ 3 & -6 &  3 & 0 \\
+-3 &  0 &  3 & 0 \\
+ 1 &  4 &  1 & 0
+\end{array}\right]
+\left[\begin{array}{l}
+p_{i-1} \\ p_i \\ p_{i+1} \\ p_{i+2}
+\end{array}\right].
+\end{equation}
+
+\section{Comparison with traditional splines}
+
+\section{Constructing interpolating B-splines}
+
+\section{Bicubic B-splines}
+
+\section{Tricubic B-splines}
+
+\end{document}

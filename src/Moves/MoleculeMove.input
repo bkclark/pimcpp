@@ -1,0 +1,62 @@
+// example for new MoleculeMove input format
+
+// conventional MoleculeMove
+Section (Move)
+{
+  string Type="MoleculeMove";
+  string Name="WaterRotate";
+  Section(Stage) {
+    string MoveMethod = "Rotate";
+    double SetAngle = 0.3;
+    string Mode = "SEQUENTIAL";
+    Array<string,1> Actions(2) = ["FM_MoleculeInteractions","LongRange"];
+  }
+}
+
+// Presampling block
+Section(Move)
+{
+  string Type="PreSampleMoleculeMove";
+  string Name="PreSample";
+  int NumPreSteps = 32;
+  int NumPreStages = 2;
+  Section(PreStage)
+  {
+    string MoveMethod = "Translate";
+    Array<string,1> Actions(2) = ["FM_MoleculeInteractions", "LongRange"];
+    // Translate
+    double SetStep = 0.04;
+    string Mode = "SEQUENTIAL";
+  }
+  Section(PreStage)
+  {
+    string MoveMethod = "Rotate";
+    Array<string,1> Actions(2) = ["FM_MoleculeInteractions", "LongRange"];
+    // Rotate
+    double SetAngle = 0.04;
+    string Mode = "SEQUENTIAL";
+  }
+
+  Array<string,1> PreActions(2) = ["FM_MoleculeInteractions", "LongRange"];
+  Array<string,1> FinalActions(1) = ["QBoxAction"];
+}
+
+// Stochastic Potential Switching Block
+Section(Move)
+{
+  string Type="SPSMoleculeMove";
+  string Name="SPS";
+  double LogTransProb = 6015;//1.0;//0.001;
+  double LogReverseTransProb = 0;
+  Section(Stage)
+  {
+    string MoveMethod = "Translate";
+    double SetStep = 0.15;
+    string Mode = "SEQUENTIAL";
+    Array<string,1> Actions(1) = [""];
+  }
+
+  Array<string,1> FullActions(1) = ["MoleculeInteractions"];
+  Array<string,1> SwitchActions(1) = ["EAM"];
+}
+
