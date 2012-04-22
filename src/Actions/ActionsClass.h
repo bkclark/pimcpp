@@ -16,6 +16,8 @@
 
 #ifndef ACTIONS_CLASS_H
 #define ACTIONS_CLASS_H
+
+
 #include "DiagonalActionClass.h"
 #include "ShortRangeClass.h"
 #include "ShortRangeOnClass.h"
@@ -28,6 +30,7 @@
 #include "ShortRangePotClass.h"
 #include "LongRangePotClass.h"
 #include "KineticClass.h"
+#include "WaterClass.h"
 //#include "MoleculeInteractionsClass.h"
 //#include "ST2WaterClass.h"
 //#include "TIP5PWaterClass.h"

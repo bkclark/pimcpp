@@ -81,6 +81,7 @@ DisplaceMoveClass::Read (IOSectionClass &in)
   assert(in.ReadVar("SamplingActions",samplingActions));
   for (int i=0;i<samplingActions.size();i++)
     DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+  cerr<<"Last stage: "<<DisplaceStage.Actions.back()->GetName()<<endl;
       ///If it's David's long range class then do this
 
   

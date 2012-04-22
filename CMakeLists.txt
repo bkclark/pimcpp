@@ -21,7 +21,7 @@ cmake_minimum_required (VERSION 2.6)
 project (pimc++) 
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 SET(CMAKE_CXX_COMPILER,"g++")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/   -lhdf5 -lsprng -L/usr/lib -L/home/bclark/lib/  -lz  -L/Applications/sage/local/lib/ -lblas -llapack -lgsl")
+SET(CMAKE_CXX_FLAGS "-O4 -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/   -lhdf5 -lsprng -L/usr/lib -L/home/bclark/lib/  -lz  -L/Applications/sage/local/lib/ -lblas -llapack -lgsl")
 add_sources(src/Actions/ActionBase.cc
 src/Moves/MoveBase.cc
 src/Actions/ActionsClass.cc
@@ -52,6 +52,7 @@ src/Actions/ST2WaterClass.cc																							      src/Moves/WormStage.cc
 src/Actions/ShortRangeApproximateClass.cc																					       src/Observables/Angular.cc
 src/Actions/ShortRangeClass.cc																							          src/Observables/Coupling.cc
 src/Actions/ShortRangeOnClass.cc																							    src/Observables/DistanceToHead.cc
+src/Actions/WaterClass.cc		
 src/Actions/ShortRangeOn_diagonal_Class.cc																						     src/Observables/DynamicStructureFactor.cc
 src/Actions/ShortRangeOn_diagonal_displace_Class.cc																					     src/Observables/Forces.cc
 src/Actions/ShortRangePotClass.cc																							       src/Observables/HBond.cc
