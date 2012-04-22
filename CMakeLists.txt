@@ -52,6 +52,7 @@ src/Actions/ST2WaterClass.cc																							      src/Moves/WormStage.cc
 src/Actions/ShortRangeApproximateClass.cc																					       src/Observables/Angular.cc
 src/Actions/ShortRangeClass.cc																							          src/Observables/Coupling.cc
 src/Actions/ShortRangeOnClass.cc																							    src/Observables/DistanceToHead.cc
+src/Actions/WaterClass.cc		
 src/Actions/ShortRangeOn_diagonal_Class.cc																						     src/Observables/DynamicStructureFactor.cc
 src/Actions/ShortRangeOn_diagonal_displace_Class.cc																					     src/Observables/Forces.cc
 src/Actions/ShortRangePotClass.cc																							       src/Observables/HBond.cc

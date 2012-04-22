@@ -374,6 +374,9 @@ void ActionsClass::Read(IOSectionClass &in)
       newAction = new BlendActionsClass(PathData);
     } else if (type == "ExternalPotential") {
       newAction = new ExternalPotential(PathData);
+    } else if (type == "Water") {
+      newAction = new WaterClass(PathData);
+
     } else {
       cerr << endl << "ActionBaseClass Type " << type << " not recognized" << endl;
       exit(0);
