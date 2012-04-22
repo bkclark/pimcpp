@@ -39,11 +39,10 @@ void EnergyClass::Accumulate()
   	//map<double> Energies;
   double kinetic, dUShort, dULong, node, vShort, vLong, tip5p, dUNonlocal,
     residual;
-  cerr<<"SIGNS: "<<PathData.Path.Sign<<" "<<PathData.Path.Weight<<endl;
+  //  cerr<<"SIGNS: "<<PathData.Path.Sign<<" "<<PathData.Path.Weight<<endl;
   PathData.Actions.Energy (kinetic, dUShort, dULong, node, vShort, vLong,
 			   dUNonlocal,residual);
 
-  
   Array<int,1> changedParticles(PathData.Path.NumParticles());
   for (int i=0;i<changedParticles.size();i++)
     changedParticles(i)=i;
@@ -414,23 +413,25 @@ void EnergyClass::Read(IOSectionClass &in)
 void EnergySignClass::Accumulate()
 {
   TimesCalled++;
-  if (TimesCalled % DumpFreq==0)
-    WriteBlock();
+//   if (TimesCalled % DumpFreq==0)
+//     WriteBlock();
 
-  if ((TimesCalled % Freq)!=0){
-    return;
-  }
+//   if ((TimesCalled % Freq)!=0){
+//     return;
+//   }
   //Move the join to the end so we don't have to worry about permutations
+  //  cerr<<"MOve join"<<endl;
   PathData.MoveJoin(PathData.NumTimeSlices()-1);
   double FullWeight;
   double currWeight=PathData.Path.Weight;
   PathData.Path.Communicator.GatherProd(currWeight,FullWeight,0);
-  
-  NumSamples++;
-
-  double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal;
-  PathData.Actions.Energy (kinetic, dUShort, dULong, node, vShort, vLong,
-			   dUNonlocal);
+  //   cerr<<"gather prod"<<endl;
+   NumSamples++;
+   
+   double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal;
+   PathData.Actions.Energy (kinetic, dUShort, dULong, node, vShort, vLong,
+			    dUNonlocal);
+   //   cerr<<"Get energy"<<endl;
   //  cerr<<"ENERGIES: "<<kinetic<<" "<<duShort<<" "<<dULong<<" "<<node<<" "<<vShort<<" "<<vLong<<" "<<dUNonlocal<<endl;
   TotalSum   += (kinetic + dUShort + dULong + node)*FullWeight;
   KineticSum += kinetic*FullWeight;/* * PathData.Path.Weight*/;
@@ -440,6 +441,7 @@ void EnergySignClass::Accumulate()
   VShortSum  += vShort*FullWeight;/* * PathData.Path.Weight*/;
   VLongSum   += vLong*FullWeight;/* * PathData.Path.Weight*/;
   dUNonlocalSum += dUNonlocal*FullWeight;
+  //  cerr<<"done"<<endl;
 }
 
 
