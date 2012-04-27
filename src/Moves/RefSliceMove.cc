@@ -156,7 +156,7 @@ void RefSliceMoveClass::MakeMoveMaster()
   int stageCounter = 0;
   ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1, Slice2);
   while (stageIter!=Stages.end() && toAccept){
-    cerr<<"Attempting level"<<(*stageIter)->BisectionLevel<<endl;
+    //    cerr<<"Attempting level"<<(*stageIter)->BisectionLevel<<endl;
     toAccept = (*stageIter)->Attempt(Slice1,Slice2,
 				     ActiveParticles,prevActionChange);
     stageCounter++;
@@ -178,7 +178,7 @@ void RefSliceMoveClass::MakeMoveMaster()
       NodeAccept++;
       Accept();
       Path.RefPath.AcceptCopy();
-      cerr<<"ACCEPTNG REF SLICE MOVE"<<endl;
+      //      cerr<<"ACCEPTNG REF SLICE MOVE"<<endl;
     }
 //    else if (firstTime){
 //      firstTime=false;
@@ -191,13 +191,13 @@ void RefSliceMoveClass::MakeMoveMaster()
       NodeReject++;
       Reject();
       Path.RefPath.RejectCopy();
-      cerr<<"REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
+      //      cerr<<"REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   }
   // Otherwise, reject the whole move
   else {
     Reject();
-    cerr<<"REJECTING REF SLICE MOVE BY LOCAL REJECt"<<endl;
+    //    cerr<<"REJECTING REF SLICE MOVE BY LOCAL REJECt"<<endl;
     Path.RefPath.RejectCopy();
   }
 

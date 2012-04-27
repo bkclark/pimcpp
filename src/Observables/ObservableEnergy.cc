@@ -39,7 +39,7 @@ void EnergyClass::Accumulate()
   	//map<double> Energies;
   double kinetic, dUShort, dULong, node, vShort, vLong, tip5p, dUNonlocal,
     residual;
-  cerr<<"SIGNS: "<<PathData.Path.Sign<<" "<<PathData.Path.Weight<<endl;
+  //  cerr<<"SIGNS: "<<PathData.Path.Sign<<" "<<PathData.Path.Weight<<endl;
   PathData.Actions.Energy (kinetic, dUShort, dULong, node, vShort, vLong,
 			   dUNonlocal,residual);
 

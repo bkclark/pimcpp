@@ -721,7 +721,7 @@ FreeNodalActionClass::SingleAction (int startSlice, int endSlice,
     if ((slice != refSlice) && (slice != refSlice+Path.TotalNumSlices))
       if (Det(slice) < 0.0){
     	uNode += 1.0e50;
-	cerr<<"Broken slice is "<<slice<<endl;
+	//	cerr<<"Broken slice is "<<slice<<endl;
       }
   }
 
@@ -735,7 +735,7 @@ FreeNodalActionClass::SimpleAction (int startSlice, int endSlice,
 				    const Array<int,1> &changePtcls, 
 				    int level)
 { 
-  cerr<<"TRYING SINGLE ACTION"<<endl;
+  //  cerr<<"TRYING SINGLE ACTION"<<endl;
   /// HACK HACK HACK HACK
 //   startSlice = 0;
 //   endSlice = Path.NumTimeSlices()-1;
