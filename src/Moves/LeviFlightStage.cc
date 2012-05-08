@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "LeviFlightStage.h"
 
 void LeviFlightStageClass::Read(IOSectionClass &in)

@@ -17,12 +17,14 @@
 #ifndef PATH_CLASS_H
 #define PATH_CLASS_H
 
-// #include <Common/MPI/Communication.h>
+
 #include "Communication/Communication.h"
-#include <Common/IO/IO.h>
+
+#include "IO/IO.h"
 #include "MirroredClass.h"
 #include "SpeciesClass.h"
-#include <Common/Random/Random.h>
+
+#include "Random/Random.h"
 #include "GridClass.h"
 #include <vector>
 //#include <fftw3.h>

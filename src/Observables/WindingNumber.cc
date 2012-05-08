@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////
 
 #include "WindingNumber.h"
-#include <Common/MPI/Communication.h>
+
 
 
 

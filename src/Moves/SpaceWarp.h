@@ -1,7 +1,7 @@
 #ifndef SPACE_WARP_H
 #define SPACE_WARP_H
 
-#include <Common/Blitz.h>
+#include "../Blitz.h"
 
 class SpaceWarpClass
 {

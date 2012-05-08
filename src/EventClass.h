@@ -17,7 +17,7 @@
 #ifndef EVENT_CLASS_H
 #define EVENT_CLASS_H
 
-#include <Common/IO/IO.h>
+#include "IO/IO.h"
 
 using namespace IO;
 

@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "DavidLongRangeClassYk.h"
 #include "../PathDataClass.h"
 #include <set>

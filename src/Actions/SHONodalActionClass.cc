@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "SHONodalActionClass.h"
 #include "../PathDataClass.h"
 #include <Common/MatrixOps/MatrixOps.h>

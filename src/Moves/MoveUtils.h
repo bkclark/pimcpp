@@ -1,7 +1,7 @@
 #ifndef MOVE_UTILITIES_H
 #define MOVE_UTILITIES_H
 
-// #include <Common/Blitz.h>
+
 #include "../Blitz.h"
 typedef TinyVector<scalar,NDIM> dVec;
 

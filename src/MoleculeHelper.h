@@ -2,7 +2,8 @@
 #define MOLECULE_HELPER_H
 
 #include "Common.h"
-#include <Common/IO/IO.h>
+#include "IO/IO.h"
+
 
 using namespace IO;
 

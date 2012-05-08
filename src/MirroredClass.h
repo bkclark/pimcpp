@@ -17,7 +17,8 @@
 #ifndef MIRRORED_CLASS
 #define MIRRORED_CLASS
 
-#include <Common/MPI/Communication.h>
+
+#include "Communication/Communication.h"
 #include <blitz/array.h>
 
 typedef enum {OLDMODE, NEWMODE} ModeType;

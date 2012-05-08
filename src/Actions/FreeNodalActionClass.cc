@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "FreeNodalActionClass.h"
 #include "../PathDataClass.h"
 #include <Common/MatrixOps/MatrixOps.h>

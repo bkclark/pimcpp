@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+#include "../Communication/Communication.h"
 #include "CouplingStage.h"
 void CouplingStageClass::Read(IOSectionClass &in)
 {

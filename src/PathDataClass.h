@@ -22,7 +22,8 @@
 #include "SpeciesClass.h"
 #include "PathClass.h"
 #include "Actions/ActionsClass.h"
-#include <Common/Random/Random.h>
+
+#include "Random/Random.h"
 #include "MoleculeHelper.h"
 
 #ifdef USE_QMC

@@ -16,7 +16,7 @@
 
 #include "EAMClass.h"
 #include "../PathDataClass.h"
-#include <Common/MPI/Communication.h>
+
 
 EAMPotentialClass::EAMPotentialClass(PathDataClass &pathData) : 
   ActionBaseClass (pathData)

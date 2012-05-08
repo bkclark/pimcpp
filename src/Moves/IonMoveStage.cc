@@ -1,4 +1,4 @@
-#include <Common/MPI/Communication.h>
+
 #include "IonMoveStage.h"
 #include "MoveUtils.h"
 

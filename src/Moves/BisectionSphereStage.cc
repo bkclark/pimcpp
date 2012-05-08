@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "BisectionSphereStage.h"
 
 void BisectionStageSphereClass::Read(IOSectionClass &in)

@@ -1,4 +1,4 @@
-#include <Common/MPI/Communication.h>
+
 #include "WormStage.h"
 
 void WormStageClass::Read(IOSectionClass &in)

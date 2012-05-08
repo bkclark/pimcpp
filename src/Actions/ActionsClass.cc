@@ -19,7 +19,7 @@
 #include "../PathDataClass.h"
 #include <Common/Ewald/OptimizedBreakup.h>
 // #include <Common/Integration/GKIntegration.h>
-#include <Common/IO/FileExpand.h>
+#include "../IO/FileExpand.h"
 
 // now include ActionBaseClass headers here, not in .h
 #include "ExternalPotential.h"

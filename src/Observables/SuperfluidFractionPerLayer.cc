@@ -1,5 +1,5 @@
 #include "SuperfluidFractionPerLayer.h"
-#include <Common/MPI/Communication.h>
+
 
 void 
 SuperfluidFractionPerLayerClass::Read(IOSectionClass& IO)

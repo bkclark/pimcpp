@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-//#include "../Common/Blitz.h"
+
 #include "../PathDataClass.h"
 #ifndef PERMUTE_TABLE_ON_CLASS_H
 #define PERMUTE_TABLE_ON_CLASS_H

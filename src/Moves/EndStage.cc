@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "EndStage.h"
 void EndStageClass::Read(IOSectionClass &in)
 {

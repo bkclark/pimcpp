@@ -27,7 +27,7 @@ double WaterClass::SingleAction (int slice1, int slice2,
     total+=en*factor;
   }
   
-  return PathData.Path.tau*total;
+  return PathData.Path.tau*total*3.1577504e5;
   //    cerr<<we.ComputeEnergy()<<endl;
     
 }

@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "NoPermuteStage.h"
 
 double NoPermuteStageClass::Sample (int &slice1, int &slice2,

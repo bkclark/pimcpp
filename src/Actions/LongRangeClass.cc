@@ -14,7 +14,7 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#include <Common/MPI/Communication.h>
+
 #include "LongRangeClass.h"
 #include "../PathDataClass.h"
 // #include <Common/Ewald/OptimizedBreakup.h>

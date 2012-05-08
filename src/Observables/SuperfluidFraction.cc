@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////
 
 #include "SuperfluidFraction.h"
-#include <Common/MPI/Communication.h>
+
 
 void 
 SuperfluidFractionClass::Read(IOSectionClass& IO)

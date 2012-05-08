@@ -1,4 +1,4 @@
-#include <Common/Blitz.h>
+#include "../Blitz.h"
 #include <fstream>
 #include <vector>
 

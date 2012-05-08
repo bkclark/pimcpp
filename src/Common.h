@@ -23,7 +23,7 @@
 #define NDIM 3
 
 #include <sprng.h>
-#include <Common/Blitz.h>
+#include "Blitz.h"
 #include <fstream>
 typedef TinyVector<double,NDIM> dVec;
 
