@@ -17,7 +17,7 @@
 
 #include "FreeNodalActionClass.h"
 #include "../PathDataClass.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 
 double 
 FreeNodalActionClass::ActionImageSum (double L, double lambdaBeta, 

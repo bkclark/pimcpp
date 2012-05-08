@@ -17,7 +17,7 @@
 
 #include "SHONodalActionClass.h"
 #include "../PathDataClass.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 
 double 
 SHONodalActionClass::ActionImageSum (double L, double lambdaBeta, 

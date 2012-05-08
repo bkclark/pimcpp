@@ -18,7 +18,7 @@
 #include "ShortRangeClass.h"
 #include "ShortRangeOnClass.h"
 #include "ctime"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 #include "sys/time.h"
 ///This has to be called after pathdata knows how many
 ///particles it has

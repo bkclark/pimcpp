@@ -16,7 +16,7 @@
 
 
 #include "BisectionStage.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 
 
 // double BisectionStageClass::LogSampleProb(int slice1, int slice2, 

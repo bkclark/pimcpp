@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////
 
 #include "VariationalPIEnergy.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 
 
 

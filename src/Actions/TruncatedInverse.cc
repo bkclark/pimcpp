@@ -5,7 +5,7 @@
 #include "../PathDataClass.h"
 #include <algorithm>
 #include "TruncatedInverse.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 #include <cstdlib>
 #include <cstdio>
 #include <string>

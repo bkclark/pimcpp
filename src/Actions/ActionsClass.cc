@@ -17,8 +17,6 @@
 #include "../Communication/Communication.h"
 #include "ActionsClass.h"
 #include "../PathDataClass.h"
-#include <Common/Ewald/OptimizedBreakup.h>
-// #include <Common/Integration/GKIntegration.h>
 #include "../IO/FileExpand.h"
 
 // now include ActionBaseClass headers here, not in .h

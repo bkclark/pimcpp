@@ -17,8 +17,6 @@
 
 #include "LongRangeClass.h"
 #include "../PathDataClass.h"
-// #include <Common/Ewald/OptimizedBreakup.h>
-// #include <Common/Integration/GKIntegration.h>
 
 class CoulombXkIntegrand
 {

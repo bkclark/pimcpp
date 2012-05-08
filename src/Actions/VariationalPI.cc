@@ -21,7 +21,7 @@
 
 #include "../PathDataClass.h"
 #include "VariationalPI.h"
-#include <Common/MatrixOps/MatrixOps.h>
+#include "../MatrixOps/MatrixOps.h"
 #include <cstdlib>
 #include <cstdio>
 #include <string>
