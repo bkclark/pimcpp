@@ -60,8 +60,7 @@ bool PIMCClass::Read(IOSectionClass &in)
     assert(in.OpenSection("System"));
     PathData.Path.InitPaths(in);
 
-    // Variational PI ONLY
-    PathData.Actions.VariationalPI.BuildDeterminantMatrix();
+
 
     in.CloseSection();
 
@@ -219,8 +218,6 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new SuperfluidFractionPerLayerClass(PathData,OutFile); 
    else if (observeType=="SuperfluidFraction")
       tempObs = new SuperfluidFractionClass(PathData,OutFile);
-    else if (observeType=="VariationalPIEnergy")
-      tempObs = new VariationalPIEnergyClass(PathData,OutFile);
     else if (observeType=="Sign")
       tempObs = new SignClass(PathData,OutFile);
     //    else if (observeType=="Vacancy")
@@ -351,8 +348,6 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new DisplaceMoveClass(PathData,OutFile);
     else if (moveType=="DisplaceFast")
       move = new DisplaceFastMoveClass(PathData,OutFile);
-    else if (moveType=="VariationalDisplace")
-      move = new VariationalDisplaceMoveClass(PathData,OutFile);
     //     else if (moveType=="WaterRotate")
 //     else if (moveType=="VariationalDisplace")
 //        move = new VariationalDisplaceMoveClass(PathData,OutFile);

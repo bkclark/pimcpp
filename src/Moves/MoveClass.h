@@ -42,7 +42,7 @@
 #include "StructureRejectStage.h"
 #include "CouplingMove.h"
 
-#include "VariationalDisplaceMove.h"
+
 
 #include "WormGrow.h"
 #include "ReadPath.h"

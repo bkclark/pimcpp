@@ -43,7 +43,7 @@ src/Actions/LongRangePotClass.cc																			       src/Moves/StageClass.c
 src/Actions/LongRangeRPAClass.cc																			         src/Moves/StructureRejectStage.cc
 src/Actions/MoleculeInteractionsClass.cc																			  src/Moves/SwapMove.cc
 src/Actions/Mu.cc																						      src/Moves/TablePermuteStage.cc
-src/Actions/NodalActionClass.cc																					         src/Moves/VariationalDisplaceMove.cc
+src/Actions/NodalActionClass.cc																					         
 src/Actions/OpenLoopImportance.cc																					   src/Moves/WormClose.cc
 src/Actions/QMCSamplingClass.cc																						      src/Moves/WormGrow.cc
 src/Actions/ReadAction.cc																						         src/Moves/WormPermuteStage.cc
@@ -60,8 +60,8 @@ src/Actions/ShortRangePrimitive.cc																							         src/Observable
 src/Actions/StructureReject.cc																									    src/Observables/JosephsonPathDump.cc
 src/Actions/TIP5PWaterClass.cc																									       src/Observables/ObservableBase.cc
 src/Actions/Tether.cc																										           src/Observables/ObservableCorrelation.cc
-src/Actions/TruncatedInverse.cc																										      src/Observables/ObservableDiffusion.cc
-src/Actions/VariationalPI.cc																										         src/Observables/ObservableEnergy.cc
+src/Actions/TruncatedInverse.cc																										      src/Observables/ObservableDiffusion.cc 
+																										         src/Observables/ObservableEnergy.cc
 src/Common.cc																													      src/Observables/ObservableVar.cc
 src/Communication/Communication.cc																										        src/Observables/OpenOrientation.cc
 src/EventClass.cc																													    src/Observables/PairCorrelationReweighting.cc
@@ -81,7 +81,7 @@ src/Main.cc																																			            src/Observables/Superf
 src/MatrixOps/MatrixOps.cc																																		       src/Observables/Time.cc
 src/MirroredClass.cc																																			           src/Observables/TimeHexatic.cc
 src/MoleculeHelper.cc																																				       src/Observables/TimeLindenman.cc
-src/Moves/AVBMove.cc																																				           src/Observables/VariationalPIEnergy.cc
+src/Moves/AVBMove.cc																																				          
 src/Moves/BisectionBlock.cc																																				      src/Observables/Weight.cc
 src/Moves/BisectionJosephsonStage.cc																																			        src/Observables/WindingNumber.cc
 src/Moves/BisectionSphereBlock.cc																																				  src/PIMCClass.cc

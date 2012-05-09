@@ -48,9 +48,8 @@
 #include "StructureReject.h"
 //#include "KineticRotorClass.h"
 // #include "KineticSphereClass.h"
-#include "TruncatedInverse.h"
+
 #include "Mu.h"
-#include "VariationalPI.h"
 #include "Tether.h"
 //#include "NonlocalClass.h"
 
@@ -87,8 +86,8 @@ public:
   Array<PairActionFitClass*,1> SpecificHeatPairArray;
   // This stores pointers to pair action fits for each pair of species.
   Array<PairActionFitClass*,2> PairMatrix;
-  VariationalPIClass VariationalPI;
-  TruncatedInverseClass TruncatedInverse;
+
+
   /// Used to keep track of the total action
   double TotalA, TotalB;
 
@@ -252,9 +251,7 @@ public:
 //    QMCSampling(pathData),
 //    IonInteraction(pathData),
     Mu(pathData),
-    VariationalPI(pathData),
     StructureReject(pathData),
-    TruncatedInverse(pathData),
     NumImages(1),
     UseLongRange(true)
       //    Nonlocal (pathData),

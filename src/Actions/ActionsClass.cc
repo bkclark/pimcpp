@@ -57,9 +57,7 @@
 
 
 
-#include "TruncatedInverse.h"
 #include "Mu.h"
-#include "VariationalPI.h"
 #include "Tether.h"
 // #include "NonlocalClass.h"
 //#include "ReadAction.h"
@@ -114,10 +112,6 @@ void ActionsClass::Read(IOSectionClass &in)
   //if(doFARRead){
 	//	FixedAxisRotor.Read(in);
 	//}
-#ifdef ORDER_N_FERMIONS
-  VariationalPI.Read(in);
-  TruncatedInverse.Read(in);
-#endif
   //  VariationalPI.Read(in);
   verr << "MaxLevels = " << MaxLevels << endl;
   bool checkJosephson=false;
@@ -758,16 +752,6 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
 //       NodalActions(groundState.IonSpeciesNum) = 
 // 	new GroundStateNodalActionClass 
 // 	(PathData, groundState, groundState.IonSpeciesNum);
-    }
-     else if (type == "VARIATIONAL") {
-	 NodalActions.resizeAndPreserve(2);
-       NodalActions(0) = 
- 	&VariationalPI;
-     }
-    else if (type == "TRUNCATED") {
-	 NodalActions.resizeAndPreserve(2);
-      NodalActions(1) = 
-	&TruncatedInverse;
     }
     else if (type == "FIXEDPHASE") {
 //       FixedPhaseA = new FixedPhaseClass(PathData);
