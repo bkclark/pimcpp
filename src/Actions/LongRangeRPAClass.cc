@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////
 
 #include "../PathDataClass.h"
-#include <Common/Integration/RungeKutta.h>
+
 #include "LongRangeRPAClass.h"
 
 LongRangeRPAClass::LongRangeRPAClass(PathDataClass &pathData,
@@ -136,7 +136,7 @@ void LongRangeRPAClass::Init(IOSectionClass &in)
   Array<double,2> uwvec(numPoints, m);
 
   // Setup integrator
-  RungeKutta2<LongRangeRPAClass> integrator(*this);
+  //HACK  RungeKutta2<LongRangeRPAClass> integrator(*this);
 
   double boxVol = Path.GetVol();
   // Calculated RPA for U
@@ -152,7 +152,7 @@ void LongRangeRPAClass::Init(IOSectionClass &in)
       /// Set initial conditions
       for (int i=0; i<m; i++)
 	uwvec(0, i) = 0.0;
-      integrator.Integrate(tGrid, 0, numPoints-1, uwvec);
+      //HACK      integrator.Integrate(tGrid, 0, numPoints-1, uwvec);
       for (int species1=0; species1<Path.NumSpecies(); species1++)
 	for (int species2=species1; species2<Path.NumSpecies(); species2++) {
 	  PairActionFitClass &pa = 
@@ -189,7 +189,7 @@ void LongRangeRPAClass::Init(IOSectionClass &in)
       /// Set initial conditions
       for (int i=0; i<m; i++)
 	uwvec(0, i) = 0.0;
-      integrator.Integrate(tGrid, 0, numPoints-1, uwvec);
+      //HACK      integrator.Integrate(tGrid, 0, numPoints-1, uwvec);
       Array<double,1> duvec(m);
       duvec = Integrand (levelTau, uwvec(numPoints-1,Range::all()));
       for (int species1=0; species1<Path.NumSpecies(); species1++)

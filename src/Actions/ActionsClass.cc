@@ -51,9 +51,9 @@
 #include "OpenLoopImportance.h"
 
 #include "StructureReject.h"
-#include "KineticRotorClass.h"
+// #include "KineticRotorClass.h"
 // #include "KineticSphereClass.h"
-#include "KineticVibrationClass.h"
+// #include "KineticVibrationClass.h"
 
 
 
@@ -350,15 +350,20 @@ void ActionsClass::Read(IOSectionClass &in)
     } else if (type == "QboxAction") {
       newAction = new QBoxActionClass(PathData);
 #endif
-    } else if (type == "FixedAxisRotor") {
-      newAction = new FixedAxisRotorClass(PathData);
-    } else if (type == "KineticRotor") {
-      newAction = new KineticRotorClass(PathData);
-    } else if (type == "KineticVibration") {
-      newAction = new KineticVibrationClass(PathData);
-    } else if (type == "KineticVibrationEigenFunction") {
-      newAction = new KineticVibrationEigenFunctionClass(PathData);
-    } else if (type == "LongRangeCoulomb") {
+    } 
+    //else if (type == "FixedAxisRotor") {
+    //      newAction = new FixedAxisRotorClass(PathData);
+    //    } 
+    //    else if (type == "KineticRotor") {
+    //      newAction = new KineticRotorClass(PathData);
+    //    } 
+    //    else if (type == "KineticVibration") {
+    //      newAction = new KineticVibrationClass(PathData);
+    //    }
+    //    else if (type == "KineticVibrationEigenFunction") {
+    //      newAction = new KineticVibrationEigenFunctionClass(PathData);
+    //    }
+    else if (type == "LongRangeCoulomb") {
       newAction = new LongRangeCoulombClass(PathData, PairMatrix, PairArray);
 //    } else if (type == "ReadFromFile") {
 //      newAction = new ReadFromFileActionClass(PathData);

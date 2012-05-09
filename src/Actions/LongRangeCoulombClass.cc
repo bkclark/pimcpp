@@ -17,8 +17,6 @@
 
 #include "LongRangeCoulombClass.h"
 #include "../PathDataClass.h"
-#include <Common/Ewald/OptimizedBreakup.h>
-#include <Common/Integration/GKIntegration.h>
 
 // hack
 //ofstream out;

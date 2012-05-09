@@ -34,9 +34,7 @@ src/Actions/DiagonalActionClass.cc																         src/Moves/PermuteStag
 src/Actions/EAMClass.cc																			     src/Moves/PermuteTableClass.cc
 src/Actions/ExternalPotential.cc																	       src/Moves/PermuteTableOnClass.cc
 src/Actions/FreeNodalActionClass.cc																	         src/Moves/PreSampling.cc
-src/Actions/KineticClass.cc																			    src/Moves/RandomPermClass.cc
-src/Actions/KineticRotorClass.cc																		      src/Moves/ReadPath.cc
-src/Actions/KineticVibrationClass.cc																		        src/Moves/RefSliceMove.cc
+src/Actions/KineticClass.cc																			    src/Moves/RandomPermClass.cc 																		      src/Moves/ReadPath.cc																		        src/Moves/RefSliceMove.cc
 src/Actions/LongRangeClass.cc																				   src/Moves/SPS.cc
 src/Actions/LongRangeCoulombClass.cc																			     src/Moves/SpaceWarp.cc
 src/Actions/LongRangePotClass.cc																			       src/Moves/StageClass.cc
@@ -60,7 +58,7 @@ src/Actions/ShortRangePrimitive.cc																							         src/Observable
 src/Actions/StructureReject.cc																									    src/Observables/JosephsonPathDump.cc
 src/Actions/TIP5PWaterClass.cc																									       src/Observables/ObservableBase.cc
 src/Actions/Tether.cc																										           src/Observables/ObservableCorrelation.cc
-src/Actions/TruncatedInverse.cc																										      src/Observables/ObservableDiffusion.cc 
+																									      src/Observables/ObservableDiffusion.cc 
 																										         src/Observables/ObservableEnergy.cc
 src/Common.cc																													      src/Observables/ObservableVar.cc
 src/Communication/Communication.cc																										        src/Observables/OpenOrientation.cc
@@ -94,16 +92,19 @@ src/Moves/CorrelatedBisectionBlock.cc																																						  src
 src/Moves/CoupledPermuteStage.cc																																						    src/PathDataClass.cc
 src/Moves/CouplingMove.cc																																							       src/QMCWrapper.cc
 src/Moves/CouplingStage.cc																																							          src/SpeciesClass.cc
-src/Moves/DisplaceMove.cc																																								     src/Splines/BicubicSpline.cc
-src/Moves/DisplaceMoveFast.cc																																								        src/Splines/CubicBspline.cc
-src/Moves/EmptyStage.cc																																										    src/Splines/CubicSpline.cc
-src/Moves/EndStage.cc																																										        src/Splines/FastCubicSpline.cc
-src/Moves/IonMoveManager.cc																																										   src/Splines/FastMultiCubicSpline.cc
+src/Moves/DisplaceMove.cc																																								     
+src/Moves/DisplaceMoveFast.cc																																								        
+src/Moves/EmptyStage.cc																																					
+src/Splines/CubicSpline.cc
+src/Splines/BicubicSpline.cc
+src/Splines/QuinticSpline.cc
+src/Moves/EndStage.cc																																										        
+src/Moves/IonMoveManager.cc																																										   
 src/Moves/IonMoveStage.cc																																										      src/Splines/Grid.cc
-src/Moves/LeviFlightStage.cc																																										         src/Splines/MyTricubicSpline.cc
-src/Moves/MetaMoves.cc																																												     src/Splines/PeriodicSpline.cc
-src/Moves/MoleculeBias.cc																																											        src/Splines/QuinticSpline.cc
-src/Moves/MoleculeMove.cc																																												   src/Splines/TricubicBspline.cc
+src/Moves/LeviFlightStage.cc																																										         
+src/Moves/MetaMoves.cc																																												     
+src/Moves/MoleculeBias.cc																																											        
+src/Moves/MoleculeMove.cc																																												   
 src/Moves/MoleculeMoveBase.cc																																												      src/WormHelper.cc
 src/Moves/MoleculeMoveManager.cc																																											        src/WriteData.cc)
 message(STATUS "${SRCS}")

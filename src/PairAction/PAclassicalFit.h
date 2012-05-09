@@ -17,7 +17,7 @@
 #ifndef PA_CLASSICAL_FIT_H
 #define PA_CLASSICAL_FIT_H
 #include "PAFitBase.h"
-#include "../Splines/BicubicSpline.h"
+// #include "../Splines/BicubicSpline.h"
 
 class PAclassicalFitClass : public PairActionFitClass
 {
