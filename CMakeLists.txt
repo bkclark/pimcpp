@@ -33,6 +33,7 @@ src/Moves/NoPermuteClass.cc
 src/Actions/DavidLongRangeClass.cc																     
 src/Moves/OpenEndMove.cc
 src/Actions/DavidLongRangeClassYk.cc																       
+src/Actions/DavidLongRangeClassYk2.cc																       
 src/Moves/OpenStage.cc
 src/Actions/DiagonalActionClass.cc																         
 src/Moves/PermuteStage.cc

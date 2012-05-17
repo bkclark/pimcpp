@@ -42,6 +42,7 @@
 
 #include "DavidLongRangeClass.h"
 #include "DavidLongRangeClassYk.h"
+#include "DavidLongRangeClassYk2.h"
 //#include "QMCSamplingClass.h"
 //#include "QBoxAction.h"
 #include "OpenLoopImportance.h"
@@ -86,7 +87,7 @@ public:
   Array<PairActionFitClass*,1> SpecificHeatPairArray;
   // This stores pointers to pair action fits for each pair of species.
   Array<PairActionFitClass*,2> PairMatrix;
-
+  Array<int,2> PairIndex;
 
   /// Used to keep track of the total action
   double TotalA, TotalB;
@@ -125,7 +126,7 @@ public:
   LongRangeRPAClass LongRangeRPA;
 
   ///David's Long Range Class
-  DavidLongRangeClassYk DavidLongRange;
+  DavidLongRangeClassYk2 DavidLongRange;
 
 //  // Water-related stuff
 //  MoleculeInteractionsClass MoleculeInteractions;
@@ -230,7 +231,7 @@ public:
     DiagonalAction(pathData,PairMatrix),
     LongRange(pathData,PairMatrix,PairArray), 
     //LongRangeCoulomb(pathData,PairMatrix,PairArray), 
-    DavidLongRange(pathData,PairMatrix,PairArray),
+      DavidLongRange(pathData,PairMatrix,PairArray,PairIndex),
     LongRangeRPA(pathData, PairMatrix, PairArray),
     LongRangePot(pathData, PairMatrix),
     OpenLoopImportance(pathData),

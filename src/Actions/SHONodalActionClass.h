@@ -18,7 +18,7 @@
 #define SHO_NODAL_ACTION_CLASS_H
 
 #include "NodalActionClass.h"
-#include <Common/Splines/CubicSpline.h>
+#include "../Splines/CubicSpline.h"
 
 /// SHONodalActionClass implements the nodal action corresponding to
 /// the free fermion density matrix in periodic boundary conditions.

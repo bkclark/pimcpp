@@ -149,11 +149,15 @@ void ActionsClass::Read(IOSectionClass &in)
   if (readSpecificHeatFiles)
     SpecificHeatPairArray.resize(SpecificHeatPAFiles.size());
   PairMatrix.resize(Path.NumSpecies(),Path.NumSpecies());
+  PairIndex.resize(Path.NumSpecies(),Path.NumSpecies());
   // Initialize to a nonsense value so we can later check in the table
   // element was filled in.
   for (int i=0; i<Path.NumSpecies(); i++)
-    for (int j=0; j<Path.NumSpecies(); j++)
+    for (int j=0; j<Path.NumSpecies(); j++){
       PairMatrix(i,j) = (PairActionFitClass*)NULL;
+      
+    }
+  
   // Read pair actions files
   verr << "declaring IOSectionClass...";
   IOSectionClass PAIO;
@@ -195,6 +199,8 @@ void ActionsClass::Read(IOSectionClass &in)
 	       << Path.Species(spec2).Name << ")\n";
 	  PairMatrix(spec1,spec2) = PairArray(i);
 	  PairMatrix(spec2,spec1) = PairArray(i);
+	  PairIndex(spec1,spec2)=i;
+	  PairIndex(spec2,spec1)=i;
 	  paUsed = true;
 	}
     if (!paUsed) {
@@ -407,6 +413,7 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
   int numPairActions = PAFiles.size();
   PairArray.resize(numPairActions);
   PairMatrix.resize(Path.NumSpecies(),Path.NumSpecies());
+  PairIndex.resize(Path.NumSpecies(),Path.NumSpecies());
   // Initialize to a nonsense value so we can later check in the table
   // element was filled in.
   for (int i=0; i<Path.NumSpecies(); i++)
@@ -438,6 +445,8 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
 	       << Path.Species(spec2).Name << ")\n";
 	  PairMatrix(spec1,spec2) = PairArray(i);
 	  PairMatrix(spec2,spec1) = PairArray(i);
+	  PairIndex(spec2,spec1) = i;
+	  PairIndex(spec1,spec2) = i;
 	  paUsed = true;
 	}
     if (!paUsed) {
