@@ -344,15 +344,18 @@ double ShortRangeEnergy(SystemClass &system)
     dVecp ii;
     for (int j=i+1;j<system.r.size();j++){
       //      if (i>j){
-	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
-	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
-	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+      //	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	  {
+	    //	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	    {
+	      //	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	      {
 	      dVecp r12;
 	      double dist;
 	      system.DistDisp (system.r[i], system.r[j],dist,r12);
-	      r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
-	      r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
-	      r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	      //	      r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	      //	      r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	      //	      r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	      double dist2=h.dot(r12,r12);
 	      dist=sqrt(dist2);
 	      double D1=0.0; double D2=0.0; double gamma1=0.0; double gamma2=0.0;
@@ -441,15 +444,18 @@ double ewald(SystemClass  &system,
     dVecp ii;
     for (int j=0;j<system.r.size();j++){
       if (i!=j){
-	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
-	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
-	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+	//	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	  {
+	    //	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	    {
+	      //	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	      {
 	       dVecp r12;
 	       double dist;
 	       system.DistDisp (system.r[i], system.r[j],dist,r12);
-	       r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
-	       r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
-	       r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	       //	       r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	       //	       r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	       //	       r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	       double dist2=h.dot(r12,r12);
 	       dist=sqrt(dist2);
 	       if (dist<CO){
@@ -496,16 +502,19 @@ void Dipole_sr(SystemClass &system, vector<dVecp> &dip_sr)
       dVecp ii;
       for (int j=0;j<system.r.size();j++){
  	if (i!=j){
-	  for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
-	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
-	  for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+	  //	  for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	    {
+	      //	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	      {
+		//	  for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	    {
 	  
 	  double dist;
 	  dVecp r12;
 	  system.DistDisp (system.r[i], system.r[j],dist,r12);
-	  r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
-	  r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
-	  r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	  //	  r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	  //	  r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	  //	  r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	  
 	  double dist2=h.dot(r12,r12);
 	  dist=sqrt(dist2);
@@ -560,16 +569,19 @@ double Dipole_sr_energy(SystemClass &system, vector<dVecp> &dip_sr)
       dVecp ii;
       for (int j=0;j<system.r.size();j++){
  	if (i!=j){
-	  for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
-	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
-	  for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+	  //	  for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	  {
+	    //	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	    {
+	      //	  for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	    {
 	  
 	  double dist;
 	  dVecp r12;
 	  system.DistDisp (system.r[i], system.r[j],dist,r12);
-	  r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
-	  r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
-	  r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	  //	  r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	  //	  r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	  //	  r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	  
 	  double dist2=h.dot(r12,r12);
 	  dist=sqrt(dist2);
@@ -755,16 +767,19 @@ double ComputeEnergy()
       for (int j=0;j<system.r.size();j++){
       dVecp ii;
       if (i!=j){
-	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
- 	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
-	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+	//	for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	  {
+	    // 	  for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	    {
+	      //	    for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	      {
 
 	      dVecp r12;
 	      double dist;
 	      system.DistDisp (system.r[i], system.r[j],dist,r12);
-	      r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
-	      r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
-	      r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	      //	      r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	      //	      r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	      //	      r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	      double dist2=h.dot(r12,r12);
 	      dist=sqrt(dist2);
 	      if (dist<CO){
@@ -820,16 +835,19 @@ double ComputeEnergy()
     for (int j=0;j<system.r.size();j++){
       dVecp ii;
         if (i!=j){
- 	 for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++){
- 	   for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++){
- 	     for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++){
+	  // 	 for (ii.vec[0]=-1;ii.vec[0]<=1;ii.vec[0]++)
+	   {
+	     // 	   for (ii.vec[1]=-1;ii.vec[1]<=1;ii.vec[1]++)
+	     {
+	       // 	     for (ii.vec[2]=-1;ii.vec[2]<=1;ii.vec[2]++)
+	       {
 
  	       dVecp r12;
  	       double dist;
  	       system.DistDisp (system.r[i], system.r[j],dist,r12);
- 	       r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
- 	       r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
- 	       r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
+	       // 	       r12.vec[0]=r12.vec[0]+ii.vec[0]*system.params.Box.vec[0];
+	       // 	       r12.vec[1]=r12.vec[1]+ii.vec[1]*system.params.Box.vec[1];
+	       // 	       r12.vec[2]=r12.vec[2]+ii.vec[2]*system.params.Box.vec[2];
 	       double dist2=h.dot(r12,r12);
 	       dist=sqrt(dist2);
  	       if (dist<CO){
@@ -915,10 +933,10 @@ double ComputeEnergy()
   //  cerr<<"Short range time take "<<Timer.Time();
   Timer.Clear();
   //  cerr<<"short range energy: "<<sr_energy<<endl;
-  cerr<<setprecision(9);
+  //  cerr<<setprecision(9);
   double total=sr_energy+ewald_energy+e_dd+e_qd+e_ind+dipole_sr_energy;
   
-  cerr<<"TOTAL: "<<total<<endl;
+  //  cerr<<"TOTAL: "<<total<<endl;
   return total;
 
 }
