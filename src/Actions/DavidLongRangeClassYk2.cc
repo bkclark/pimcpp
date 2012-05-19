@@ -127,8 +127,8 @@ void DavidLongRangeClassYk2::ReadYk()
       assert(specNum2<Path.NumSpecies());
     }
     cerr<<"MASSES: "<<pa.LongRangeMass1<<" "<<pa.LongRangeMass2<<" "<<Path.Species(specNum1).lambda<<" "<<Path.Species(specNum2).lambda<<endl;
-    assert(fabs(pa.LongRangeMass1-Path.Species(specNum1).lambda)<1e-10);
-    assert(fabs(pa.LongRangeMass2-Path.Species(specNum2).lambda)<1e-10);
+    //    assert(fabs(pa.LongRangeMass1-Path.Species(specNum1).lambda)<1e-10);
+    //    assert(fabs(pa.LongRangeMass2-Path.Species(specNum2).lambda)<1e-10);
   }
 
   uk.resize(PairArray.size(), Path.kVecs.size());

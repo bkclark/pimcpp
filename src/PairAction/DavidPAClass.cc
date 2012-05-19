@@ -862,7 +862,7 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       for(int i=0; i<NumTau; i++){ //HACK!
 	tempdUkj2(Range::all(),0,i) = potential;
 	///	cerr<<"Current tau is "<<tau<<" "<<i<<endl;
-	if (fabs(tau-DesiredTau)<1e-8){
+	if (fabs(tau-DesiredTau)<1e-6){
 	  ///	  cerr<<"The tau I've chosen is "<<tau;
 	  TauPos=i;
 	}
@@ -1143,7 +1143,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 	tempdUkj2(Range::all(),0,i) = potential;
 	///	cerr<<"Current tau is "<<tau<<" "<<i<<endl;
 	cerr<<"Tau diffs: "<<tau<<" "<<DesiredTau<<" "<<tau-DesiredTau<<endl;
-	if (fabs(tau-DesiredTau)<1e-8){
+	if (fabs(tau-DesiredTau)<1e-6){
 
 	  ///	  cerr<<"The tau I've chosen is "<<tau;
 	  TauPos=i;

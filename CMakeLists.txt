@@ -20,8 +20,8 @@ endmacro()
 cmake_minimum_required (VERSION 2.6) 
 project (pimc++) 
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
-SET(CMAKE_CXX_COMPILER,"g++")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -I/home/bclark/pcts/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/home/bclark/pcts/lib/   -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/ -lhdf5 -lsprng -L/usr/lib -L/home/bclark/lib/  -lz  -L/Applications/sage/local/lib/ -I/usr/include/atlas/  -lblas -llapack -lgsl -L/opt/intel/mkl/10.2.6.038/lib/em64t/  -lpthread   ")
+SET(CMAKE_CXX_COMPILER,"mpicxx")
+SET(CMAKE_CXX_FLAGS "-DUSE_MPI -DH5_USE_16_API -O3 -I/projects/qmcpack/chama/include/ -DH5_USE_16_API  -L/projects/qmcpack/chama/lib -lhdf5 -lsprng -lz -L/opt/intel-12.1/mkl/lib/intel64/ -lmkl_intel_lp64 -lmkl_sequential -lmkl_core  -lpthread")
 add_sources(src/Actions/ActionBase.cc
 src/Moves/MoveBase.cc
 src/Actions/ActionsClass.cc

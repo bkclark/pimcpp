@@ -209,7 +209,7 @@ void EnergyClass::WriteBlock()
       vtail(i)=((DavidPAClass*)(PathData.Actions.PairArray(i)))->Vimage;
     if (PathData.Path.DavidLongRange){
       //      DavidLongRangeClassYk *lr = (DavidLongRangeClassYk*)(PathData.Actions.GetAction("DavidLongRange"));
-      DavidLongRangeClassYk *lr = (DavidLongRangeClassYk*)(&(PathData.Actions.DavidLongRange));
+      DavidLongRangeClassYk2 *lr = (DavidLongRangeClassYk2*)(&(PathData.Actions.DavidLongRange));
       longrange_vtail=0.5*lr->yk_zero(0)*PathData.Path.NumParticles()/Path.GetVol();
     }
     VTailSRVar.Write(vtail);
