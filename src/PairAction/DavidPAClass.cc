@@ -1214,11 +1214,14 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   verr<<"I've selected a tau of "<<tau<< "in the PairAction file"<<endl;
   cerr<<"TauPos is "<<TauPos<<endl;
   if (in.OpenSection("LongRange")){
+    HasLongRange=true;
     cerr<<"In long range finding"<<endl;
     ReadLongRangeHDF5(in);
     in.CloseSection();
     cerr<<"done with long range finding"<<endl;
   }
+  else
+    HasLongRange=false;
   cerr << "Leaving DavidSquarer HDF5 read" << endl;
 
 }

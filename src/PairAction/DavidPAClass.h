@@ -64,6 +64,7 @@ class DavidPAClass : public PairActionFitClass
   int LongRangeDim;
   double LongRangeMass1;
   double LongRangeMass2;
+  bool HasLongRange;
   Array<double,1> LongRangeBox;
   /// This stores the coefficients of the expansion specified above.
   /// The array index is over the levels.  You call it with the q
@@ -143,6 +144,7 @@ class DavidPAClass : public PairActionFitClass
 
 inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
 {
+  Name="DavidPAClass";
   cerr<<"In DavidPAClass Read"<<endl;
   cerr<<"values are "<<x<<" "<<y<<endl;
   string fileName;

@@ -32,6 +32,7 @@ class PairActionFitClass
 protected:
   void ReadHeader(IOSectionClass &inSection);
 public:
+  string Name;
   ParticleClass Particle1, Particle2;
   /// These store the long-range part of the action/potential in real
   /// space.  This will be subtracted from the total U to get the

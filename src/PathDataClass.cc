@@ -164,6 +164,7 @@ void PathDataClass::FindTail(int &tailSlice,int &tailPtcl)
 
 void PathDataClass::Read (IOSectionClass &in)
 {
+
 #ifdef USE_QMC
 	useDefaultStrings = true;
 	int M = MetaWorldComm.NumProcs();
@@ -271,7 +272,6 @@ void PathDataClass::Read (IOSectionClass &in)
   	bool haveSeed = in.ReadVar ("Seed", seed);
   	// Now, set up random number generator
 
-
   	//  int seed;
   	if (in.ReadVar("Seed",Seed)){
   	  Random.Init (Seed, NumClones);
@@ -327,15 +327,20 @@ void PathDataClass::Read (IOSectionClass &in)
   int seed;
   bool haveSeed = in.ReadVar ("Seed", seed);
   // Now, set up random number generator
+  cerr<<"I have the seed: "<<haveSeed<<endl;
+  cerr<<seed<<endl;
+
 
 
   //  int seed;
   if (in.ReadVar("Seed",Seed)){
+    cerr<<"in here with seed: "<<Seed<<endl;
     Random.Init (Seed, NumClones, sameSeed);
   }
   else {
     Seed=Random.InitWithRandomSeed(NumClones);
   }
+
   //    Random.Init (314159, numClones);
   
 

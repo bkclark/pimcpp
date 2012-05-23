@@ -36,21 +36,48 @@ bool DavidLongRangeClassYk2::vecEquals(dVec &a, dVec &b,double tol)
 void DavidLongRangeClassYk2::Build_MultipleSpecies()
 {
   double vol=1.0;
+  for (int i=0;i<duk.extent(0);i++){
+    for (int j=0;j<duk.extent(1);j++){
+      duk(i,j)=100.0;
+    }
+  }
+  cerr<<duk.extent(0)<<" "<<PathData.NumSpecies()<<endl;
+
   for (int dim=0;dim<NDIM;dim++)
     vol*=Path.GetBox()[dim];
-  for (int speciesNum=0; speciesNum<PathData.NumSpecies(); speciesNum++) {
+  //  for (int speciesNum=0; speciesNum<PathData.NumSpecies(); speciesNum++) {
+  for (int speciesNum=0; speciesNum<PairArray.size(); speciesNum++) {
     DavidPAClass &pa(*(DavidPAClass*)PairArray(speciesNum));
     for (int i=0;i<pa.kVals.size();i++){
       double k=pa.kVals(i);
+      bool found=false;
       for (int j=0;j<Path.kVecs.size();j++){
-        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-10)){
+	  cerr<<k<<" "<<sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j)))<<endl;
+        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-4)){
           Vlong_k(speciesNum, j)=pa.uk_long(i)/(vol);
-          uk(speciesNum, j)=Vlong_k(speciesNum, j)*Path.tau;
-          duk(speciesNum, j)=Vlong_k(speciesNum, j);
+	  found=true;
+
+	  if (pa.HasLongRange){
+	    uk(speciesNum, j)=Vlong_k(speciesNum, j)*Path.tau;
+	    duk(speciesNum, j)=Vlong_k(speciesNum, j);
+	  }
+	  else {
+	    uk(speciesNum, j)=0.0;
+	    duk(speciesNum, j)=0.0;
+
+	  }
         }
+
       }
+      //      assert(found);
     }
   }
+//   for (int i=0;i<duk.extent(0);i++){
+//     for (int j=0;j<duk.extent(1);j++){
+//       cerr<<duk(i,j)<<endl;
+//     }
+//   }
+//   exit(1);
 }
 
 void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
@@ -113,9 +140,12 @@ void DavidLongRangeClassYk2::ReadYk()
 { 
   for (int pai=0;pai<PairArray.size();pai++){
     DavidPAClass &pa(*((DavidPAClass*)PairArray(pai)));
-    assert(pa.LongRangeDim==NDIM);
-    for (int dim=0;dim<NDIM;dim++)
-      assert(pa.LongRangeBox(dim)==Path.GetBox()[dim]);
+    cerr<<"the long range is "<<pa.LongRangeDim<<endl;
+    //    assert(pa.LongRangeDim==NDIM);
+    for (int dim=0;dim<NDIM;dim++){
+      cerr<<pa.LongRangeBox(dim)<<" "<<Path.GetBox()[dim]<<endl;
+      //      assert(fabs(pa.LongRangeBox(dim)-Path.GetBox()[dim])<1e-5);
+    }
     int specNum1=0;
     while (Path.Species(specNum1).Type!=pa.Particle1.Name){
       specNum1++;
@@ -201,8 +231,9 @@ DavidLongRangeClassYk2::SingleAction (int slice1, int slice2,
       //	factor = 0.5;
       //      else
       factor = 1.0;
-      for (set<int>::iterator it = speciesList.begin();it!=speciesList.end();it++){
+     for (set<int>::iterator it = speciesList.begin();it!=speciesList.end();it++){
 	  int species1 = *it;
+
 	  for(set<int>::iterator it2 = speciesList.begin(); it2!=speciesList.end(); it2++) {
 	    int species2 = *it2;
 	    //	    double rhok2 = mag2(Path.Rho_k(slice,species,ki));
@@ -234,13 +265,18 @@ double DavidLongRangeClassYk2::d_dBeta (int slice1, int slice2,  int level)
     else
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
-      //      Path.CalcRho_ks_Fast(slice,species);
+      Path.CalcRho_ks_Fast(slice,species);
       for (int species2=0; species2<Path.NumSpecies(); species2++) {
+	Path.CalcRho_ks_Fast(slice,species2);
 	for (int ki=0; ki<Path.kVecs.size(); ki++) {
 	  //	  double rhok2 = mag2(Path.Rho_k(slice,species,ki));
 	    double rhok2 = Path.Rho_k(slice,species,ki).real()*Path.Rho_k(slice,species2,ki).real()+
 	      Path.Rho_k(slice,species,ki).imag()*Path.Rho_k(slice,species2,ki).imag();
+	    //	    assert(ki<duk.extent(1));
+	    //	    cerr<<"ANS: "<<species<<" "<<species2<<" "<<ki<<" "<<duk(PairIndex(species,species2), ki)<<" "<< factor*rhok2 * duk(PairIndex(species,species2), ki)<<endl;
 	  sliceTotal +=  factor*rhok2 * duk(PairIndex(species,species2), ki);
+	  //	  if (sliceTotal>10)
+	  //	    exit(1);
 
 	}
 

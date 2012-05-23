@@ -178,7 +178,10 @@ ShortRangeClass::SingleAction (int slice1, int slice2,
 	  if (PA.IsLongRange() && PathData.Actions.UseLongRange)
 	    U -= 0.5* (PA.Ulong(level)(rmag) + PA.Ulong(level)(rpmag));
 	  //	  TotalU+=U;
+	  //	  cerr<<" "<<U<<" "<<-0.5*levelTau*(1.0/rmag+1.0/rpmag)<<endl;
 	  TotalU+=U;
+
+	  //	  TotalU+=-0.5*levelTau*(1.0/rmag+1.0/rpmag);
 	}
       }
     }
@@ -186,7 +189,7 @@ ShortRangeClass::SingleAction (int slice1, int slice2,
   gettimeofday(&end,   &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) +
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
-  return (TotalU);
+  return (TotalU); //hack
 }
 
 
@@ -370,6 +373,7 @@ ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
 	else{
 	  sliceTotal(slice)+=pa.dU(q,z,s2,level);
 	  dU += pa.dU(q,z,s2,level);
+	  //	  dU +=-0.5*(1.0/rmag+1.0/rpmag);
 	}
 	// Subtract off long-range part from short-range action
 	if (pa.IsLongRange() && PathData.Actions.UseLongRange)
