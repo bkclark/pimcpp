@@ -18,21 +18,25 @@ endmacro()
 
 
 cmake_minimum_required (VERSION 2.6) 
+enable_language( Fortran )
+include (${CMAKE_ROOT}/Modules/FindBLAS.cmake)
+include (${CMAKE_ROOT}/Modules/FindLAPACK.cmake)
+
 project (pimc++) 
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
-SET(CMAKE_CXX_COMPILER,"g++")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -I/home/bclark/pcts/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/home/bclark/pcts/lib/   -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/ -lhdf5 -lsprng -L/usr/lib -L/home/bclark/lib/  -lz  -L/Applications/sage/local/lib/ -I/usr/include/atlas/  -lblas -llapack -lgsl -L/opt/intel/mkl/10.2.6.038/lib/em64t/  -lpthread   ")
+SET(CMAKE_CXX_COMPILER,"mpic++")
+SET(CMAKE_CXX_FLAGS "-DUSE_MPI -DH5_USE_16_API -O3 -L/home/bclark/lib/ -I/home/bclark/pcts/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/usr/lib64/ -L//Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/ -lsprng -lhdf5 -llapack")
 add_sources(src/Actions/ActionBase.cc
 src/Moves/MoveBase.cc
 src/Actions/ActionsClass.cc
 src/Moves/MoveUtils.cc
-src/Actions/BlendActions.cc																        
+src/Actions/BlendActions.cc		
 src/Moves/MultiStage.cc
-src/Actions/CummingsWaterPotential.cc																   
+src/Actions/CummingsWaterPotential.cc						
 src/Moves/NoPermuteClass.cc
-src/Actions/DavidLongRangeClass.cc																     
+src/Actions/DavidLongRangeClass.cc					
 src/Moves/OpenEndMove.cc
-src/Actions/DavidLongRangeClassYk.cc																       
+src/Actions/DavidLongRangeClassYk.cc				
 src/Actions/DavidLongRangeClassYk2.cc																       
 src/Moves/OpenStage.cc
 src/Actions/DiagonalActionClass.cc																         

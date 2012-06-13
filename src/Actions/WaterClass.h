@@ -245,8 +245,10 @@ public:
   
   void ReadPositions(int numMolecules)
   {
+    cerr<<"Reading positions"<<endl;
     ifstream infile;
     infile.open("wat.pos");
+    assert(infile);
     string garbage;
     infile>>garbage;
     r.resize(numMolecules*3);
@@ -265,12 +267,14 @@ public:
 	q.push_back(params.qH);
     }
     infile.close();
+    cerr<<"Done Reading positions"<<endl;
   }
 
   void ReadKPoints()
   {
   ifstream infile;
   infile.open("kPoints.txt");
+  assert(infile);
   while (!infile.eof()){
     dVecp k;
     infile>>k.vec[0];

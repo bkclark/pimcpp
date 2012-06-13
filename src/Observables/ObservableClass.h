@@ -51,7 +51,7 @@
 //#include "VacancyLocationNearby.h"
 #include "Weight.h"
 #include "WindingNumber.h"
-#include "VariationalPIEnergy.h"
+// #include "VariationalPIEnergy.h"
 //#include "VacancyDensity.h"
 #include "PlaneDensity.h"
 #include "SpecificHeat.h"
