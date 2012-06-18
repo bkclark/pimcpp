@@ -42,7 +42,7 @@
 #include "NodalActionClass.h"
 #include "FreeNodalActionClass.h"
 #include "SHONodalActionClass.h"
-
+#include "Sal.h"
 // #include "GroundStateNodalActionClass.h"
 
 #include "DavidLongRangeClassYk.h"
@@ -344,6 +344,8 @@ void ActionsClass::Read(IOSectionClass &in)
       newAction = new ShortRangeOn_diagonal_displace_class(PathData,PairMatrix);
     } else if (type == "ShortRangeOrderN") {
       newAction = new ShortRangeOnClass(PathData,PairMatrix);
+    } else if (type == "Sal") {
+      newAction = new SalClass(PathData);
     } else if (type == "MoleculeInteractions") {
       newAction = new MoleculeInteractionsClass(PathData);
     } else if (type == "CummingsWater") {

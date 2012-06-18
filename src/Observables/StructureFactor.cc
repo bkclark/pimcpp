@@ -16,7 +16,7 @@
 
 #include "StructureFactor.h"
 #include <utility>
-// #include <multimap>
+#include <multimap.h>
 using namespace std;
 void StructureFactorClass::Read(IOSectionClass& in)
 {
@@ -205,64 +205,64 @@ void StructureFactorClass::WriteBlock()
 
 void StructureFactorClass::Accumulate()
 {
-//   Array<dVec,1> &kVecs = PathData.Path.kVecs;
-//   //  cerr<<"I have been told to accumulate"<<endl;
-//   SpeciesClass &species1=PathData.Path.Species(Species1);
-//   SpeciesClass &species2=PathData.Path.Species(Species2);
+   Array<dVec,1> &kVecs = PathData.Path.kVecs;
+   //  cerr<<"I have been told to accumulate"<<endl;
+   SpeciesClass &species1=PathData.Path.Species(Species1);
+   SpeciesClass &species2=PathData.Path.Species(Species2);
 
 
-//   if (!PathData.Path.LongRange) {
-//     for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
-//       PathData.Path.CalcRho_ks_Fast(slice, Species1);
-//     if (Species2 != Species1)
-//       for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
-// 	PathData.Path.CalcRho_ks_Fast(slice, Species2);
-//   }
-//   if (Additionalkvecs.extent(0)!=0){
-//     assert(Species1==Species2);
-//     for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++)
-//       PathData.Path.CalcRho_ks_Slow(slice,Species1,
-// 				    Additionalkvecs,
-// 				    AdditionalRho_k);
-//   }
-//   TotalCounts++;
-//   for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
-//     multimap<double,double > kList;
-//     for (int ki=0; ki<kVecs.size(); ki++) {
-//       double a = PathData.Path.Rho_k(slice, Species1, ki).real();
-//       double b = PathData.Path.Rho_k(slice, Species1, ki).imag();
-//       double c = PathData.Path.Rho_k(slice, Species2, ki).real();
-//       double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
-//       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-//       double sk=a*c+b*d;
-//       rho_k_real(ki)+=a;
-//       rho_k_imag(ki)+=b;
-//       if (sk>SkMax){
-// 	SkMax=sk;
-// 	MaxkVec=kVecs(ki);
-//       }
-//       double kMag=sqrt(kVecs(ki)[0]*kVecs(ki)[0]+kVecs(ki)[1]*kVecs(ki)[1]);
-//       kList.insert(pair<double,double> (kMag,sk));
-// 		   //      cerr<<slice<<" "<<ki<<" "<<sk<<endl;
-//       Sk(ki) += sk;
-//     }
-//     for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
-//       double a = AdditionalRho_k(slice, Species1, ki-kVecs.size()).real();
-//       double b = AdditionalRho_k(slice, Species1, ki-kVecs.size()).imag();
-//       double c = AdditionalRho_k(slice, Species2, ki-kVecs.size()).real();
-//       double d = AdditionalRho_k(slice, Species2, ki-kVecs.size()).imag();
-//       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-//       double sk=a*c+b*d;
-//       Sk(ki) += sk;
-//       rho_k_real(ki)+=a;
-//       rho_k_imag(ki)+=b;
+   if (!PathData.Path.LongRange) {
+     for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
+       PathData.Path.CalcRho_ks_Fast(slice, Species1);
+     if (Species2 != Species1)
+       for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
+ 	PathData.Path.CalcRho_ks_Fast(slice, Species2);
+   }
+   if (Additionalkvecs.extent(0)!=0){
+     assert(Species1==Species2);
+     for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++)
+       PathData.Path.CalcRho_ks_Slow(slice,Species1,
+ 				    Additionalkvecs,
+ 				    AdditionalRho_k);
+   }
+   TotalCounts++;
+   for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
+     multimap<double,double > kList;
+     for (int ki=0; ki<kVecs.size(); ki++) {
+       double a = PathData.Path.Rho_k(slice, Species1, ki).real();
+       double b = PathData.Path.Rho_k(slice, Species1, ki).imag();
+       double c = PathData.Path.Rho_k(slice, Species2, ki).real();
+       double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
+       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+       double sk=a*c+b*d;
+       rho_k_real(ki)+=a;
+       rho_k_imag(ki)+=b;
+       if (sk>SkMax){
+ 	SkMax=sk;
+ 	MaxkVec=kVecs(ki);
+       }
+       double kMag=sqrt(kVecs(ki)[0]*kVecs(ki)[0]+kVecs(ki)[1]*kVecs(ki)[1]);
+       kList.insert(pair<double,double> (kMag,sk));
+ 		   //      cerr<<slice<<" "<<ki<<" "<<sk<<endl;
+       Sk(ki) += sk;
+     }
+     for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
+       double a = AdditionalRho_k(slice, Species1, ki-kVecs.size()).real();
+       double b = AdditionalRho_k(slice, Species1, ki-kVecs.size()).imag();
+       double c = AdditionalRho_k(slice, Species2, ki-kVecs.size()).real();
+       double d = AdditionalRho_k(slice, Species2, ki-kVecs.size()).imag();
+       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+       double sk=a*c+b*d;
+       Sk(ki) += sk;
+       rho_k_real(ki)+=a;
+       rho_k_imag(ki)+=b;
 
-//     }
-// //     for (multimap<double,double  >::iterator iter=kList.begin();
-// // 	 iter!=kList.end();iter++)
-// //       cerr<<(*iter).first<<" "<<(*iter).second<<endl;
-      
-//   }
+     }
+ //     for (multimap<double,double  >::iterator iter=kList.begin();
+ // 	 iter!=kList.end();iter++)
+ //       cerr<<(*iter).first<<" "<<(*iter).second<<endl;
+    
+   }
 }
 void StructureFactorClass::Clear()
 {

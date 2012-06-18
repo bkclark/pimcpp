@@ -98,8 +98,8 @@ DisplaceMoveClass::Read (IOSectionClass &in)
       cerr<<"Displace move pushing davidlongrange"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.DavidLongRange);
     }
-    else
-      DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
+    //HACK!    else
+    //HACK!      DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
   }
   for (int i=0; i<activeSpecies.size(); i++) {
     int speciesNum = activeSpecies(i);

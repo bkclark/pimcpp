@@ -26,7 +26,7 @@
 #include <complex>
 using namespace std;
 #include <fstream>
-#define NDIM 3
+
 #include <iomanip>
 #include "Timer.h"
 #define angs2bohr 1.889725989

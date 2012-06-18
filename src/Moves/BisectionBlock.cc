@@ -98,8 +98,8 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
       else if (PathData.Actions.HaveLongRange()){
 	      if (PathData.Actions.UseRPA)
 	        newStage->Actions.push_back(&PathData.Actions.LongRangeRPA);
-      	else
-	       newStage->Actions.push_back(&PathData.Actions.LongRange);
+	      //HACK!      	else
+	      //HACK!	       newStage->Actions.push_back(&PathData.Actions.LongRange);
       }
     }
     // HACK HACK HACK
