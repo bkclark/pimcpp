@@ -380,6 +380,7 @@ void BisectionBlockClass::MakeMove()
 {
 
   {
+    cerr<<"Making Bisection Move"<<endl;
   struct timeval start, end;
   struct timezone tz;
 
@@ -442,7 +443,7 @@ void BisectionBlockClass::MakeMove()
 
   if (LowestLevel != 0)
     MakeStraightPaths();
-  //  cerr<<"Time spent is "<<TimeSpent<<endl;
+  cerr<<"Time spent is "<<TimeSpent<<endl;
   //  cerr<<"Time spent2 is "<<TimeSpent2<<endl;
   }
 

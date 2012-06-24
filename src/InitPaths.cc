@@ -679,6 +679,7 @@ PathClass::InitPaths (IOSectionClass &in)
 #endif
         if (ptcl % 2)
           r += 0.5*delta;
+	cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<endl;
         for (int slice=0; slice<NumTimeSlices(); slice++)
           Path(slice,ptcl) = r;
       }

@@ -55,8 +55,10 @@ void MultiStageClass::MakeMove()
 
   while (stageIter!=Stages.end() && toAccept){
     gettimeofday(&start, &tz);
+    //    cerr<<"attempting"<<endl;
     toAccept = (*stageIter)->Attempt(Slice1,Slice2,
 				     ActiveParticles,prevActionChange);
+    //    cerr<<"done attempting"<<endl;
   gettimeofday(&end, &tz);
   TimeSpent2 += (double)(end.tv_sec-start.tv_sec) +
     1.0e-6*(double)(end.tv_usec-start.tv_usec);

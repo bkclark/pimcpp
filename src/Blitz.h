@@ -11,7 +11,7 @@ using namespace std;
 using namespace blitz;
 typedef double scalar;
 
-#define NDIM 2
+#define NDIM 3
 
 using namespace blitz;
 typedef TinyVector<scalar,1> Vec1;

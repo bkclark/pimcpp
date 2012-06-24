@@ -78,6 +78,8 @@ src/Observables/Coupling.cc
 src/Actions/ShortRangeOnClass.cc																							    
 src/Observables/DistanceToHead.cc
 src/Actions/WaterClass.cc		
+src/Actions/WaterFast.cc		
+src/Actions/dVec.cc		
 src/Actions/ShortRangeOn_diagonal_Class.cc																						     
 src/Observables/DynamicStructureFactor.cc
 src/Actions/ShortRangeOn_diagonal_displace_Class.cc																					     

@@ -20,7 +20,7 @@
 // #define SIMPLE_SPRNG
 
 /// Number of dimensions that dVec uses.
-#define NDIM 2
+#define NDIM 3
 
 #include <sprng.h>
 #include "Blitz.h"

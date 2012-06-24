@@ -30,7 +30,7 @@
 #include "ShortRangePotClass.h"
 #include "LongRangePotClass.h"
 #include "KineticClass.h"
-#include "WaterClass.h"
+#include "WaterFast.h"
 //#include "MoleculeInteractionsClass.h"
 //#include "ST2WaterClass.h"
 //#include "TIP5PWaterClass.h"

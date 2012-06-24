@@ -121,7 +121,7 @@ DisplaceMoveClass::Read (IOSectionClass &in)
 void 
 DisplaceMoveClass::MakeMove()
 {
-  //  cerr<<"displace move begin"<<endl;
+  cerr<<"displace move begin"<<endl;
   // Next, set timeslices
   Slice1 = 0;
   Slice2 = PathData.Path.NumTimeSlices()-1;
@@ -135,7 +135,7 @@ DisplaceMoveClass::MakeMove()
     }
   }
 
-  //  cerr<<"displace move end"<<endl;
+    cerr<<"displace move end"<<endl;
 }
 
 // void
