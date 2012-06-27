@@ -12,7 +12,7 @@ using namespace std;
 #include <iomanip>
 #include "Timer.h"
 #define angs2bohr 1.889725989
-#include "dvec.h"
+#include "dVec.h"
 #include "SystemClass.h"
 #include "ActionBase.h"
 #include "Timer.h"
