@@ -4,6 +4,8 @@
 double WaterClass::SingleAction (int slice1, int slice2, 
 				 const Array<int,1> &activeParticles, int level)
 {
+  t.Start();
+  //  cerr<<"Calling for "<<slice1<<" and "<<slice2<<endl;
   double total=0.0;
   //need to actually do something here to put the stuff from the path into the system
   for (int slice=slice1;slice<=slice2;slice++){
@@ -31,7 +33,10 @@ double WaterClass::SingleAction (int slice1, int slice2,
     //    cerr<<"En is "<<en<<endl;;
     total+=en*factor;
   }
-  
+    t.Stop();
+    //    cerr<<"Total time was "<<t.Time()<<endl;
+    t.Clear();
+    cerr<<"The value is "<<total<<" "<<PathData.Path.tau*total<<endl;;
   return PathData.Path.tau*total; // *3.1577504e5;
   //    cerr<<we.ComputeEnergy()<<endl;
     

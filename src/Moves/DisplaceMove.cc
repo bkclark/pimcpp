@@ -121,21 +121,32 @@ DisplaceMoveClass::Read (IOSectionClass &in)
 void 
 DisplaceMoveClass::MakeMove()
 {
-  cerr<<"displace move begin"<<endl;
+  //  cerr<<"displace move begin"<<endl;
   // Next, set timeslices
   Slice1 = 0;
   Slice2 = PathData.Path.NumTimeSlices()-1;
 
+  ActiveParticles.resize(PathData.Path.NumParticles());
   for (int i=0;i<PathData.Path.NumParticles();i++){
-    ActiveParticles(0)=i;
-    // Now call MultiStageClass' MakeMove
-    if (PathData.Path.Random.Common()<0.1){
-      NumAttempted++;
-       MultiStageClass::MakeMove();
-    }
-  }
+    ActiveParticles(i)=i;
 
-    cerr<<"displace move end"<<endl;
+  }
+  // Now call MultiStageClass' MakeMove
+  //  cerr<<"Trying to move all particle "<<endl;
+  NumAttempted++;
+  MultiStageClass::MakeMove();
+
+//   for (int i=0;i<PathData.Path.NumParticles();i++){
+//     ActiveParticles(0)=i;
+//     // Now call MultiStageClass' MakeMove
+//     if (PathData.Path.Random.Common()<0.1){
+//       cerr<<"Trying to move particle "<<i<<endl;
+//       NumAttempted++;
+//        MultiStageClass::MakeMove();
+//     }
+//  }
+
+//    cerr<<"displace move end"<<endl;
 }
 
 // void

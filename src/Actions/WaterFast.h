@@ -15,7 +15,7 @@ using namespace std;
 #include "dvec.h"
 #include "SystemClass.h"
 #include "ActionBase.h"
-
+#include "Timer.h"
 
 
 // oxygen -> 0 
@@ -175,7 +175,7 @@ double ComputeEnergy()
   ZeroVec(force);
   double ewald_energy=ewald(system,force);
   Timer.Stop();
-  //   cerr<<"Ewald takes "<<Timer.Time()<<endl;
+  //  cerr<<"Ewald takes "<<Timer.Time()<<endl;
   Timer.Clear();
 
 
@@ -395,9 +395,11 @@ double ComputeEnergy()
 
 class WaterClass :public ActionBaseClass
 {
+  TimerClass t;
  public:
-   WaterClass(PathDataClass &pathData) :   ActionBaseClass (pathData)
+ WaterClass(PathDataClass &pathData) :   ActionBaseClass (pathData),  t("FullTime")
   {
+
   }
   
   void SetBox(dVecp &Box)

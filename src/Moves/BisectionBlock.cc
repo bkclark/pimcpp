@@ -66,7 +66,7 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     exit(EXIT_FAILURE);
   }
   PermuteStage->Read (in);
-  Stages.push_back (PermuteStage);
+  //HACK!   Stages.push_back (PermuteStage);
   
   for (int level=NumLevels-1; level>=LowestLevel; level--) {
     BisectionStageClass *newStage;
@@ -123,7 +123,7 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
   /// EVIL BAD ERROR!!!  Pushing onto the stack twice causes the stage
   /// to be accepted twice, which causes swapping the forward and
   // reverse tables twice!
-  Stages.push_back (PermuteStage);
+  //HACK  Stages.push_back (PermuteStage);
 
 }
 
@@ -429,10 +429,21 @@ void BisectionBlockClass::MakeMove()
 //   }
 
   ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1,Slice2);
-  ActiveParticles.resize(1);
+  //HACK!  ActiveParticles.resize(1);
+  ActiveParticles.resize(54*3);
+  for (int i=0;i<ActiveParticles.size();i++){
+    ActiveParticles(i)=i;
+  }
+
+  int nn=10;
+    ActiveParticles.resize(nn);
+    for (int i=54;i<54+nn;i++){ // PathData.Path.NumParticles();i++){
+      ActiveParticles(i-54)=i;
+    }
+
   for (int step=0; step<StepsPerBlock; step++) {
     NumAttempted++;
-    ActiveParticles(0)=-1;
+    //HACK!    ActiveParticles(0)=-1;
   gettimeofday(&start, &tz);
     MultiStageClass::MakeMove();
   gettimeofday(&end,   &tz);
