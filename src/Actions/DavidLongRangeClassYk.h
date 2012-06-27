@@ -18,7 +18,6 @@
 #define DAVID_LONG_RANGE_CLASS_YK_H
 
 #include "ActionBase.h"
-
 #include "../PairAction/PAFit.h"
 
 
@@ -58,7 +57,7 @@ public:
   Array<double,1> yk_zero;
   void Read (IOSectionClass &in);
   void ReadYk();
-  void BuildRPA_SingleSpecies();
+  void BuildRPA_SingleType();
   void Build_MultipleSpecies();
   double V(int slice1,int slice2,int level);
 
