@@ -56,9 +56,6 @@ inline bool operator==(const CycleClass &a,const CycleClass &b)
   return true;
 }
 
-
-
-
 class PermuteTableClass
 {
  private:
@@ -92,7 +89,7 @@ public:
   /// The enhancement factor for each cycle length. That is we
   /// multiply the probability of a 3-cycle by Gamma[2]  
   TinyVector<double,4> Gamma; 
-  
+
   // Smallest value of exp(-s^2/(4*lambda*beta) which we will include
   // in Htable.
   double epsilon;
@@ -103,19 +100,15 @@ public:
   ///Value of alpha in exp(-zalpha*(z-0)^2) that focuses on close to
   ///the z axis
   double zalpha;
-  void ConstructCycleTable(int speciesNum,int slice1,int slice2);
-  void ConstructCycleTable(int speciesNum,int slice1,int slice2,
-			   int excludeParticle);
-  void ConstructFermionCycleTable(int speciesNum,int slice1, int slice2);
-  void ConstructBosonCycleTable(int speciesNum,int slice1, int slice2,int excludeParticle);
-				  
+  void ConstructCycleTable(int speciesNum, int slice1, int slice2);
+  void ConstructCycleTable(int speciesNum, int slice1, int slice2, int excludeParticle);
+  void ConstructFermionCycleTable(int speciesNum, int slice1, int slice2);
+  void ConstructBosonCycleTable(int speciesNum, int slice1, int slice2, int excludeParticle);
   void CanonicalPermRep(Array<int,1> P);
   double AttemptPermutation();
   double CalcReverseProb(const PermuteTableClass &forwardTable);
   Array<int,1> CurrentParticles();
   void PrintTable() const;
-
-
   void Read(IOSectionClass &inSection);
 
   PermuteTableClass(PathDataClass &myPathData) : PathData(myPathData)
@@ -134,7 +127,7 @@ inline void PermuteTableClass::AddEntry(const CycleClass &cycle)
 {
   if (NumEntries >= (TableSize-1)) {
     TableSize *= 2;
-    cerr<<"My new tablesize is "<<TableSize<<endl;
+    //cerr<<"My new tablesize is "<<TableSize<<endl;
     CycleTable.resizeAndPreserve(TableSize);
   }
 
@@ -145,23 +138,22 @@ inline void PermuteTableClass::AddEntry(const CycleClass &cycle)
 
 inline int PermuteTableClass::FindEntrySlow(double xi)
 {
-  xi *= Norm; 
+  xi *= Norm;
   int num=0;
   while (CycleTable(num).C<xi){
     num++;
   }
   return num;
-  
-}  
+}
 
 //Pass a random number between 0 and 1 to this function and it
 //returns the index of the permutation with the appropriate
-//probability. 
-inline int PermuteTableClass::FindEntry(double xi) 
+//probability.
+inline int PermuteTableClass::FindEntry(double xi)
 {
   // Do a binary search
   //  int toCheck=FindEntrySlow(xi);
-  xi *= Norm; 
+  xi *= Norm;
   int hi = NumEntries-1;
   int lo = 0;
 

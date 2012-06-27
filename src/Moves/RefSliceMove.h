@@ -21,6 +21,7 @@
 #include "MoveBase.h"
 #include "PermuteStage.h"
 #include "BisectionStage.h"
+#include "DisplaceMove.h"
 
 /// This move, inherited from ParticleMoveClass, performs a set of
 /// bisection stages over a set of time slices which contains the
@@ -45,7 +46,6 @@ private:
   int SpeciesNum;
   StageClass *PermuteStage;
 
-
   /// This function checks to see if we should accept based on the
   /// change in the node action
   bool NodeCheck();
@@ -55,6 +55,7 @@ private:
 
   /// This move is called if I don't have the reference slice
   void MakeMoveSlave();
+  bool DoSlaveMoves;
 
 public:
   /// Read in the parameters this class needs from the input file.

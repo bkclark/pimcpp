@@ -29,17 +29,18 @@ public:
   /// This is the width of the gaussian distribution for the
   /// displacement vector.
   double Sigma;
+  void Accept();
+  void Reject();
+
   /// This does the actual displacement of the path.  All processors
   /// within a single close must displace by the same amount.
-  double Sample (int &slice1, int &slice2,
-		 Array <int,1> &activeParticles);
+  double Sample (int &slice1, int &slice2, Array <int,1> &activeParticles);
   DisplaceStageClass (PathDataClass &pathData,IOSectionClass &outSection) :
-    CommonStageClass (pathData,outSection) 
+    CommonStageClass (pathData,outSection)
   {
     // Do nothing for now.
   }
 };
-
 
 
 /// This is the displace move, which attempts to pick up a whole
@@ -53,10 +54,11 @@ private:
   ObservableInt NumAttemptedVar;
   ObservableInt NumAcceptedVar;
   int NumAttempted;
+  int theSpecies;
 public:
   // Read the parameters from the input file
   int CurrentPtcl;
-  inline double AcceptanceRatio() 
+  inline double AcceptanceRatio()
   {
     double accept_ratio=(double)(NumAccepted)/(double)NumAttempted;
     return accept_ratio;

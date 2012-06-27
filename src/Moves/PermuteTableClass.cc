@@ -49,8 +49,7 @@ Array<int,1> PermuteTableClass::CurrentParticles()
   return tempPtcl;
 }
 
-void 
-PermuteTableClass::UpdateHTable(const CycleClass &perm)
+void PermuteTableClass::UpdateHTable(const CycleClass &perm)
 {
  //  int firstPtcl = PathData.Species(SpeciesNum).FirstPtcl;
 //   int lastPtcl = PathData.Species(SpeciesNum).LastPtcl;
@@ -92,9 +91,9 @@ PermuteTableClass::UpdateHTable(const CycleClass &perm)
       double dist_ij = dot (disp_ij,disp_ij);
       double toExp=(-dist_ij + dist_ii)*fourLambdaBetaInv;
       if (toExp<logEps)
-      	HTable(i,j)=0.0;
+        HTable(i,j)=0.0;
       else
-      	HTable(i,j)=exp(toExp);
+        HTable(i,j)=exp(toExp);
     }
   }
 
@@ -109,13 +108,11 @@ PermuteTableClass::UpdateHTable(const CycleClass &perm)
       double dist_ij = dot (disp_ij,disp_ij);
       double toExp=(-dist_ij + dist_ii)*fourLambdaBetaInv;
       if (toExp<logEps)
-      	HTable(i,j)=0.0;
+        HTable(i,j)=0.0;
       else
-      	HTable(i,j)=exp(toExp);
+        HTable(i,j)=exp(toExp);
     }
   }
-
-
 
 }
 
@@ -140,9 +137,9 @@ void PermuteTableClass::ConstructHTable()
       double dist_ij = dot (disp_ij,disp_ij);
       double toExp=(-dist_ij + dist_ii)*fourLambdaBetaInv;
       if (toExp<logEps)
-	HTable(i,j)=0.0;
+        HTable(i,j)=0.0;
       else
-	HTable(i,j)=exp(toExp);
+        HTable(i,j)=exp(toExp);
     // Now we should really sort with respect to j, but we won't for
     // now because we are far too lazy and it's a Friday.
     }
@@ -176,14 +173,12 @@ void CycleClass::Apply(PathClass &path, int firstPtcl, int slice)
   dVec tempPos = path(slice, CycleRep(0)+firstPtcl);
   int tempPtcl = path.Permutation(CycleRep(0)+firstPtcl);
   for(int i=0;i<Length-1;i++) {
-    path.SetPos(slice, CycleRep(i)+firstPtcl, 
-		path(slice,CycleRep(i+1)+firstPtcl));
-    path.Permutation(CycleRep(i)+firstPtcl) = 
-      path.Permutation(CycleRep(i+1)+firstPtcl);
+    path.SetPos(slice, CycleRep(i)+firstPtcl, path(slice,CycleRep(i+1)+firstPtcl));
+    path.Permutation(CycleRep(i)+firstPtcl) = path.Permutation(CycleRep(i+1)+firstPtcl);
   }
   path.SetPos(slice,CycleRep(Length-1)+firstPtcl,tempPos);
   path.Permutation(CycleRep(Length-1)+firstPtcl) = tempPtcl;
-  
+
 }
 
 double PermuteTableClass::AttemptPermutation()
@@ -205,30 +200,24 @@ double PermuteTableClass::AttemptPermutation()
   double xi=PathData.Path.Random.Local(); 
   int index=FindEntry(xi);
   CurrentCycle = CycleTable(index);
-  if (CurrentCycle.Length % 2==0)
-    PathData.Path.Sign=PathData.Path.Sign*-1;
   if (CurrentCycle.CycleRep[0]<0 || CurrentCycle.CycleRep[0]>10000){
     PrintTable();
   }
   // Now, apply the permutation to the Path
   int firstPtcl=PathData.Species(SpeciesNum).FirstPtcl;
   CurrentCycle.Apply(PathData.Path,firstPtcl,Slice2);
-
   return (CurrentCycle.P * NormInv);
 }
 
 double PermuteTableClass::CalcReverseProb(const PermuteTableClass &forwardTable)
 {
-  
   // Reverse probabily for a single ptcl move is the same as that for the
   // forward move.
   if (forwardTable.CurrentCycle.Length == 1)
     return (forwardTable.CurrentCycle.P*forwardTable.NormInv);
   //We reconstruct things from scratch to make sure we do the right
   //thing. We can try to incrementally make this faster.
-  ConstructCycleTable(forwardTable.SpeciesNum,
-		      forwardTable.Slice1,forwardTable.Slice2,
-		      forwardTable.ExcludeParticle); 
+  ConstructCycleTable(forwardTable.SpeciesNum, forwardTable.Slice1, forwardTable.Slice2, forwardTable.ExcludeParticle);
   int len=forwardTable.CurrentCycle.Length;
   return ((Gamma[len-1]*Gamma[len-1])/(forwardTable.CurrentCycle.P)*NormInv);
 }
@@ -249,8 +238,6 @@ void PermuteTableClass::Read(IOSectionClass &inSection)
   else
     zalpha=0.0;
   //  assert(inSection.ReadVar("SpeciesNum",SpeciesNum));
-  
-  
 }
 
 
@@ -265,19 +252,15 @@ void PermuteTableClass::PrintTable() const
     cerr << "]\n";
     cerr << "P = " << cycle.P << " C = " << cycle.C << endl;
     cerr << endl;
-  }    
+  }
 }
 
-void PermuteTableClass::ConstructCycleTable(int speciesNum,
-					    int slice1, int slice2)
+void PermuteTableClass::ConstructCycleTable(int speciesNum, int slice1, int slice2)
 {
   ConstructCycleTable(speciesNum,slice1,slice2,-1);
-
 }
 
-void PermuteTableClass::ConstructCycleTable(int speciesNum,
-					    int slice1, int slice2,
-					    int excludeParticle)
+void PermuteTableClass::ConstructCycleTable(int speciesNum, int slice1, int slice2, int excludeParticle)
 {
   /// HACK HACK HACK HACK
    if (PathData.Path.Species(SpeciesNum).GetParticleType()==FERMION)
@@ -286,14 +269,10 @@ void PermuteTableClass::ConstructCycleTable(int speciesNum,
     ConstructBosonCycleTable(speciesNum,slice1,slice2,excludeParticle);
 }
 
-
-
 ///the Gamma's must all be greater then 1 or this won't do the correct
 ///thing.  Allows you to exclude a particle when producing the table
 ///(say for example the open particle).
-void PermuteTableClass::ConstructFermionCycleTable(int speciesNum,
-						   int slice1, int slice2)
-					
+void PermuteTableClass::ConstructFermionCycleTable(int speciesNum, int slice1, int slice2)
 {
   Slice1=slice1;
   Slice2=slice2;
@@ -323,14 +302,14 @@ void PermuteTableClass::ConstructFermionCycleTable(int speciesNum,
       hprod=HTable(i,j);
       tempPerm.Length=3;
       for (int k=i+1;k<N;k++){//3 and higher cycles
-	//3 cycle permutations
-	if (k!=j){
-	  tempPerm.CycleRep[2]=k;
-	  hprod2=hprod*HTable(j,k);
-	  tempPerm.P=Gamma(2)*hprod2*HTable(k,i);
-	  tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
-	  AddEntry(tempPerm);
-	}
+        //3 cycle permutations
+        if (k!=j){
+          tempPerm.CycleRep[2]=k;
+          hprod2=hprod*HTable(j,k);
+          tempPerm.P=Gamma(2)*hprod2*HTable(k,i);
+          tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
+          AddEntry(tempPerm);
+        }
       }
     }
   }
@@ -345,9 +324,7 @@ void PermuteTableClass::ConstructFermionCycleTable(int speciesNum,
 ///the Gamma's must all be greater then 1 or this won't do the correct
 ///thing.  Allows you to exclude a particle when producing the table
 ///(say for example the open particle).
-void PermuteTableClass::ConstructBosonCycleTable(int speciesNum,
-						 int slice1, int slice2,
-						 int particleExclude)
+void PermuteTableClass::ConstructBosonCycleTable(int speciesNum, int slice1, int slice2, int particleExclude)
 {
   Slice1=slice1;
   Slice2=slice2;
@@ -369,61 +346,57 @@ void PermuteTableClass::ConstructBosonCycleTable(int speciesNum,
       tempPerm.CycleRep[0]=i;
       tempPerm.P=Gamma(0);
       if (zfocus)
-	tempPerm.P=tempPerm.P*
-	  exp(-zalpha*PathData.Path(slice1,i+firstPtcl)[2]*PathData.Path(slice1,i+firstPtcl)[2]+-zalpha*PathData.Path(slice2,i+firstPtcl)[2]*PathData.Path(slice2,i+firstPtcl)[2]);
+        tempPerm.P=tempPerm.P*exp(-zalpha*PathData.Path(slice1,i+firstPtcl)[2]*PathData.Path(slice1,i+firstPtcl)[2]+-zalpha*PathData.Path(slice2,i+firstPtcl)[2]*PathData.Path(slice2,i+firstPtcl)[2]);
       tempPerm.C=tempPerm.P;
       if (NumEntries!=0){
-	tempPerm.C+=CycleTable(NumEntries-1).C;
+        tempPerm.C+=CycleTable(NumEntries-1).C;
       }
       AddEntry(tempPerm);
       for (int j=i+1; j<N; j++) {// 2 and higher cycles
-	if (j!=particleExclude && i!=particleExclude){
-	  //2 cycle permutations
-	  tempPerm.CycleRep[1]=j;
-	  hprod=HTable(i,j);
-	  tempPerm.Length=2;
-	  tempPerm.P=Gamma(1)*hprod*HTable(j,i);
-	  if (zfocus)
-	    tempPerm.P=tempPerm.P*
-	      exp(-zalpha*PathData.Path(slice1,j+firstPtcl)[2]*PathData.Path(slice1,j+firstPtcl)[2]+-zalpha*PathData.Path(slice2,j+firstPtcl)[2]*PathData.Path(slice2,j+firstPtcl)[2]);
-	  tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;     
-	  if (tempPerm.P > epsilon)
-	    AddEntry(tempPerm);
-	  if (hprod * Gamma(2)*Gamma(3)>epsilon) {
-	    for (int k=i+1;k<N;k++){//3 and higher cycles
-	      if (k!=particleExclude){
-		//3 cycle permutations
-		if (k!=j){
-		  tempPerm.CycleRep[2]=k;
-		  hprod2=hprod*HTable(j,k);
-		  tempPerm.Length=3;
-		  tempPerm.P=Gamma(2)*hprod2*HTable(k,i);
-	  if (zfocus)
-	    tempPerm.P=tempPerm.P*
-	      exp(-zalpha*PathData.Path(slice1,k+firstPtcl)[2]*PathData.Path(slice1,k+firstPtcl)[2]+-zalpha*PathData.Path(slice2,k+firstPtcl)[2]*PathData.Path(slice2,k+firstPtcl)[2]);
-		  tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
-		  if (tempPerm.P > epsilon)
-		    AddEntry(tempPerm);
-		  if (hprod2 *Gamma(3) > epsilon) {
-		    for (int l=i+1;l<N;l++)
-		      if (l!=particleExclude && (l!=j) && (l!=k)){
-			hprod3=hprod2*HTable(k,l);
-			tempPerm.CycleRep[3]=l;
-			tempPerm.Length=4;
-			tempPerm.P=Gamma(3)*hprod3*HTable(l,i);
-	  if (zfocus)
-	    tempPerm.P=tempPerm.P*
-	      exp(-zalpha*PathData.Path(slice1,l+firstPtcl)[2]*PathData.Path(slice1,l+firstPtcl)[2]+-zalpha*PathData.Path(slice2,l+firstPtcl)[2]*PathData.Path(slice2,l+firstPtcl)[2]);
-			tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
-			if (tempPerm.P > epsilon) 
-			  AddEntry(tempPerm);
-		      }
-		  }
-		}
-	      }
-	    }
-	  }
-	}
+      if (j!=particleExclude && i!=particleExclude){
+          //2 cycle permutations
+          tempPerm.CycleRep[1]=j;
+          hprod=HTable(i,j);
+          tempPerm.Length=2;
+          tempPerm.P=Gamma(1)*hprod*HTable(j,i);
+          if (zfocus)
+            tempPerm.P=tempPerm.P*exp(-zalpha*PathData.Path(slice1,j+firstPtcl)[2]*PathData.Path(slice1,j+firstPtcl)[2]+-zalpha*PathData.Path(slice2,j+firstPtcl)[2]*PathData.Path(slice2,j+firstPtcl)[2]);
+          tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
+          if (tempPerm.P > epsilon)
+            AddEntry(tempPerm);
+          if (hprod * Gamma(2)*Gamma(3)>epsilon) {
+            for (int k=i+1;k<N;k++){//3 and higher cycles
+              if (k!=particleExclude){
+                //3 cycle permutations
+                if (k!=j){
+                  tempPerm.CycleRep[2]=k;
+                  hprod2=hprod*HTable(j,k);
+                  tempPerm.Length=3;
+                  tempPerm.P=Gamma(2)*hprod2*HTable(k,i);
+                  if (zfocus)
+                    tempPerm.P=tempPerm.P*exp(-zalpha*PathData.Path(slice1,k+firstPtcl)[2]*PathData.Path(slice1,k+firstPtcl)[2]+-zalpha*PathData.Path(slice2,k+firstPtcl)[2]*PathData.Path(slice2,k+firstPtcl)[2]);
+                  tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
+                  if (tempPerm.P > epsilon)
+                    AddEntry(tempPerm);
+                  if (hprod2 *Gamma(3) > epsilon) {
+                    for (int l=i+1;l<N;l++)
+                      if (l!=particleExclude && (l!=j) && (l!=k)){
+                        hprod3=hprod2*HTable(k,l);
+                        tempPerm.CycleRep[3]=l;
+                        tempPerm.Length=4;
+                        tempPerm.P=Gamma(3)*hprod3*HTable(l,i);
+                          if (zfocus)
+                            tempPerm.P=tempPerm.P*exp(-zalpha*PathData.Path(slice1,l+firstPtcl)[2]*PathData.Path(slice1,l+firstPtcl)[2]+-zalpha*PathData.Path(slice2,l+firstPtcl)[2]*PathData.Path(slice2,l+firstPtcl)[2]);
+                        tempPerm.C=tempPerm.P+CycleTable(NumEntries-1).C;
+                        if (tempPerm.P > epsilon)
+                          AddEntry(tempPerm);
+                      }
+                  }
+                }
+              }
+            }
+          }
+        }
       }
     }
   }

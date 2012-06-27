@@ -8,7 +8,7 @@
 // (at your option) any later version.  This program is    //
 // distributed in the hope that it will be useful, but     //
 // WITHOUT ANY WARRANTY; without even the implied warranty //
-// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. //  
+// of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. //
 // See the GNU General Public License for more details.    //
 // For more information, please see the PIMC++ Home Page:  //
 //           http://pathintegrals.info                     //
@@ -26,143 +26,140 @@ void StageClass::WriteRatio()
   AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
   AcceptRatioVar.Flush();
 }
+
 //BUG: DOES NOT HAVE CORRECT SLICES!
 void StageClass::Accept()
 {
   NumAccepted++;
   NumAttempted++;
-  for (list<ActionBaseClass*>::iterator actionIter=Actions.begin();
-       actionIter!=Actions.end();actionIter++)
-    (*actionIter)->AcceptCopy(0,0);
+  for (list<ActionBaseClass*>::iterator actionIter = Actions.begin(); actionIter != Actions.end(); actionIter++)
+    (*actionIter) -> AcceptCopy(0,0);
 }
+
 //BUG: DOES NOT HAVE CORRECT SLICES
 void StageClass::Reject()
 {
   NumAttempted++;
-  for (list<ActionBaseClass*>::iterator actionIter=Actions.begin();
-       actionIter!=Actions.end();actionIter++)
-    (*actionIter)->RejectCopy(0,0);
+  for (list<ActionBaseClass*>::iterator actionIter = Actions.begin(); actionIter != Actions.end(); actionIter++) {
+    (*actionIter) -> RejectCopy(0,0);
+  }
 }
 
 
-bool LocalStageClass::Attempt(int &slice1, int &slice2, 
-			      Array<int,1> &activeParticles,
-			      double &prevActionChange)
+bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
 {
   struct timeval start, end;
   struct timezone tz;
 
-
   SetMode (NEWMODE);
-  double sampleRatio=Sample(slice1,slice2,activeParticles);
-  SetMode(OLDMODE);
+  double logSampleRatio = Sample(slice1,slice2,activeParticles);
+
+  SetMode (OLDMODE);
   gettimeofday(&start, &tz);
-  double oldAction;
-  double newAction;
-  oldAction=StageAction(slice1,slice2,activeParticles);
+  double oldAction = StageAction(slice1,slice2,activeParticles);
+
   SetMode(NEWMODE);
-  newAction =StageAction(slice1,slice2,activeParticles);
-  gettimeofday(&end,   &tz);
-  //cout << oldAction << " " << newAction << endl;
-  double currActionChange=newAction-oldAction;
-  //  cerr<<"Curr action change is "<<currActionChange<<endl;
-  double logAcceptProb=log(sampleRatio)-currActionChange+prevActionChange;
-  //  AcceptProb=exp(logAcceptProb);
-  //  OldAcceptProb=exp(log(1/sampleRatio)+currActionChange);
-  //  if (AcceptProb>1.0)
-  //    AcceptProb=1.0;
-  //  if (OldAcceptProb>1.0)
-  //    OldAcceptProb=1.0;
-  double ran_number=PathData.Path.Random.Local();
-  //  bool toAccept = logAcceptProb>=log(PathData.Path.Random.Local()); /// Accept condition
-  bool toAccept = logAcceptProb>=log(ran_number); /// Accept condition
+  double newAction = StageAction(slice1,slice2,activeParticles);
+  double currActionChange = newAction - oldAction;
+  double logAcceptProb = logSampleRatio - currActionChange + prevActionChange;
+  bool toAccept = logAcceptProb >= log(PathData.Path.Random.Local()); // Accept condition
+
+  if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
+    if (toAccept) {
+      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
+        cerr << "Broken Local Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
+        cerr << "Broken Local Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      else
+         cerr << "Broken Local Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      toAccept = 0;
+      assert(1==2);
+    }
+  }
   if (toAccept){
     NumAccepted++;
   }
-  else{
-  }
   NumAttempted++;
-  //  cerr<<"Curr action change is "<<currActionChange<<endl;
-  prevActionChange=currActionChange;
+  prevActionChange = currActionChange;
 
-  TimeSpent += (double)(end.tv_sec-start.tv_sec) +
-    1.0e-6*(double)(end.tv_usec-start.tv_usec);
-
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
   return toAccept;
 }
 
-bool CommonStageClass::Attempt(int &slice1, int &slice2, 
-			       Array<int,1> &activeParticles,
-			       double &prevActionChange)
+
+bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
 {
   assert (slice1 == 0);
   assert (slice2 == PathData.NumTimeSlices()-1);
 
   SetMode (NEWMODE);
-  double sampleRatio=Sample(slice1,slice2,activeParticles);
-  double logSampleRatio = log(sampleRatio);
+  double logSampleRatio = Sample(slice1,slice2,activeParticles);
   logSampleRatio = PathData.Path.Communicator.AllSum (logSampleRatio);
+
   SetMode(OLDMODE);
-  //  perr << "OldActions:\n";
-  double oldAction= GlobalStageAction(activeParticles);
+  double oldAction = GlobalStageAction(activeParticles);
+
   SetMode(NEWMODE);
-  //  perr << "NewActions:\n";
   double newAction = GlobalStageAction(activeParticles);
-  //  perr << "oldAction = " << oldAction << endl
-  //       << "newAction = " << newAction << endl;
-  //  perr << "Diff           = " << newAction-oldAction << endl;
-  //  perr << "logSampleRatio = " << logSampleRatio << endl;
-  double currActionChange=newAction-oldAction;
-  double logAcceptProb=logSampleRatio-currActionChange+prevActionChange;
-  bool toAccept = logAcceptProb>=log(PathData.Path.Random.Common()); /// Accept condition
-  if (toAccept)
+  double currActionChange = newAction - oldAction;
+  double logAcceptProb = logSampleRatio - currActionChange + prevActionChange;
+  bool toAccept = logAcceptProb >= log(PathData.Path.Random.Common()); /// Accept condition
+
+  if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
+    if (toAccept) {
+      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
+        cerr << "Broken Common Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
+        cerr << "Broken Common Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      else
+         cerr << "Broken Common Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+      toAccept = 0;
+      assert(1==2);
+    }
+  }
+
+  if (toAccept) {
     NumAccepted++;
+  }
   NumAttempted++;
-  prevActionChange=currActionChange;
+  prevActionChange = currActionChange;
+
   return toAccept;
 }
 
-double StageClass::StageAction(int startSlice,int endSlice,
-				      const Array<int,1> &changedParticles)
+
+double StageClass::StageAction (int startSlice, int endSlice, const Array<int,1> &changedParticles)
 {
-  // cerr<<endl;
-  //  cerr<<"Short range On is "<<PathData.Actions.ShortRangeOn.Action(startSlice,endSlice,changedParticles,BisectionLevel)<<endl;
-  //  cerr<<"Short range is "<<PathData.Actions.ShortRange.Action(startSlice,endSlice,changedParticles,BisectionLevel)<<endl;
-  //  cerr<<"Diagonal is "<<PathData.Actions.DiagonalAction.Action(startSlice,endSlice,changedParticles,BisectionLevel)<<endl;
-  //  cerr<<"On Diagonal is "<<PathData.Actions.ShortRangeOnDiagonal.Action(startSlice,endSlice,changedParticles,BisectionLevel)<<endl;
-  //  cerr<<endl;
-  double TotalAction=0.0;
-  list<ActionBaseClass*>::iterator actionIter=Actions.begin();
-  while (actionIter!=Actions.end()){
-    TotalAction += 
-      ((*actionIter)->Action(startSlice, endSlice, changedParticles,
-			     BisectionLevel));
+  double TotalAction = 0.0;
+  list<ActionBaseClass*>::iterator actionIter = Actions.begin();
+  while (actionIter != Actions.end()) {
+    double TempAction = ((*actionIter) -> Action(startSlice, endSlice, changedParticles, BisectionLevel));
+    TotalAction += TempAction;
+    //cerr << (*actionIter) -> GetName() << " " << TempAction << " " << startSlice << " " << endSlice << " " << BisectionLevel << endl;
     actionIter++;
   }
+  //cerr << "Local Stage Action " << TotalAction << endl;
+
   return TotalAction;
 }
 
 
-inline double 
-StageClass::GlobalStageAction (const Array<int,1> &changedParticles)
+inline double StageClass::GlobalStageAction (const Array<int,1> &changedParticles)
 {
   int slice1 = 0;
   int slice2 = PathData.Path.NumTimeSlices()-1;
-  //  double localAction = StageAction (slice1, slice2,
-  //  changedParticles);
   double localAction = 0.0;
   list<ActionBaseClass*>::iterator actionIter=Actions.begin();
-  while (actionIter!=Actions.end()){
-    double action = 
-      ((*actionIter)->Action(slice1, slice2, changedParticles,
-			     BisectionLevel));
-    //    perr << (*actionIter)->GetName() << ":  " << action << endl;
-    localAction += action;
+  while (actionIter!=Actions.end()) {
+    double TempAction = ((*actionIter) -> Action(slice1, slice2, changedParticles, BisectionLevel));
+    localAction += TempAction;
+    //cerr << (*actionIter) -> GetName() << " " << TempAction << " " << slice1 << " " << slice2 << " " << BisectionLevel <<  endl;
     actionIter++;
   }
-
   double globalAction = PathData.Path.Communicator.AllSum (localAction);
+  //cerr << "Global Stage Action " << localAction << " " << globalAction << endl;
 
   return globalAction;
 }

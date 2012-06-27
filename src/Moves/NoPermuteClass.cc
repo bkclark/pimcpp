@@ -14,17 +14,14 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-
 #include "NoPermuteStage.h"
 
-double NoPermuteStageClass::Sample (int &slice1, int &slice2,
-				    Array<int,1> &activeParticles)
+double NoPermuteStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
-  return 1.0;
+  return log(1.0);
 }
 
-bool NoPermuteStageClass::Attempt (int &slice1, int &slice2,
-				   Array<int,1> &activeParticles, double &prevActionChange)
+bool NoPermuteStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
 {
   //  OldAcceptProb=1.0;
   //  AcceptProb=1.0;
@@ -35,14 +32,13 @@ bool NoPermuteStageClass::Attempt (int &slice1, int &slice2,
   if (activeParticles(0) == -1) {
     activeParticles.resize (1);
     //HACK! HACK! HACK! HACK!
-    if (PathData.Path.OpenPaths && slice1<PathData.Path.OpenLink &&
-	PathData.Path.OpenLink<slice2){
+    if (PathData.Path.OpenPaths && slice1<PathData.Path.OpenLink && PathData.Path.OpenLink<slice2){
       do {
-	activeParticles(0) = ChooseParticle();
+        activeParticles(0) = ChooseParticle();
       } while (activeParticles(0)==PathData.Path.OpenPtcl);
     }
     else activeParticles(0)=ChooseParticle();
- 
+
   }
   // In any case, always accept
   return true;
@@ -60,9 +56,7 @@ void NoPermuteStageClass::InitBlock(int &slice1,int &slice2)
 }
 int NoPermuteStageClass::ChooseParticle()
 {
-  int myPtcl=(PathData.Path.Random.LocalInt 
-    (PathData.Path.Species(SpeciesNum).NumParticles))+
-    PathData.Path.Species(SpeciesNum).FirstPtcl;
+  int myPtcl=(PathData.Path.Random.LocalInt(PathData.Path.Species(SpeciesNum).NumParticles)) + PathData.Path.Species(SpeciesNum).FirstPtcl;
   //  cerr<<"I've chosen the particle "<<myPtcl;
   return myPtcl;
 }

@@ -27,11 +27,11 @@
 class MoveClass : public EventClass
 {
 protected:
+  double SecondsInMove;
   /// This variable stores the acceptance ratio for the move
   ObservableDouble RatioVar;
   int DumpFreq;
 public:
-  double SecondsInMove;
   /// Call this in order to make a move.
   virtual void MakeMove()=0;
   ///All moves ought to be able to read
@@ -70,6 +70,8 @@ protected:
  public:
   /// Stores the number of moves made and the number accepted
   int NumAccepted;
+  /// Desired acceptance ratio
+  double DesiredAcceptRatio;
   /// An accumulator used to publish the diffusion value. -jg
   double total_r_squared;
   /// This returns the Acceptance Ratio.
@@ -104,15 +106,6 @@ protected:
     /* Do nothing for now.*/  
   }
 };
-
-
-
-
-
-
-
-
-
 
 
 #endif

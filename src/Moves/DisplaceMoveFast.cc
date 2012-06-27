@@ -16,8 +16,7 @@
 
 #include "DisplaceMoveFast.h"
 
-double DisplaceFastStageClass::Sample (int &slice1, int &slice2,
-				   Array<int,1> &activeParticles)
+double DisplaceFastStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
   /// Now, choose a random displacement 
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
@@ -35,7 +34,7 @@ double DisplaceFastStageClass::Sample (int &slice1, int &slice2,
   }
 
   // And return sample probability ratio
-  return 1.0;
+  return log(1.0);
 }
 
 void
