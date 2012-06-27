@@ -14,8 +14,8 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#ifndef DAVID_LONG_RANGE_CLASS_YK_H
-#define DAVID_LONG_RANGE_CLASS_YK_H
+#ifndef DAVID_LONG_RANGE_CLASS_YK2_H
+#define DAVID_LONG_RANGE_CLASS_YK2_H
 
 #include "ActionBase.h"
 
@@ -29,11 +29,13 @@
 /// This class reads in and uses an optimized breakup from a file that
 /// David supplies. 
 
-class DavidLongRangeClassYk : public ActionBaseClass
+class DavidLongRangeClassYk2 : public ActionBaseClass
 {
 protected:
   Array<PairActionFitClass*,2> &PairMatrix;
   Array<PairActionFitClass*,1> &PairArray;
+  Array<int,2> &PairIndex;
+  Array<double,2> Spec2Index;
  //  LinearGrid LongGrid;
 
 
@@ -66,9 +68,12 @@ public:
 		       const Array<int,1> &activeParticles, int level);
   double d_dBeta (int slice1, int slice2,  int level);
   string GetName();
-  DavidLongRangeClassYk(PathDataClass &pathData,
+  bool fequals(double a,double b, double tol);
+  bool vecEquals(dVec &a, dVec &b,double tol);
+  DavidLongRangeClassYk2(PathDataClass &pathData,
 			Array<PairActionFitClass* ,2> &pairMatrix,
-			Array<PairActionFitClass*, 1> &pairArray);
+			 Array<PairActionFitClass*, 1> &pairArray,
+			 Array<int,2> &pairIndex);
 
 };
 
