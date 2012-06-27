@@ -38,7 +38,8 @@ src/Actions/DavidLongRangeClassYk.cc
 src/Actions/DavidLongRangeClassYk2.cc																       
 
 src/Moves/OpenStage.cc
-src/Actions/DiagonalActionClass.cc																         
+src/Actions/DiagonalActionClass.cc
+src/SwitchClass.cc						        
 src/Moves/PermuteStage.cc
 src/Actions/EAMClass.cc																			     
 src/Moves/PermuteTableClass.cc

@@ -456,6 +456,7 @@ void PIMCClass::WriteSystemInfo()
       OutFile.WriteVar ("ParticleType", "Boson");
     if (type == BOLTZMANNON)
       OutFile.WriteVar ("ParticleType", "Boltzmannon");
+    OutFile.WriteVar("NEquilibrate", PathData.Path.NEquilibrate);
     OutFile.CloseSection(); //"Species"
   }
 }

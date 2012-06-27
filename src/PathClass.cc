@@ -122,6 +122,7 @@ void PathClass::SetIonConfig(int config)
 
 void PathClass::Read (IOSectionClass &inSection)
 {
+  Equilibrate=1;
   CenterOfMass=0.0;
   SetMode(OLDMODE);
   Sign=1;

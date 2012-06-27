@@ -81,6 +81,7 @@ private:
   ///////////////////////////////////////////////
  public:
   bool Equilibrate;
+  int NEquilibrate;
   MirroredClass<int> Sign;
   int Join;
   dVec CenterOfMass;

@@ -17,6 +17,7 @@
 #include "PathDataClass.h"
 #include "LoopClass.h"
 #include "WriteData.h"
+#include "SwitchClass.h"
 #include "Moves/MoveBase.h"
 #include "Observables/ObservableBase.h"
 #include <sstream>
@@ -25,14 +26,15 @@
 void
 LoopClass::DoEvent()
 {
+  PathData.Path.Equilibrate = Equilibrate;
   std::list<EventClass*>::iterator iter;
   for (int step=0; step<NumSteps; step++){
     for (iter=Events.begin(); iter!=Events.end(); iter++) {
      stringstream output;
-     output<<(*iter)->Name<<"("<<step<<"/"<<NumSteps<<")("<<PathData.Path.Communicator.MyProc()<<") ";
-     //cerr<<output.str();
+     output<<(*iter)->Name<<"("<<step<<"/"<<NumSteps<<")("<<PathData.Path.Communicator.MyProc()<<") "<<endl;
+     //cout<<"!!!!!!!!!!!!!!!!!!!!!!!!!!"<<output.str();
      if (PathData.ExceededWallTime()) {
-        cerr << "PIMC++ exceeded wall clock limit.  Exitting LoopClass.\n";
+        cout << "PIMC++ exceeded wall clock limit.  Exitting LoopClass.\n";
         return;
       }
       else {
@@ -48,8 +50,6 @@ LoopClass::DoEvent()
     }
   }
 }
-
-
 
 
 MoveClass*
@@ -76,6 +76,8 @@ void
 LoopClass::Read(IOSectionClass &in)
 {
   assert (in.ReadVar("Steps", NumSteps));
+  if(!in.ReadVar("Equilibrate",Equilibrate))
+    Equilibrate = 0;
   Read(in, NumSteps);
   ostringstream loopStream;
   loopStream << "Loop(" << NumSteps << ")";
@@ -99,6 +101,9 @@ LoopClass::Read(IOSectionClass &in, int steps)
       }
       Events.push_back(event);
     }
+    else if(in.GetName() == "Switch") {
+      Events.push_back(new SwitchClass(PathData, IOSection));
+    }
     else if(in.GetName() == "Observe") {
       string name;
       assert (in.ReadVar("Name", name));
@@ -110,7 +115,7 @@ LoopClass::Read(IOSectionClass &in, int steps)
       Events.push_back(event);
     }
     else if (in.GetName() == "Loop") {
-      LoopClass *newLoop = new LoopClass (PathData, IOSection, Moves, Observables);
+      LoopClass *newLoop = new LoopClass(PathData, IOSection, Moves, Observables);
       newLoop->Read(in);
       Events.push_back(newLoop);
     }
