@@ -80,6 +80,7 @@ private:
   /// k-space stuff for long-range potentials ///
   ///////////////////////////////////////////////
  public:
+  bool Equilibrate;
   MirroredClass<int> Sign;
   int Join;
   dVec CenterOfMass;
