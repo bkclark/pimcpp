@@ -1,27 +1,170 @@
+project (pimc++ CXX C Fortran)
+
+cmake_minimum_required (VERSION 2.6)
+
+#-------------------------------------------------------------------
+# Compilers
+#-------------------------------------------------------------------
+SET(CMAKE_CXX_COMPILER,"/opt/local/bin/mpic++")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g")
+#SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -g")
+SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
+
+SET(CMAKE_C_COMPILER,"/opt/local/bin/mpicc")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g")
+SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
+
+SET(CMAKE_Fortran_COMPILER,"/opt/openmpi-1.5-gnu/bin/mpif77")
+SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3 -g")
+SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
+
+#-------------------------------------------------------------------
+# Directories
+#-------------------------------------------------------------------
+SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib" CACHE PATH "Single output directory for building all libraries")
+SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin" CACHE PATH "Single output directory for building all executables")
+SET(PROJECT_CMAKE "${CMAKE_SOURCE_DIR}/CMake")
+SET(BUILD_DIR "${CMAKE_SOURCE_DIR}/build")
+
+#-------------------------------------------------------------------
+#  check MPI
+#-------------------------------------------------------------------
+FIND_PACKAGE(MPI REQUIRED)
+IF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+  MESSAGE(STATUS "MPI_COMPILE_FLAGS=${MPI_COMPILE_FLAGS}")
+  MESSAGE(STATUS "MPI_LINK_FLAGS=${MPI_LINK_FLAGS}")
+  MESSAGE(STATUS "MPI_INCLUDE_PATH=${MPI_INCLUDE_PATH}")
+  MESSAGE(STATUS "MPI_LIBRARIES=${MPI_LIBRARIES}")
+  SET(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+  SET(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+  INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+  LINK_LIBRARIES(${MPI_LIBRARIES})
+ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+  SET(TRIAL_LIBRARY_PATHS
+    $ENV{MPI_HOME}/lib
+    /usr/lib
+    /usr/local/lib
+    /opt/lib
+    /sw/lib
+   )
+  SET(TRIAL_INCLUDE_PATHS
+    $ENV{MPI_HOME}/include
+    /usr/include
+    /opt/include
+    /usr/local/include
+    /sw/include
+  )
+  FIND_LIBRARY(MPI_LIBRARIES mpi ${TRIAL_LIBRARY_PATHS})
+  FIND_PATH(MPI_INCLUDE_PATH mpi.h ${TRIAL_INCLUDE_PATHS})
+  IF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+    MESSAGE(STATUS "MPI_COMPILE_FLAGS=${MPI_COMPILE_FLAGS}")
+    MESSAGE(STATUS "MPI_LINK_FLAGS=${MPI_LINK_FLAGS}")
+    MESSAGE(STATUS "MPI_INCLUDE_PATH=${MPI_INCLUDE_PATH}")
+    MESSAGE(STATUS "MPI_LIBRARIES=${MPI_LIBRARIES}")
+    SET(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+    SET(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+    INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+    LINK_LIBRARIES(${MPI_LIBRARIES})
+  ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+    MESSAGE(STATUS "MPI not found!")
+  ENDIF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+ENDIF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+
+#-------------------------------------------------------------------
+# check blitz++
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindBlitz++.cmake)
+IF(BLITZ_FOUND)
+  SET(HAVE_BLITZ 1)
+  INCLUDE_DIRECTORIES(${BLITZ_INCLUDE_DIR})
+ELSE(BLITZ_FOUND)
+  MESSAGE(FATAL_ERROR "Require Blitz++. Set BLITZ_HOME")
+ENDIF(BLITZ_FOUND)
+
+#-------------------------------------------------------------------
+# check fftw
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindFFTW.cmake)
+IF(FFTW_FOUND)
+  SET(HAVE_FFTW 1)
+  INCLUDE_DIRECTORIES(${FFTW_INCLUDE_DIR})
+  LINK_LIBRARIES(${FFTW_LIBRARIES})
+ELSE(FFTW_FOUND)
+  MESSAGE(FATAL_ERROR "Require FFTW. Set FFTW_HOME")
+ENDIF(FFTW_FOUND)
+
+#-------------------------------------------------------------------
+# check sprng
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindSPRNG.cmake)
+IF(SPRNG_FOUND)
+  SET(HAVE_SPRNG 1)
+  INCLUDE_DIRECTORIES(${SPRNG_INCLUDE_DIR})
+  LINK_LIBRARIES(${SPRNG_LIBRARY})
+ELSE(SPRNG_FOUND)
+  MESSAGE(FATAL_ERROR "Require SPRNG. Set SPRNG_HOME")
+ENDIF(SPRNG_FOUND)
+
+#-------------------------------------------------------------------
+# check gsl
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindGSL.cmake)
+IF(GSL_FOUND)
+  SET(HAVE_LIBGSL 1)
+  INCLUDE_DIRECTORIES(${GSL_INCLUDE_DIR})
+  LINK_LIBRARIES(${GSL_LIBRARY})
+ELSE(GSL_FOUND)
+  MESSAGE(FATAL_ERROR "Require GSL. Set GSL_HOME")
+ENDIF(GSL_FOUND)
+
+#-------------------------------------------------------------------
+# check hdf5
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindHDF5.cmake)
+IF(HDF5_FOUND)
+  SET(HAVE_LIBHDF5 1)
+  INCLUDE_DIRECTORIES(${HDF5_INCLUDE_DIR})
+  LINK_LIBRARIES(${HDF5_LIBRARIES})
+ELSE(HDF5_FOUND)
+  MESSAGE(FATAL_ERROR "Require hdf5 1.6.4 or higher. Set HDF5_HOME")
+ENDIF(HDF5_FOUND)
+
+#-------------------------------------------------------------------
+# check blas/lapack/atlas/mkl
+#-------------------------------------------------------------------
+INCLUDE(${PROJECT_CMAKE}/FindLapack.cmake)
+IF(LAPACK_FOUND AND BLAS_FOUND)
+  SET(HAVE_LAPACK 1)
+  SET(HAVE_BLAS 1)
+ELSE(LAPACK_FOUND AND BLAS_FOUND)
+  MESSAGE(FATAL_ERROR "Require lapack/blas/atlas/mkl. Set MKL_HOME etc.")
+ENDIF(LAPACK_FOUND AND BLAS_FOUND)
+
+#-------------------------------------------------------------------
+# extra libraries
+#-------------------------------------------------------------------
+#LINK_LIBRARIES("-lz -lpthread -lm -lmpi -mp")
+LINK_LIBRARIES("-lz -lpthread -lm  -mp")
+
+#-------------------------------------------------------------------
+# add sources
+#-------------------------------------------------------------------
 macro (add_sources)
     file (RELATIVE_PATH _relPath "${CMAKE_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}")
     foreach (_src ${ARGN})
         if (_relPath)
             list (APPEND SRCS "${_relPath}/${_src}")
-        else()
+        else(_relPath)
             list (APPEND SRCS "${_src}")
-        endif()
-    endforeach()
+        endif(_relPath)
+    endforeach(_src ${ARGN})
     if (_relPath)
         # propagate SRCS to parent directory
         set (SRCS ${SRCS} PARENT_SCOPE)
-    endif()
-endmacro()
+    endif(_relPath)
+endmacro (add_sources)
 
-
-
-
-
-cmake_minimum_required (VERSION 2.6) 
-project (pimc++) 
-SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
-SET(CMAKE_CXX_COMPILER,"g++")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -I/Users/bkclark/Code/MauriceTest/blitz/ -L/Users/bkclark/Code/MauriceTest/blitz/lib  -I/home/bclark/pcts/include/ -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings  -DH5_USE_16_API -I/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/include/  -I/home/bclark/Install/sprng-2.0/src/ -Wno-write-strings -L/home/bclark/pcts/lib/   -L/Users/bkclark/Install/hdf5-1.8.7-mac-intel-x86_64-shared/lib/ -lhdf5 -lsprng -L/usr/lib -L/home/bclark/lib/  -lz  -L/Applications/sage/local/lib/ -I/usr/include/atlas/  -lblas -llapack -lgsl -L/opt/intel/mkl/10.2.6.038/lib/em64t/  -lpthread   ")
+# sources
 add_sources(src/Actions/ActionBase.cc
 src/Moves/MoveBase.cc
 src/Actions/ActionsClass.cc
@@ -32,14 +175,11 @@ src/Moves/MultiStage.cc
 src/Actions/CummingsWaterPotential.cc																   
 src/Moves/NoPermuteClass.cc
 src/Actions/DavidLongRangeClass.cc																     
-
 src/Moves/OpenEndMove.cc
 src/Actions/DavidLongRangeClassYk.cc																       
 src/Actions/DavidLongRangeClassYk2.cc																       
-
 src/Moves/OpenStage.cc
-src/Actions/DiagonalActionClass.cc
-src/SwitchClass.cc						        
+src/Actions/DiagonalActionClass.cc																         
 src/Moves/PermuteStage.cc
 src/Actions/EAMClass.cc																			     
 src/Moves/PermuteTableClass.cc
@@ -53,6 +193,7 @@ src/Moves/ReadPath.cc
 src/Moves/RefSliceMove.cc
 src/Actions/LongRangeClass.cc																				   
 src/Moves/SPS.cc
+src/SwitchClass.cc
 src/Actions/LongRangeCoulombClass.cc																			     
 src/Moves/SpaceWarp.cc
 src/Actions/LongRangePotClass.cc																			       
@@ -178,7 +319,10 @@ src/Moves/MoleculeMove.cc
 src/Moves/MoleculeMoveBase.cc																					
 src/WormHelper.cc
 src/Moves/MoleculeMoveManager.cc																					
-src/WriteData.cc)
+src/WriteData.cc
+)
+
 message(STATUS "${SRCS}")
 add_executable (pimc++ ${SRCS})
-
+#add_executable (FreeParticles ${FreeParticleSRCS})
+SET_TARGET_PROPERTIES("pimc++" PROPERTIES LINKER_LANGUAGE CXX)
