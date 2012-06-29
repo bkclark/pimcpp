@@ -95,15 +95,26 @@ SalClass::SingleAction (int slice1, int slice2,
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
 
-  return total;
+  return PathData.Path.tau*total;
     
 }
 
   ///Not really d_dbeta but total energy
 double SalClass::d_dBeta (int slice1, int slice2,  int level)
 {
-  return 0.0;
-
+  double total=0.0;
+  
+  for (int ki=0; ki<Path.kVecs.size(); ki++) {
+    for (int slice=0;slice<PathData.Path.NumTimeSlices()-1;slice++){
+      double factor = 1.0;
+      //      for(set<int>::iterator it = speciesList.begin(); it!=speciesList.end(); it++) {
+      for (int species=0;species<PathData.Path.NumSpecies();species++){
+        double rhok2 = mag2(Path.Rho_k(slice,species,ki));
+        total +=  factor*rhok2;
+      }
+    }
+  }
+  return total;
 }
 
 
