@@ -7,23 +7,23 @@
 #include <cstring>
 using namespace std;
 #include <blitz/array.h>
-#include <blitz/tinyvec-et.h>
+// #include <blitz/tinyvec-et.h>
 using namespace blitz;
-typedef double scalar;
+typedef double pscalar;
 
 #define NDIM 3
 
 using namespace blitz;
-typedef TinyVector<scalar,1> Vec1;
-typedef TinyVector<scalar,2> Vec2;
-typedef TinyVector<scalar,3> Vec3;
-typedef TinyVector<scalar,4> Vec4;
-typedef TinyMatrix<scalar,2,2> Mat2;
-typedef TinyMatrix<scalar,3,3> Mat3;
+typedef TinyVector<pscalar,1> Vec1;
+typedef TinyVector<pscalar,2> Vec2;
+typedef TinyVector<pscalar,3> Vec3;
+typedef TinyVector<pscalar,4> Vec4;
+typedef TinyMatrix<pscalar,2,2> Mat2;
+typedef TinyMatrix<pscalar,3,3> Mat3;
 typedef TinyVector<complex<double>,3>   cVec3;
 typedef TinyMatrix<complex<double>,3,3> cMat3;
 
-typedef TinyVector<scalar,NDIM> dVec;
+typedef TinyVector<pscalar,NDIM> dVec;
 typedef TinyVector<int,NDIM> dVecInt;
 
 #ifdef MAC
@@ -55,7 +55,7 @@ inline TinyVector<T,size> operator-(TinyVector<T,size> v)
 //   return (equals);
 // }
 
-inline Vec2 operator*(const Vec2 &v, scalar s)
+inline Vec2 operator*(const Vec2 &v, pscalar s)
 {
   Vec2 result;
   result[0] = s*v[0];
@@ -63,7 +63,7 @@ inline Vec2 operator*(const Vec2 &v, scalar s)
   return (result);
 }
 
-inline Vec2 operator*(scalar s, const Vec2 &v)
+inline Vec2 operator*(pscalar s, const Vec2 &v)
 {
   return (v * s);
 }
@@ -86,7 +86,7 @@ inline Vec2 operator-(const Vec2 &v1, const Vec2 &v2)
 }
 
 
-inline Vec3 operator*(scalar s, const Vec3 &v)
+inline Vec3 operator*(pscalar s, const Vec3 &v)
 {
   Vec3 result;
   result[0] = s*v[0];
@@ -95,7 +95,7 @@ inline Vec3 operator*(scalar s, const Vec3 &v)
   return (result);
 }
 
-inline Vec3 operator*(const Vec3 &v, scalar s)
+inline Vec3 operator*(const Vec3 &v, pscalar s)
 {
   Vec3 result;
   result[0] = s*v[0];
@@ -124,7 +124,7 @@ inline Vec3 operator-(const Vec3 &v1, const Vec3 &v2)
 }
 
 
-inline Vec4 operator*(scalar s, const Vec4 &v)
+inline Vec4 operator*(pscalar s, const Vec4 &v)
 {
   Vec4 result;
   result[0] = s*v[0];
@@ -134,7 +134,7 @@ inline Vec4 operator*(scalar s, const Vec4 &v)
   return (result);
 }
 
-inline Vec4 operator*(const Vec4 &v, scalar s)
+inline Vec4 operator*(const Vec4 &v, pscalar s)
 {
   Vec4 result;
   result[0] = s*v[0];
@@ -166,7 +166,7 @@ inline Vec4 operator-(const Vec4 &v1, const Vec4 &v2)
 }
 
 
-inline Mat3 operator*(scalar s, const Mat3 &M)
+inline Mat3 operator*(pscalar s, const Mat3 &M)
 {
   Mat3 sM;
   sM(0,0)=s*M(0,0); sM(0,1)=s*M(0,1); sM(0,2)=s*M(0,2);

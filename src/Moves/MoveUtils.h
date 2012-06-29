@@ -3,7 +3,7 @@
 
 
 #include "../Blitz.h"
-typedef TinyVector<scalar,NDIM> dVec;
+// typedef TinyVector<scalar,NDIM> dVec;
 
 // A number of functions used by several 
 // Move and Action classes

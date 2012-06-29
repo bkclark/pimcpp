@@ -123,90 +123,90 @@ double BisectionStageSphereClass::angleInBetween(dVec &r1,dVec &r2)
 double BisectionStageSphereClass::Sample(int &slice1,int &slice2,
 				   Array<int,1> &activeParticles)
 {
-  
-  PathClass &Path = PathData.Path;
-  int skip = 1<<(BisectionLevel+1);
-  double levelTau = 0.5*PathData.Path.tau*skip;
-  double randomTheta;
-  double oldAngle;
-  int numImages = PathData.Actions.NumImages;
+  //hack..commented out!  
+//   PathClass &Path = PathData.Path;
+//   int skip = 1<<(BisectionLevel+1);
+//   double levelTau = 0.5*PathData.Path.tau*skip;
+//   double randomTheta;
+//   double oldAngle;
+//   int numImages = PathData.Actions.NumImages;
 
-  double logSampleProb=0.0;
-  double logOldSampleProb=0.0;
+//   double logSampleProb=0.0;
+//   double logOldSampleProb=0.0;
 
-  for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
-    double a=SphereRadius;
-    int ptcl=activeParticles(ptclIndex);
-    double lambda=PathData.Path.ParticleSpecies(ptcl).lambda;
-    double sigma2=(2.0*lambda*levelTau/(a*a));
-    double sigma=sqrt(sigma2);
-    double prefactorOfSampleProb=0.0; //-NDIM/2.0*log(2*M_PI*sigma2);
+//   for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
+//     double a=SphereRadius;
+//     int ptcl=activeParticles(ptclIndex);
+//     double lambda=PathData.Path.ParticleSpecies(ptcl).lambda;
+//     double sigma2=(2.0*lambda*levelTau/(a*a));
+//     double sigma=sqrt(sigma2);
+//     double prefactorOfSampleProb=0.0; //-NDIM/2.0*log(2*M_PI*sigma2);
    
-    for (int slice=slice1;slice<slice2;slice+=skip){
-      SetMode(OLDMODE);
-      dVec rOld=Path(slice,ptcl);
-      dVec rdiffOld=Path.Velocity(slice,slice+skip,ptcl);
-      dVec rbarOld=rOld+ 0.5*rdiffOld;
-      ProjectOntoSphere(rbarOld,a);
-      dVec rppOld=Path(slice+(skip>>1),ptcl);
+//     for (int slice=slice1;slice<slice2;slice+=skip){
+//       SetMode(OLDMODE);
+//       dVec rOld=Path(slice,ptcl);
+//       dVec rdiffOld=Path.Velocity(slice,slice+skip,ptcl);
+//       dVec rbarOld=rOld+ 0.5*rdiffOld;
+//       ProjectOntoSphere(rbarOld,a);
+//       dVec rppOld=Path(slice+(skip>>1),ptcl);
 
-      oldAngle=angleInBetween(rppOld,rbarOld);
-      double randomDist;
+//       oldAngle=angleInBetween(rppOld,rbarOld);
+//       double randomDist;
 
-      double thetaBar,phiBar;
-      dVec rpp,rbar;
-      SetMode(NEWMODE);
-      dVec r=Path(slice,ptcl);
-      dVec rdiff=Path.Velocity(slice,slice+skip,ptcl);
-      rbar=r+ 0.5*rdiff;
+//       double thetaBar,phiBar;
+//       dVec rpp,rbar;
+//       SetMode(NEWMODE);
+//       dVec r=Path(slice,ptcl);
+//       dVec rdiff=Path.Velocity(slice,slice+skip,ptcl);
+//       rbar=r+ 0.5*rdiff;
 
-      ProjectOntoSphere(rbar,a);
-      CartesianToSpherical(rbar,thetaBar,phiBar);
-      dVec Er, Etheta, Ephi;
-      SurfaceUnitVectors(Er,Etheta,Ephi,thetaBar,phiBar);
+//       ProjectOntoSphere(rbar,a);
+//       CartesianToSpherical(rbar,thetaBar,phiBar);
+//       dVec Er, Etheta, Ephi;
+//       SurfaceUnitVectors(Er,Etheta,Ephi,thetaBar,phiBar);
 
-      randomTheta=abs(Path.Random.LocalGaussian(sigma));
-      randomDist=a*randomTheta;
+//       randomTheta=abs(Path.Random.LocalGaussian(sigma));
+//       randomDist=a*randomTheta;
 
-      double rn1=-1+2*Path.Random.Local();
-      double rn2=-1+2*Path.Random.Local();
-      double cosRandTheta,sinRandTheta;
-      cosRandTheta=cos(randomTheta);
-      sinRandTheta=sin(randomTheta);
-      //      sincos(randomTheta,&sinRandTheta,&cosRandTheta);
-      dVec samVec=rn1*Etheta+rn2*Ephi;
-      rpp=a*cosRandTheta*Er+a*sinRandTheta*(samVec)/sqrt(dot(samVec,samVec));
+//       double rn1=-1+2*Path.Random.Local();
+//       double rn2=-1+2*Path.Random.Local();
+//       double cosRandTheta,sinRandTheta;
+//       cosRandTheta=cos(randomTheta);
+//       sinRandTheta=sin(randomTheta);
+//       //      sincos(randomTheta,&sinRandTheta,&cosRandTheta);
+//       dVec samVec=rn1*Etheta+rn2*Ephi;
+//       rpp=a*cosRandTheta*Er+a*sinRandTheta*(samVec)/sqrt(dot(samVec,samVec));
 
-      if (abs(sqrt(dot(rpp,rpp)) -SphereRadius)>pow(10.0,-5)) 
-	cerr <<"Inside sphere!! "<<sqrt(dot(rpp,rpp))<<endl;
-      ProjectOntoSphere(rpp,a);  
+//       if (abs(sqrt(dot(rpp,rpp)) -SphereRadius)>pow(10.0,-5)) 
+// 	cerr <<"Inside sphere!! "<<sqrt(dot(rpp,rpp))<<endl;
+//       ProjectOntoSphere(rpp,a);  
       
 
-     ///Here we've stored the new position in the path
-      Path.SetPos(slice+(skip>>1),ptcl,rpp);
+//      ///Here we've stored the new position in the path
+//       Path.SetPos(slice+(skip>>1),ptcl,rpp);
  
      
+// //       logSampleProb += prefactorOfSampleProb + 
+// // 	-0.5*(randomTheta*randomTheta)/sigma2+log(randomTheta*a);
+// //       logOldSampleProb += prefactorOfSampleProb + 
+// // 	-0.5*(oldAngle*oldAngle)/sigma2+log(oldAngle*a);
+// //      cerr<<randomTheta<<" "<<oldAngle<<" "<<abs(oldAngle)<<" "<<log(abs(randomTheta))<<" "<<log(abs(oldAngle))<<endl;
+
 //       logSampleProb += prefactorOfSampleProb + 
-// 	-0.5*(randomTheta*randomTheta)/sigma2+log(randomTheta*a);
-//       logOldSampleProb += prefactorOfSampleProb + 
-// 	-0.5*(oldAngle*oldAngle)/sigma2+log(oldAngle*a);
-//      cerr<<randomTheta<<" "<<oldAngle<<" "<<abs(oldAngle)<<" "<<log(abs(randomTheta))<<" "<<log(abs(oldAngle))<<endl;
-
-      logSampleProb += prefactorOfSampleProb + 
-	-0.5*(randomTheta*randomTheta)/sigma2;
-	//-log(abs(randomTheta));
-      if (oldAngle==0)
-	return 100;
+// 	-0.5*(randomTheta*randomTheta)/sigma2;
+// 	//-log(abs(randomTheta));
+//       if (oldAngle==0)
+// 	return 100;
 	  
-      else
-	logOldSampleProb += prefactorOfSampleProb + 
-	  -0.5*(oldAngle*oldAngle)/sigma2;
-	  //-log(abs(oldAngle));
+//       else
+// 	logOldSampleProb += prefactorOfSampleProb + 
+// 	  -0.5*(oldAngle*oldAngle)/sigma2;
+// 	  //-log(abs(oldAngle));
       
-    }
-  }
+//     }
+//   }
 
-  return abs(oldAngle)/abs(randomTheta)*exp(-logSampleProb+logOldSampleProb);
+//   return abs(oldAngle)/abs(randomTheta)*exp(-logSampleProb+logOldSampleProb);
 
 }
 // //////

@@ -15,7 +15,7 @@
 /////////////////////////////////////////////////////////////
 
 #include "MatrixOps.h"
-#include <blitz/mstruct.h>
+// #include <blitz/mstruct.h>
 #include "../config.h"
 
 //#ifdef NOUNDERSCORE 
@@ -689,9 +689,9 @@ Array<double,2> Inverse (Array<double,2> &A)
 }
 
   
-void SymmEigenPairs (const Array<scalar,2> &A, int NumPairs,
-		     Array<scalar,1> &Vals,
-		     Array<scalar,2> &Vectors)
+void SymmEigenPairs (const Array<pscalar,2> &A, int NumPairs,
+		     Array<pscalar,1> &Vals,
+		     Array<pscalar,2> &Vectors)
 {
   char JobType = 'V';    // Find eigenvectors and eignevalues
   char Range   = 'I';    // Find eigenpairs in a range of indices
@@ -767,7 +767,7 @@ void SymmEigenPairs (const Array<scalar,2> &A, int NumPairs,
 
 
 void SymmEigenPairs (const Array<complex<double>,2> &A, int NumPairs,
-		     Array<scalar,1> &Vals,
+		     Array<pscalar,1> &Vals,
 		     Array<complex<double>,2> &Vectors)
 {
   char JobType = 'V';    // Find eigenvectors and eignevalues

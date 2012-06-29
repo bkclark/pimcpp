@@ -21,7 +21,7 @@ void CenterOfMassMoveClass::MakeMove()
 {
   PathClass &Path = PathData.Path;
   //  cerr<<"The current center of mass is "<<Path.CenterOfMass;
-  dVec toShift=-1*Path.CenterOfMass/((Path.NumTimeSlices()-1)*Path.NumParticles());
+  dVec toShift=-1* (Path.CenterOfMass/((Path.NumTimeSlices()-1)*Path.NumParticles()));
   for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++)
     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
       Path(slice,ptcl)=Path(slice,ptcl)+toShift;
@@ -65,7 +65,10 @@ void CenterOfMassMoveClass::MakeMove()
   cerr<<"My center of mass is "<<center_of_mass<<endl;
   for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++)
     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
-      Path(slice,ptcl)=Path(slice,ptcl)-center_of_mass/5.0;
+      Path(slice,ptcl)=Path(slice,ptcl)-(1.0/5.0)*center_of_mass;
+      //      dVec cm=center_of_mass/5.0;
+      //      cm=-cm;
+      //      Path(slice,ptcl)=Path(slice,ptcl)+cm;
     }
   
   int slice1=0;

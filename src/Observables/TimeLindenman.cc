@@ -33,7 +33,9 @@ TimeLindenmanClass::ProduceTimeMatrix(int mcStep)
       dist=sqrt(dot(diff,diff));
       if (dist<DistCutoff){ //the particles are considered nearby
 	pair<int, dVec> nearPair(nearPtcl,diff);
-	pair<int, dVec> nearPair2(ptcl,0.0-diff);
+	dVec mDiff=diff;
+	mDiff=-mDiff;
+	pair<int, dVec> nearPair2(ptcl,mDiff);
 	uj_minus_ujp(mcStep,ptcl).insert(nearPair);
 	uj_minus_ujp(mcStep,nearPtcl).insert(nearPair2);
       }

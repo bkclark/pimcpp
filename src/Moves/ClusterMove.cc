@@ -315,7 +315,10 @@ void GlobalFlip::RotateMol(int slice,int mol,dVec Q){
   AssignPtcl(mol,activeParticles);
   for(int i=0;i<5;i++){
     dVec r = PathData.Path(slice,activeParticles(i));
-    dVec q = 2*Q - r;
+    dVec q = (2.0*Q) - (1.0*r);
+    //    dVec q = Q;
+    //    q=0.5*q;
+    //    q=q  - r;
     PathData.Path.SetPos(slice,activeParticles(i),q);
   }
 }

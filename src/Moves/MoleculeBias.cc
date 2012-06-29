@@ -171,7 +171,7 @@ double MoleculeForceBiasMove::Sample(int &slice1,int &slice2, Array<int,1> &acti
         }   
         double PpropRev = 1.0;
         if(doTrans)
-          PpropRev *= exp(Tau*dot(sumFrev,(-1*dR))/sqrt(dot(sumFrev,sumFrev)*dot(dR,dR)));
+          PpropRev *= exp(Tau*dot(sumFrev,(-1.0*dR))/sqrt(dot(sumFrev,sumFrev)*dot(dR,dR)));
         if(doRot)
           PpropRev *= exp(Tau*dot(sumNrev,axis)*(-theta)/sqrt(dot(sumNrev,sumNrev)));  //Reverse Transition probability
         double Trev = PpropRev;

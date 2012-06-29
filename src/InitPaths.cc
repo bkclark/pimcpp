@@ -693,7 +693,9 @@ PathClass::InitPaths (IOSectionClass &in)
         r[2] = ptcl;
 #endif
         for (int slice=0; slice<NumTimeSlices(); slice++) {
-          Path(slice,ptcl) = r + 0.1*r/sqrt(3.0*ptcl*ptcl);
+	  dVec temp=0.1*r/sqrt(3.0*(double)ptcl*(double)ptcl);
+	  temp=r+temp;
+          Path(slice,ptcl) =temp;
         }
       }
     }

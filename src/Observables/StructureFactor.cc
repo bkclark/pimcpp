@@ -16,7 +16,7 @@
 
 #include "StructureFactor.h"
 #include <utility>
-//#include <multimap>
+#include <multimap.h>
 using namespace std;
 void StructureFactorClass::Read(IOSectionClass& in)
 {
@@ -247,10 +247,12 @@ void StructureFactorClass::Accumulate()
        Sk(ki) += sk;
      }
      for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
-       double a = AdditionalRho_k(slice, Species1, ki-kVecs.size()).real();
-       double b = AdditionalRho_k(slice, Species1, ki-kVecs.size()).imag();
-       double c = AdditionalRho_k(slice, Species2, ki-kVecs.size()).real();
-       double d = AdditionalRho_k(slice, Species2, ki-kVecs.size()).imag();
+       int kk=ki-kVecs.size();
+       double a = (AdditionalRho_k(slice, Species1, kk)).real();
+       double b = AdditionalRho_k(slice, Species1, kk).imag();
+       double c = AdditionalRho_k(slice, Species2, kk).real();
+       double d = AdditionalRho_k(slice, Species2, kk).imag();
+
        // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
        double sk=a*c+b*d;
        Sk(ki) += sk;
