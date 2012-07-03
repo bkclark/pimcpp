@@ -16,7 +16,7 @@
 
 #include "StructureFactor.h"
 #include <utility>
-#include <multimap.h>
+#include <map>
 using namespace std;
 void StructureFactorClass::Read(IOSectionClass& in)
 {
