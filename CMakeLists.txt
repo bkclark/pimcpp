@@ -7,11 +7,11 @@ cmake_minimum_required (VERSION 2.6)
 #-------------------------------------------------------------------
 SET(CMAKE_CXX_COMPILER,"/opt/local/bin/mpic++")
 #SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -g")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -g -Wno-write-strings")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
 SET(CMAKE_C_COMPILER,"/opt/local/bin/mpicc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g -Wno-write-strings")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
 SET(CMAKE_Fortran_COMPILER,"/opt/openmpi-1.5-gnu/bin/mpif77")
@@ -23,6 +23,7 @@ SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 #-------------------------------------------------------------------
 SET(LIBRARY_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/lib" CACHE PATH "Single output directory for building all libraries")
 SET(EXECUTABLE_OUTPUT_PATH "${CMAKE_SOURCE_DIR}/bin" CACHE PATH "Single output directory for building all executables")
+SET(CMAKE_INSTALL_PREFIX "$ENV{HOME}" CACHE PATH "Default install to home directory")
 SET(PROJECT_CMAKE "${CMAKE_SOURCE_DIR}/CMake")
 SET(BUILD_DIR "${CMAKE_SOURCE_DIR}/build")
 

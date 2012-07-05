@@ -3,41 +3,66 @@ from math import *
 from numpy import *
 import subprocess
 
+def GetUnique(a):
+  seen = set()
+  return [x for x in a if str(x) not in seen and not seen.add(str(x))]
+
 # Input Parameters
 
 ## General Parameters
 prefix = 'e-e' # filename prefix
-unit1 = 'r' # energy unit
-unit2 = 'a' # length unit
+unit1 = 'H' # energy unit
+unit2 = 'A' # length unit
 type1 = 'e' # particle type
 type2 = 'e' # particle type
-lam1 = 0.0625 # hbar^2/2m
-lam2 = 0.0625 # hbar^2/2m
+lam1 = 1.0 # hbar^2/2m
+lam2 = 1.0 # hbar^2/2m
 
 ## Potgen
-Z1Z2 = 0.5 # e^2
+Z1Z2 = 1.0 # e^2
 Npoints = 450 # number of grid points
 r0 = 0.01 # first grid point
-L = 5.17051953218 # length of box
-kCut = 4.86077676958 # k cutoff for ewald
-rCut = 2.51215075962 # r cutoff for ewald
+L = 16.0 # length of box
+kCut = 5.0 # k cutoff for ewald
+rCut = 5.0 # r cutoff for ewald
 breakup = 1 # 1 - Optimized breakup, 0 - Classical Ewald breakup
 diagonal = 1 # 1 - Do FT along diagonal, 0 - Do FT in x-direction
 
+## PIMC Simulation
+T = 0.025 # desired temperature of PIMC simulation
+tau = 0.125 # desired timestep of PIMC simulation
+M = int((1/T)/tau) # number of time slices
+tau = (1/T)/M # used tau
+print 'M', M
+print 'tau', tau
+
 ## Squarer
-tlow = 0.0913541505403 # lowest temperature at which the density matrix is generated
-ntemp = 8 # number of temperatures at which to compute the density matrix
+ntemp = 1 # number of temperatures at which to compute the density matrix
+tlow = 1/tau # lowest temperature at which the density matrix is generated
 ndim = 3 # dimension
 norder = 3 # highest order of polynomial fit
 nl = 30 # number of partial waves
 nsquare = 14 # total number of squarings to reach lowest temperature
 
 # Generate Potential
+print '**** Performing Breakup ****'
 subprocess.call(['ewald',str(L),str(kCut),str(r0),str(rCut),str(Z1Z2),str(Npoints),str(breakup),str(diagonal)])
-kData = loadtxt('kData.txt')
-Vk0 = kData[0][1]
 
-# Write .dm file for squarer
+# Write .yk file
+print '**** Creating Square Inputs ****'
+kData = loadtxt('kData.txt')
+ks = kData[:,0]
+Vks = kData[:,1]
+kData = GetUnique(kData.tolist())
+kData.sort()
+Vk0 = kData[0][1]
+print 'Vk0', Vk0
+f = open(prefix+'.yk','w')
+for kDatum in kData:
+  f.write('  %.10E'%kDatum[0]+'       %.10E'%kDatum[1]+'\n')
+f.close()
+
+# Write .dm and .in file for squarer
 f = open(prefix+'.dm','w')
 f.write(' UNITS '+unit1+' '+unit2)
 f.write('\n TYPE '+type1+' '+str(lam1))
@@ -60,3 +85,11 @@ for [r,VShort,VLong] in rData:
   if count % 5 == 0:
     f.write('\n  ')
 f.close()
+
+# Squarer
+print '**** Performing Squaring Procedure ****'
+subprocess.call(['squarer',prefix])
+
+# Density Matrix Parser
+print '**** Parsing Density Matrix ****'
+subprocess.call(['python','dmparse.py',prefix+'.dm'])
