@@ -32,7 +32,8 @@ SpaceWarpClass::Set(const Array<Vec3,1> &rions,
     DeltaRions = delta;
   }
   else {
-    Rions = rions + delta;
+    for (int dim=0;dim<NDIM;dim++)
+      Rions(dim) = rions(dim) + delta(dim);
     DeltaRions = -delta;
   }
 }

@@ -42,7 +42,7 @@ void ParticleAverageLocClass::Accumulate()
       disp=PathData.Path.Velocity(0,slice,ptcl);
       chainCtr+=disp;
     }
-    chainCtr = chainCtr/PathData.Path.NumTimeSlices();
+    chainCtr = chainCtr * (1.0/PathData.Path.NumTimeSlices());
     ///Now we add it onto the original vector
     chainCtr=chainCtr+dispToPtcl;
     PathData.Path.PutInBox(chainCtr);

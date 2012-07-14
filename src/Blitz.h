@@ -105,6 +105,16 @@ inline Vec3 operator*(const Vec3 &v, pscalar s)
 }
 
 
+inline Vec3 operator/(const Vec3 &v, pscalar s)
+{
+  Vec3 result;
+  result[0] = v[0]/s;
+  result[1] = v[1]/s;
+  result[2] = v[2]/s;
+  return (result);
+}
+
+
 inline Vec3 operator+(const Vec3 &v1, const Vec3 &v2)
 {
   Vec3 result;

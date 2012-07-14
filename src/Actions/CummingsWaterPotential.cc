@@ -257,7 +257,7 @@ void CummingsWaterPotentialClass::SolveDipole(int slice) {
         //b = PathData.Path(s,m+numMol) - PathData.Path(s,m);
         //PathData.Path.PutInBox(b);
         //b = Normalize(b);
-        p(s,m) = alpha*Eq(slice,m)/(conversion*prefactor_Efield);
+        p(s,m) = alpha*Eq(slice,m)*(1.0/(conversion*prefactor_Efield));
         //p(s,m) = mu_0 * b;
         //p(s,m) = ((0., 0., 0.));
         //cerr << m << " " << b << " " << p(s,m) << endl;
