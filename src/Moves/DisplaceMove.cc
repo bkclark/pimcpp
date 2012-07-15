@@ -23,7 +23,8 @@ void DisplaceMoveClass::WriteRatio()
   MultiStageClass::WriteRatio();
 
   double AcceptRatio = (double)NumAccepted/(double)NumAttempted;
-  Sigma *= 1.0 - DesiredAcceptRatio + AcceptRatio; // Recalculate step size
+  if (DesiredAcceptRatio>0)
+    Sigma *= 1.0 - DesiredAcceptRatio + AcceptRatio; // Recalculate step size
   dVec Box = PathData.Path.GetBox();
   if (Sigma > Box(0))
     Sigma = Box(0)/2.;
@@ -89,9 +90,9 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   
   assert(in.ReadVar("NumToMove", numToMove));
   SetNumParticlesToMove(numToMove);
-
-  assert(in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio));
-
+  DesiredAcceptRatio=-1;
+  in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
+ 
   // Read in the active species.
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
   Array<int,1> activeSpecies(activeSpeciesNames.size());
