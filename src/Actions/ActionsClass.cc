@@ -18,7 +18,7 @@
 #include "ActionsClass.h"
 #include "../PathDataClass.h"
 #include "../IO/FileExpand.h"
-
+#include "../Blitz.h"
 // now include ActionBaseClass headers here, not in .h
 #include "ExternalPotential.h"
 #include "CummingsWaterPotential.h"
@@ -1132,8 +1132,13 @@ ActionsClass::GetForces(const Array<int,1> &ptcls,
   LongRange.GradAction(0, Path.NumTimeSlices()-1, ptcls, 0, FtmpLong);
   /// Answer must be divided by beta.
   double beta = Path.TotalNumSlices * Path.tau;
-  Fshort -= (1.0/beta)*FtmpShort;
-  Flong -= (1.0/beta)*FtmpLong;
+  //  Fshort -= (1.0/beta)*FtmpShort;
+  //  Flong -= (1.0/beta)*FtmpLong;
+  for (int dim=0;dim<NDIM;dim++){
+    Fshort[dim]-=(1.0/beta)*FtmpShort[dim];
+    Flong[dim]-=(1.0/beta)*FtmpLong[dim];
+    
+  }
 }
 
 
@@ -1168,7 +1173,10 @@ ActionsClass::GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F)
     Ftmp(pi) = (0.5/eps)*(uPlus-uMinus);
   }
   double beta = Path.TotalNumSlices * Path.tau;
-  F -= (1.0/beta)*Ftmp;
+  for (int dim=0;dim<NDIM;dim++){
+    F[dim]-=(1.0/beta)*Ftmp[dim];
+  }
+  //  F -= (1.0/beta)*Ftmp;
 }
 
 

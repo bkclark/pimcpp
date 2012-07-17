@@ -1939,7 +1939,7 @@ dVec ST2WaterClass::GetBisector(dVec v1, dVec v2)
 dVec ST2WaterClass::Normalize(dVec v)
 {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v*(1.0/mag);
 //cerr << "Test normalization: mag of v is " << mag << " and normalized it's " << Mag(norm) << endl;
   return norm;
 }
@@ -1947,7 +1947,7 @@ dVec ST2WaterClass::Normalize(dVec v)
 dVec ST2WaterClass::Scale(dVec v, double scale)
 {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v*(1.0/mag);
   norm *= scale;
 //cerr << "Test scaling: mag of v is " << mag << " and scaled it's" << Mag(norm) << endl;
   return norm;

@@ -26,6 +26,22 @@ double WaterClass::SingleAction (int slice1, int slice2,
 
     }
     we.d.ComputeDistDisp(we.system);
+
+  for (int i=0;i<we.system.r.size();i++){
+      for (int j=0;j<we.system.r.size();j++){
+ 	if (i!=j){
+	  double dist;
+	  dVecp r12;
+	  double dist2;
+	  we.d.GetDistDisp(i,j,dist,dist2,r12);
+	  if ((we.system.atom[i]!=we.system.atom[j])  &&
+	      dist<0.2)
+	    return PathData.Path.tau*999;
+	}
+      }
+  }
+  
+
     we.rho.Compute(we.system);
 
     double en=we.ComputeEnergy();
@@ -36,7 +52,7 @@ double WaterClass::SingleAction (int slice1, int slice2,
     t.Stop();
     //    cerr<<"Total time was "<<t.Time()<<endl;
     t.Clear();
-    cerr<<"The value is "<<total<<" "<<PathData.Path.tau*total<<endl;;
+    //    cerr<<"The value is "<<total<<" "<<PathData.Path.tau*total<<endl;;
   return PathData.Path.tau*total; // *3.1577504e5;
   //    cerr<<we.ComputeEnergy()<<endl;
     

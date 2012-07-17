@@ -1895,7 +1895,7 @@ dVec TIP5PWaterClass::GetBisector(dVec v1, dVec v2)
 dVec TIP5PWaterClass::Normalize(dVec v)
 {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v *(1./mag);
 //cerr << "Test normalization: mag of v is " << mag << " and normalized it's " << Mag(norm) << endl;
   return norm;
 }
@@ -1909,7 +1909,7 @@ dVec TIP5PWaterClass::Strip(dVec R, dVec u){
 dVec TIP5PWaterClass::Scale(dVec v, double scale)
 {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v *(1.0/mag);
   norm *= scale;
 //cerr << "Test scaling: mag of v is " << mag << " and scaled it's" << Mag(norm) << endl;
   return norm;

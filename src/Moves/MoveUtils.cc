@@ -1,5 +1,5 @@
 #include "MoveUtils.h"
-
+#include "../Blitz.h"
 double dotprod(dVec vec1, dVec vec2) {
   double total = 0;
   for(int i = 0; i<3; i++){
@@ -34,13 +34,13 @@ double Mag(dVec v) {
 
 dVec Normalize(dVec v) {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v* (1.0/mag);
   return norm;
 }
 
 dVec Renormalize(dVec v, double scale) {
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v *(1.0/mag);
   norm *= scale;
   return norm;
 }
@@ -48,7 +48,7 @@ dVec Renormalize(dVec v, double scale) {
 dVec Scale(dVec v, double scale) {
   cerr << "CALLING SCALE, NOW DEPRECATED.  PLEASE REPLACE WITH RENORMALIZE IN MOVEUTILS.  IT'S THE SAME THING BUT THE NAME IS CLEARER" << endl;
   double mag = Mag(v);
-  dVec norm = v/mag;
+  dVec norm = v * (1.0/mag);
   norm *= scale;
   return norm;
 }

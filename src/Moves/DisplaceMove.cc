@@ -23,7 +23,8 @@ void DisplaceMoveClass::WriteRatio()
   MultiStageClass::WriteRatio();
 
   double AcceptRatio = (double)NumAccepted/(double)NumAttempted;
-  Sigma *= 1.0 - DesiredAcceptRatio + AcceptRatio; // Recalculate step size
+  if (DesiredAcceptRatio>0)
+    Sigma *= 1.0 - DesiredAcceptRatio + AcceptRatio; // Recalculate step size
   dVec Box = PathData.Path.GetBox();
   if (Sigma > Box(0))
     Sigma = Box(0)/2.;
@@ -85,11 +86,13 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   Array<string,1> activeSpeciesNames;
 
   int numToMove;
+
+  
   assert(in.ReadVar("NumToMove", numToMove));
   SetNumParticlesToMove(numToMove);
-
-  assert(in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio));
-
+  DesiredAcceptRatio=-1;
+  in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
+ 
   // Read in the active species.
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
   Array<int,1> activeSpecies(activeSpeciesNames.size());
@@ -138,9 +141,23 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   // Now construct stage list
   Stages.push_back(&DisplaceStage);
 
-  ActiveParticles.resize(NumParticlesToMove);
+  MoveAllParticles=false;
+  in.ReadVar("MoveAll",MoveAllParticles);
+  if (MoveAllParticles)
+    {
+      ActiveParticles.resize(PathData.Path.Species(theSpecies).NumParticles);
+      for (int i=0;i<ActiveParticles.size();i++){
+	ActiveParticles(i)=PathData.Path.Species(theSpecies).FirstPtcl+i;
+      }
+      
+    }
+  else {
+    ActiveParticles.resize(NumParticlesToMove);
+  }
   NumAttempted = 0;
 }
+
+
 
 void DisplaceMoveClass::MakeMove()
 {
@@ -148,13 +165,21 @@ void DisplaceMoveClass::MakeMove()
   Slice1 = 0;
   Slice2 = PathData.Path.NumTimeSlices()-1;
 
-  for (int i=0;i<PathData.Path.NumParticles();i++){
-    if (theSpecies == PathData.Path.ParticleSpeciesNum(i)) {
-      ActiveParticles(0)=i;
-      // Now call MultiStageClass' MakeMove
-      MultiStageClass::MakeMove();
-      NumAttempted++;
+
+  if (!MoveAllParticles){
+    for (int i=0;i<PathData.Path.NumParticles();i++){
+      if (theSpecies == PathData.Path.ParticleSpeciesNum(i)) {
+	ActiveParticles(0)=i;
+	// Now call MultiStageClass' MakeMove
+	MultiStageClass::MakeMove();
+	NumAttempted++;
+      }
     }
+  }
+  else {
+    // Now call MultiStageClass' MakeMove
+    MultiStageClass::MakeMove();
+    NumAttempted++;
   }
 
 }

@@ -34,7 +34,7 @@ TimeLindenmanClass::ProduceTimeMatrix(int mcStep)
       if (dist<DistCutoff){ //the particles are considered nearby
 	pair<int, dVec> nearPair(nearPtcl,diff);
 	dVec mDiff=diff;
-	mDiff=-mDiff;
+	mDiff=-1.0*mDiff;
 	pair<int, dVec> nearPair2(ptcl,mDiff);
 	uj_minus_ujp(mcStep,ptcl).insert(nearPair);
 	uj_minus_ujp(mcStep,nearPtcl).insert(nearPair2);
@@ -56,7 +56,7 @@ TimeLindenmanClass::CalculateCentroid()
       dVec disp=PathData.Path.Velocity(0,slice,ptcl);
       centroid += disp;
     }
-    centroid = centroid / (PathData.Path.NumTimeSlices()-1);
+    centroid = centroid * (1.0/ (PathData.Path.NumTimeSlices()-1));
     centroid = centroid + PathData.Path(0,ptcl);
     CentroidPos(ptcl)=centroid;
   }  
@@ -83,7 +83,7 @@ TimeLindenmanClass::CalculateCentroid_parallel()
     }
     for (int dim=0;dim<NDIM;dim++)
       centroid(dim)=PathData.Path.Communicator.Sum(localCentroid(dim));
-    centroid = centroid / (PathData.Path.TotalNumSlices);
+    centroid = centroid * (1.0/ (PathData.Path.TotalNumSlices));
     centroid = centroid + zeroVec;
     CentroidPos(ptcl)=centroid;
   }  

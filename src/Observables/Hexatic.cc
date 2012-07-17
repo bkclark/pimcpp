@@ -37,7 +37,7 @@ HexaticClass::OrderParamater(Array<dVec,1> centroidPos,int ptcl)
       r12disp=centroidPos(nearPtcl)-centroidPos(ptcl);
       r12dist=sqrt(dot(r12disp,r12disp));
       if (r12dist<DistCutoff){
-	r12disp=r12disp/r12dist;
+	r12disp=r12disp * (1.0/r12dist);
 	if (abs(dot(r12disp,r12disp)-1.0)>=0.001)
 	  cerr<<dot(r12disp,r12disp);
 	if (!((dot(r12disp,r12disp)-1.0)<0.001))
@@ -65,7 +65,7 @@ HexaticClass::OrderParamater(int slice,int ptcl)
     if (nearPtcl!=ptcl){
       PathData.Path.DistDisp(slice,ptcl,nearPtcl,r12dist,r12disp);
       if (r12dist<DistCutoff){
-	r12disp=r12disp/r12dist;
+	r12disp=r12disp *(1.0/r12dist);
 	if (abs(dot(r12disp,r12disp)-1.0)>=0.001)
 	  cerr<<dot(r12disp,r12disp);
 	if (!((dot(r12disp,r12disp)-1.0)<0.001))
@@ -104,7 +104,7 @@ HexaticClass::CalculateCentroid_parallel()
     }
     for (int dim=0;dim<NDIM;dim++)
       centroid(dim)=PathData.Path.Communicator.Sum(localCentroid(dim));
-    centroid = centroid / (PathData.Path.TotalNumSlices);
+    centroid = centroid * (1.0/(PathData.Path.TotalNumSlices));
     centroid = centroid + zeroVec;
     CentroidPos(ptcl)=centroid;
   }  

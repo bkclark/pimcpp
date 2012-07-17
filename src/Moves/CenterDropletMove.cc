@@ -42,7 +42,7 @@ void CenterDropletClass::MakeMove()
       chainCtr+=disp;
     }
     //    PathData.Path.PutInBox(chainCtr);
-    chainCtr = chainCtr/PathData.Path.NumTimeSlices();
+    chainCtr = chainCtr *(1.0/PathData.Path.NumTimeSlices());
     chainCtr=chainCtr+dispToPtcl;
     PathData.Path.PutInBox(chainCtr);
     //    cerr<<chainCtr[0]<<" "<<chainCtr[1]<<" "<<chainCtr[2]<<endl;

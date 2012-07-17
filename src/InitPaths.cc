@@ -627,7 +627,7 @@ PathClass::InitPaths (IOSectionClass &in)
         Random.LocalGaussianVec(1,r0);//under common
 	///        cerr<<"in PathClass"<<r0*SphereRadius/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2])<<endl;
 	for (int slice=0;slice <NumTimeSlices();slice++){
-          SetPos(slice,ptcl,r0*SphereRadius/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2]));                      
+          SetPos(slice,ptcl,r0*SphereRadius * (1.0/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2])));                      
 	}
       }
     }
@@ -643,7 +643,7 @@ PathClass::InitPaths (IOSectionClass &in)
         for (int slice=0;slice <NumTimeSlices();slice++){
           Random.LocalGaussianVec(sigma,r);
           r=r0+r;
-          SetPos(slice,ptcl,r*SphereRadius/sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2]));
+          SetPos(slice,ptcl,r*SphereRadius  * (1./sqrt(r[0]*r[0]+r[1]*r[1]+r[2]*r[2])));
         }
       }
     }
@@ -693,7 +693,7 @@ PathClass::InitPaths (IOSectionClass &in)
         r[2] = ptcl;
 #endif
         for (int slice=0; slice<NumTimeSlices(); slice++) {
-	  dVec temp=0.1*r/sqrt(3.0*(double)ptcl*(double)ptcl);
+	  dVec temp=0.1*r * (1./sqrt(3.0*(double)ptcl*(double)ptcl));
 	  temp=r+temp;
           Path(slice,ptcl) =temp;
         }

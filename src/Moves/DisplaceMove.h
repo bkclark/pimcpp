@@ -49,6 +49,7 @@ class DisplaceMoveClass : public MultiStageClass
 {
 private:
   /// This is the standard distribution of the displacement gaussian
+  bool MoveAllParticles;
   double Sigma;
   DisplaceStageClass DisplaceStage;
   ObservableInt NumAttemptedVar;
