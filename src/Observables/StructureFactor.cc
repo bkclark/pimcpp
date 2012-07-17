@@ -62,7 +62,7 @@ void StructureFactorClass::Read(IOSectionClass& in)
   else if (in.ReadVar("kMagRange",kMagRange)){
     vector<dVec> tempkvecs_vec;
     assert(kMagRange.size()==2);
-#ifdef NDIM==2
+#if NDIM==2
     int maxI=int(kMagRange(1)*PathData.Path.GetBox()[0]/(2.0*M_PI))+1;
     int maxJ=int(kMagRange(1)*PathData.Path.GetBox()[1]/(2.0*M_PI))+1;
     cerr<<"Maxes are "<<maxI<<" "<<maxJ<<endl;
