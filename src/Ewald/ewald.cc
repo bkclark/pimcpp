@@ -279,14 +279,14 @@ public:
     UshortIntegrand shortIntegrand(Vlong_r,Z1Z2);
     GKIntegration<UshortIntegrand, GK31> shortIntegrator(shortIntegrand);
     shortIntegrator.SetRelativeErrorMode();
-    double Vshort_k0 = 4.0*M_PI*Z1Z2/boxVol * shortIntegrator.Integrate(1.0e-100, rc, tolerance);
+    double Vshort_k0 = 4.0*M_PI/boxVol * shortIntegrator.Integrate(1.0e-100, rc, tolerance);
     cerr << "Vshort_k0 = " << Vshort_k0 << endl;
 
     // Calculate FT of Vlong at k=0
     UlongIntegrand longIntegrand(Vlong_r);
     GKIntegration<UlongIntegrand, GK31> longIntegrator(longIntegrand);
     longIntegrator.SetRelativeErrorMode();
-    double Vlong_k0 = 4.0*M_PI*Z1Z2/boxVol * longIntegrator.Integrate(1.0e-100, rmax, tolerance);
+    double Vlong_k0 = 4.0*M_PI/boxVol * longIntegrator.Integrate(1.0e-100, rmax, tolerance);
     cerr << "Vlong_k0 = " << Vlong_k0 << endl;
 
     ofstream outfile;
