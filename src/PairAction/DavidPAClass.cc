@@ -449,6 +449,7 @@ void DavidPAClass::calcUsqz(double s,double q,double z,int level,
 	double dUcof = TempdukjArray(k*(k+1)/2+j+1);
 	U+=(Ucof)*Zto2j*currS;
 	dU+=(dUcof)*Zto2j*currS; //+V = HACK!
+        //cerr << "dU " << dU << " dUcof " << dUcof << " U " << U << " Ucof " << Ucof << " Zto2j " << Zto2j << " currS " << currS << " k " << k << " j " << j << endl;
 	Zto2j*=zsquared;
 	currS=currS*ssquaredinverse;				
       }				
@@ -720,7 +721,7 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
 	theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
       else {
-	cerr << "Unrecognized grid type in ReadDavidSquarerFile.\n";
+	cerr << "Unrecognized grid type in ReadDavidSquarerFile (text).\n";
 	cerr << "GridType = \"" << GridType << "\"\n";
       }
 	  
@@ -1001,7 +1002,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 	      theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
       else {
-	      cerr << "Unrecognized grid type in ReadDavidSquarerFile.\n";
+	      cerr << "Unrecognized grid type in ReadDavidSquarerFile. (u hdf5)\n";
 	      cerr << "GridType = \"" << GridType << "\"\n";
       }
       //string TauGridString = SkipTo(infile,"GRID   3"); //We hope this is a log grid
@@ -1101,7 +1102,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 	    theGrid = new LogGrid(startGrid,delta,NumGridPoints);
     }
     else {
-	    cerr << "Unrecognized grid type in ReadDavidSquarerFile.\n";
+	    cerr << "Unrecognized grid type in ReadDavidSquarerFile (du hdf5).\n";
 	    cerr << "GridType = \"" << GridType << "\"\n";
     }
     cerr<<"Reading taus"<<endl;

@@ -173,6 +173,10 @@ ShortRangeClass::SingleAction (int slice1, int slice2,
 
 	  double U;
 	  U = PA.U(q,z,s2, level);
+          if(isnan(U)) {
+            cerr << "U "<< U << " " << q << " " << z << " " << s2 << " " << level << endl;
+            abort();
+          }
 	  //	  double UP = 0.5*(PA.U(rmag,0,0, level)+PA.U(rpmag,0,0,level))
 	  // Subtract off long-range part from short-range action
 	  if (PA.IsLongRange() && PathData.Actions.UseLongRange)
@@ -338,54 +342,54 @@ ShortRangeClass::d_dBetaForcedPairAction (int slice1, int slice2,
 }
 
 
-double 
-ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
+double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
 {
-  Array<double,1> sliceTotal(PathData.Path.NumTimeSlices());
+  PathClass &Path = PathData.Path;
+
+  Array<double,1> sliceTotal(Path.NumTimeSlices());
   double levelTau=Path.tau;
   int skip = 1<<level;
   //  int slice2 = slice1 + (1<<level);
   // Add constant part.  Note: we should really check the number of
-  // dimensions. 
+  // dimensions.
   double dU = 0.0;
   for (int ptcl1=0; ptcl1<PathData.NumParticles(); ptcl1++) {
     int species1=Path.ParticleSpeciesNum(ptcl1);
     for (int ptcl2=0; ptcl2<ptcl1; ptcl2++) {
+      int species2=Path.ParticleSpeciesNum(ptcl2);
       for (int slice=slice1;slice<slice2;slice+=skip){
-	dVec r, rp;
-	double rmag, rpmag;
-	PathData.Path.DistDisp(slice,slice+skip,ptcl1,ptcl2,rmag,rpmag,r,rp);
-	
-	double s2 = dot(r-rp, r-rp);
-	double q = 0.5*(rmag+rpmag);
-	double z = (rmag-rpmag);
-	
-	PairActionFitClass& pa=
-	  *(PairMatrix(species1, PathData.Path.ParticleSpeciesNum(ptcl2)));
+        dVec r, rp;
+        double rmag, rpmag;
+        Path.DistDisp(slice,slice+skip,ptcl1,ptcl2,rmag,rpmag,r,rp);
 
-	if (PathData.Path.WormOn){
-	  dU += pa.dU(q,z,s2,level)*
-	    PathData.Path.ParticleExist(slice,ptcl1)*
-	    PathData.Path.ParticleExist(slice,ptcl2)*
-	    PathData.Path.ParticleExist(slice+skip,ptcl1)*
-	    PathData.Path.ParticleExist(slice+skip,ptcl2);
-	}
-	else{
-	  sliceTotal(slice)+=pa.dU(q,z,s2,level);
-	  dU += pa.dU(q,z,s2,level);
-	  //	  dU +=-0.5*(1.0/rmag+1.0/rpmag);
-	}
-	// Subtract off long-range part from short-range action
-	if (pa.IsLongRange() && PathData.Actions.UseLongRange)
-	  dU -= 0.5*(pa.dUlong(level)(rmag)+pa.dUlong(level)(rpmag));
+        double s2 = dot(r-rp, r-rp);
+        double q = 0.5*(rmag+rpmag);
+        double z = (rmag-rpmag);
+
+        PairActionFitClass& pa = *(PairMatrix(species1,species2));
+
+        if (Path.WormOn){
+          dU += pa.dU(q,z,s2,level)*
+            Path.ParticleExist(slice,ptcl1)*
+            Path.ParticleExist(slice,ptcl2)*
+            Path.ParticleExist(slice+skip,ptcl1)*
+            Path.ParticleExist(slice+skip,ptcl2);
+        }
+        else{
+          double t_dU = pa.dU(q,z,s2,level);
+          sliceTotal(slice) += t_dU;
+          dU += t_dU;
+        }
+        // Subtract off long-range part from short-range action
+        if (pa.IsLongRange() && PathData.Actions.UseLongRange)
+          dU -= 0.5*(pa.dUlong(level)(rmag)+pa.dUlong(level)(rpmag));
       }
     }
   }
-  //  cerr<<"Printing short range stuff"<<endl;
-  //  for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++)
-  //    cerr<<slice<<" "<<sliceTotal(slice)<<endl;
+
   return dU;
 }
+
 
 //Gradient of the action only works in 3d!!!!!!!
 void

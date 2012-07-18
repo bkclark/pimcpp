@@ -61,7 +61,7 @@ void MCTimeClass::WriteBlock()
 
     if (PathData.Path.Communicator.MyProc()==0) {
       IOSection.WriteVar("MoveNames", moveNames);
-      IOSection.WriteVar("ObserveNames", observableNames);
+      IOSection.WriteVar("ObservableNames", observableNames);
       IOSection.WriteVar("ActionNames", actionNames);
     }
   }

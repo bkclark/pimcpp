@@ -5,17 +5,17 @@ cmake_minimum_required (VERSION 2.6)
 #-------------------------------------------------------------------
 # Compilers
 #-------------------------------------------------------------------
-SET(CMAKE_CXX_COMPILER,"/opt/local/bin/mpic++")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g")
-#SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -g -Wno-write-strings")
+SET(CMAKE_CXX_COMPILER,"mpiicpc")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O3 -DNDIM=3 -DUSE_MPI -w")
+#SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -Wno-write-strings -w")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
-SET(CMAKE_C_COMPILER,"/opt/local/bin/mpicc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -fopenmp -g -Wno-write-strings")
+SET(CMAKE_C_COMPILER,"mpiicc")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -w")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
-SET(CMAKE_Fortran_COMPILER,"/opt/openmpi-1.5-gnu/bin/mpif77")
-SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3 -g")
+SET(CMAKE_Fortran_COMPILER,"mpiifort")
+SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3")
 SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 
 #-------------------------------------------------------------------
@@ -145,7 +145,7 @@ ENDIF(LAPACK_FOUND AND BLAS_FOUND)
 # extra libraries
 #-------------------------------------------------------------------
 #LINK_LIBRARIES("-lz -lpthread -lm -lmpi -mp")
-LINK_LIBRARIES("-lz -lpthread -lm  -mp")
+LINK_LIBRARIES("-lz -lpthread -lm")
 
 #-------------------------------------------------------------------
 # add sources
@@ -354,20 +354,20 @@ add_executable (ewald ${SRCS})
 SET_TARGET_PROPERTIES("ewald" PROPERTIES LINKER_LANGUAGE CXX)
 
 # sources
-## SET(SRCS "")
-## add_sources(src/FreeParticles.cc
-## src/MatrixOps/MatrixOps.cc
-## src/IO/IO.cc
-## src/Communication/Communication.cc
-## src/IO/InputOutput.cc
-## src/IO/IOASCII.cc
-## src/IO/IOVarHDF5.cc
-## src/IO/InputOutputASCII.cc
-## src/IO/IOHDF5.cc
-## src/IO/InputFile.cc
-## src/IO/InputOutputHDF5.cc
-## )
+SET(SRCS "")
+add_sources(src/FreeParticles.cc
+src/MatrixOps/MatrixOps.cc
+src/IO/IO.cc
+src/Communication/Communication.cc
+src/IO/InputOutput.cc
+src/IO/IOASCII.cc
+src/IO/IOVarHDF5.cc
+src/IO/InputOutputASCII.cc
+src/IO/IOHDF5.cc
+src/IO/InputFile.cc
+src/IO/InputOutputHDF5.cc
+)
 
-## message(STATUS "FreeParticles:${SRCS}")
-## add_executable (FreeParticles ${SRCS})
-## SET_TARGET_PROPERTIES("ewald" PROPERTIES LINKER_LANGUAGE CXX)
+message(STATUS "FreeParticles:${SRCS}")
+add_executable (FreeParticles ${SRCS})
+SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)

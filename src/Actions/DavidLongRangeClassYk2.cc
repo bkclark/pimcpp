@@ -52,7 +52,7 @@ void DavidLongRangeClassYk2::Build_MultipleSpecies()
       double k=pa.kVals(i);
       bool found=false;
       for (int j=0;j<Path.kVecs.size();j++){
-	  cerr<<k<<" "<<sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j)))<<endl;
+	//cerr<<k<<" "<<sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j)))<<endl;
         if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-4)){
           Vlong_k(speciesNum, j)=pa.uk_long(i)/(vol);
 	  found=true;
@@ -137,7 +137,8 @@ void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
 
 
 void DavidLongRangeClassYk2::ReadYk()
-{ 
+{
+  TimeSpent=0;
   for (int pai=0;pai<PairArray.size();pai++){
     DavidPAClass &pa(*((DavidPAClass*)PairArray(pai)));
     cerr<<"the long range is "<<pa.LongRangeDim<<endl;
