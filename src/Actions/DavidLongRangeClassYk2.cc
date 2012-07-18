@@ -50,6 +50,8 @@ void DavidLongRangeClassYk2::Build_MultipleSpecies()
     DavidPAClass &pa(*(DavidPAClass*)PairArray(speciesNum));
     for (int i=0;i<pa.kVals.size();i++){
       double k=pa.kVals(i);
+      if (fequals(0.0,k,1e-10))
+	yk_zero(i)=pa.uk_long(i);
       bool found=false;
       for (int j=0;j<Path.kVecs.size();j++){
 	//cerr<<k<<" "<<sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j)))<<endl;
