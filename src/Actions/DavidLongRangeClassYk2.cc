@@ -240,8 +240,7 @@ DavidLongRangeClassYk2::SingleAction (int slice1, int slice2,
           //      double rhok2 = mag2(Path.Rho_k(slice,species,ki));
           double rhok2 = Path.Rho_k(slice,species1,ki).real()*Path.Rho_k(slice,species2,ki).real()+
             Path.Rho_k(slice,species1,ki).imag()*Path.Rho_k(slice,species2,ki).imag();
-          if (species1 != species2)
-            total +=  factor*rhok2 * uk(PairIndex(species1,species2), ki);
+          total +=  factor*rhok2 * uk(PairIndex(species1,species2), ki);
         }
       }
     }
