@@ -88,7 +88,7 @@ void DavidLongRangeClassYk::BuildRPA_SingleType()
     for (int i=0;i<pa.kVals.size();i++){
       double k=pa.kVals(i);
       if (fequals(0.0,k,1e-10))
-        yk_zero(speciesNum)=pa.uk_long(i);
+        yk_zero(speciesNum)=pa.uk_long(i)/(vol);
     }
     for (int i=0;i<pa.kVals.size();i++){
       double k=pa.kVals(i);

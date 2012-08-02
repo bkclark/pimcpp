@@ -1,2 +1,5 @@
 *.swp
 *.h5
+*.swo
+*.png
+bin/

@@ -234,8 +234,6 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new CouplingClass(PathData,OutFile);
     else if (observeType=="Energy")
       tempObs = new EnergyClass(PathData,OutFile);
-    else if (observeType=="EnergySign")
-      tempObs = new EnergySignClass(PathData,OutFile);
     else if (observeType=="Hexatic")
       tempObs = new HexaticClass(PathData,OutFile);
     else if (observeType=="HBond")
