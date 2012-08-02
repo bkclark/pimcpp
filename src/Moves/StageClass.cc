@@ -40,9 +40,8 @@ void StageClass::Accept()
 void StageClass::Reject()
 {
   NumAttempted++;
-  for (list<ActionBaseClass*>::iterator actionIter = Actions.begin(); actionIter != Actions.end(); actionIter++) {
+  for (list<ActionBaseClass*>::iterator actionIter = Actions.begin(); actionIter != Actions.end(); actionIter++)
     (*actionIter) -> RejectCopy(0,0);
-  }
 }
 
 

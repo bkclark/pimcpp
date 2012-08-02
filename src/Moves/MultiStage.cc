@@ -90,24 +90,17 @@ void MultiStageClass::MakeMove()
 
 void MultiStageClass::Accept()
 {
-  //  cerr<<"going to accept"<<endl;
   PathData.AcceptMove(Slice1,Slice2,ActiveParticles);
-  for (list<StageClass*>::iterator stageIter=Stages.begin();
-       stageIter!=Stages.end();stageIter++){
+  for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Accept();
-  }  
   NumAccepted++;
   cm2=cm2+PathData.Path.cm2;
-  
 }
 
 void MultiStageClass::Reject()
 {
-  //  cerr<<"Going to reject"<<endl;
   PathData.RejectMove(Slice1,Slice2,ActiveParticles);
-  for (list<StageClass*>::iterator 
-	 stageIter=Stages.begin();stageIter!=Stages.end();stageIter++){
+  for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Reject();
-  }
 }
 

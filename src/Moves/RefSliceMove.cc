@@ -70,6 +70,8 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
           newStage -> Actions.push_back(&PathData.Actions.LongRange);
         }
       }
+      /// No need to calculate this twice!
+      //
       //if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
       //  cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
       //  newStage -> Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
@@ -185,7 +187,7 @@ void RefSliceMoveClass::MakeMoveMaster()
 }
 
 
-/// This version is for processors that do no own the reference slice 
+/// This version is for processors that do not own the reference slice 
 void RefSliceMoveClass::MakeMoveSlave()
 {
   PathClass &Path=PathData.Path;

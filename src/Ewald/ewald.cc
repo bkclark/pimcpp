@@ -301,16 +301,14 @@ public:
     outfile.open("kData.txt");
     outfile<<0.0<<" "<<(Vlong_k0+Vshort_k0)/boxVol<<endl;
     for (int ki=0; ki < kVecs.size(); ki++) {
-      const dVec &kv = kVecs(ki);
-      double k = sqrt (dot(kv,kv));
+      double k = sqrt(dot(kVecs(ki),kVecs(ki)));
       // Sum over basis functions
       for (int n=0; n<N; n++)
-      Vlong_k(ki) += t(n) * basis.c(n,k);
+        Vlong_k(ki) += t(n) * basis.c(n,k);
       // Now add on part from rc to infinity
       //pa.Vlong_k(ki) -= CalcXk(paIndex, 0, k, rc, JOB_V);
       Vlong_k(ki) -= Xk_V(k,rc) / boxVol;
-      outfile<<sqrt(kv[0]*kv[0]+kv[1]*kv[1]+kv[2]*kv[2])<<" ";
-      outfile<<Vlong_k(ki)<<endl;
+      outfile<<k<<" "<<Vlong_k(ki)<<endl;
     }
     outfile.close();
   }
@@ -380,7 +378,7 @@ public:
           exit(1);
         }
       }
-      outFile<<r<<" "<<V<<" "<<VShort_r+Vk0<<endl;
+      outFile<<r<<" "<<V<<" "<<VShort_r+Vk0<<" "<<1.0/r<<endl;
     }
   }
 

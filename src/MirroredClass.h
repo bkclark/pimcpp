@@ -161,35 +161,35 @@ class Mirrored3DClass
 protected:
   TinyVector<Array<T,3>,2> Data;
 public:
-  inline void resize (int m, int n, int o)      
+  inline void resize (int m, int n, int o)
     { Data[NEWMODE].resize(m,n,o);  Data[OLDMODE].resize(m,n,o); }
-  inline int rows() const                
+  inline int rows() const
     { return Data[NEWMODE].rows(); }
-  inline int cols() const                
+  inline int cols() const
     { return Data[NEWMODE].cols(); }
-  inline int depth() const 
-    { return Data[NEWMODE].depth(); } 
+  inline int depth() const
+    { return Data[NEWMODE].depth(); }
   inline int extent (int i) const
     { return Data[NEWMODE].extent(i); }
-  inline const Array<T,3>& data() const        
+  inline const Array<T,3>& data() const
     { return Data[ActiveCopy]; }
-  inline Array<T,3>& data()              
+  inline Array<T,3>& data()
     { return Data[ActiveCopy]; }
-  inline operator Array<T,3>&() const    
+  inline operator Array<T,3>&() const
     { return Data[ActiveCopy]; }
-  inline operator Array<T,3>&()          
+  inline operator Array<T,3>&()
     { return Data[ActiveCopy]; }
-  inline const T& operator()(int i, int j, int k) const 
+  inline const T& operator()(int i, int j, int k) const
     { return Data[ActiveCopy](i,j,k);      }
-  inline T& operator()(int i, int j, int k)       
+  inline T& operator()(int i, int j, int k)
     { return Data[ActiveCopy](i,j,k);      }
-  inline const Array<T,3>& operator[](int i) const 
+  inline const Array<T,3>& operator[](int i) const
     { return Data[i]; }
-  inline Array<T,3>& operator[](int i) 
+  inline Array<T,3>& operator[](int i)
     { return Data[i]; }
-  inline void AcceptCopy ()              
+  inline void AcceptCopy ()
     { Data[OLDMODE] = Data[NEWMODE]; }
-  inline void RejectCopy ()              
+  inline void RejectCopy ()
     { Data[NEWMODE] = Data[OLDMODE]; }
   inline void AcceptCopy (int slice1, int slice2)
     { Data[OLDMODE](Range(slice1,slice2), Range::all(), Range::all()) =
@@ -214,16 +214,16 @@ Mirrored1DClass<T>::ShiftData(int slicesToShift, CommunicatorClass &comm)
   recvProc=((myProc-1) + numProcs) % numProcs;
   if (slicesToShift<0)
     swap (sendProc, recvProc);
-  
+
   /// First shifts the data in the A copy left or right by the
-  /// appropriate amount 
+  /// appropriate amount
   if (slicesToShift>0)
     for (int slice=numSlices-1; slice>=slicesToShift;slice--)
       Data[0](slice) = Data[0](slice-slicesToShift);
-  else 
+  else
     for (int slice=0; slice<numSlices+slicesToShift;slice++)
       Data[0](slice) = Data[0](slice-slicesToShift);
-  
+
   /// Now bundle up the data to send to adjacent processor
   int bufferSize=abs(slicesToShift);
   Array<T,3> sendBuffer(bufferSize), receiveBuffer(bufferSize);
@@ -247,26 +247,25 @@ Mirrored1DClass<T>::ShiftData(int slicesToShift, CommunicatorClass &comm)
       buffIndex++;
     }
   }
-  
+
   /// Send and receive data to/from neighbors.
   comm.SendReceive(sendProc, sendBuffer, recvProc, receiveBuffer);
-  
+
   if (slicesToShift>0)
     startSlice=0;
-  else 
+  else
     startSlice=numSlices+slicesToShift;
-  
+
   /// Copy the data into the A copy
   buffIndex=0;
   for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++) {
-    Data[0](slice) = 
-      receiveBuffer(buffIndex);
+    Data[0](slice) = receiveBuffer(buffIndex);
     buffIndex++;
   }
-  
+
   // Now copy A into B, since A has all the good, shifted data now.
   Data[1] = Data[0];
-  // And we're done! 
+  // And we're done!
 }
 
 template<typename T>
