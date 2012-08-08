@@ -22,32 +22,24 @@
 class PermutationCountClass : public ObservableClass
 {
  private:
-  Array<double,1> PermutationNumber;
-  ObservableVecDouble1 PermutationNumberVar;
-  int Freq,DumpFreq;
-  int TotalCounts;
-  int TimesCalled;
-  ObservableVecDouble1 CycleCountVar;
-  Array<bool,1> CountedAlready;
-  Array<int,1> TotalPerm;
-
-  ObservableVecDouble1 SectorCountVar;
-  Array<double,1> SectorCount;
+  ObservableVecDouble1 SectorCountVar, CycleCountVar;
+  ObservableVecInt2 PossPermsVar;
+  Array<double,1> SectorCount, CycleCount;
   int NumSamples;
-public:
-  Array<double,1> CycleCount;
   int Species;
+public:
   void Accumulate();
   void Read(IOSectionClass& in);
   void WriteBlock();
-  PermutationCountClass(PathDataClass &myPathData, IOSectionClass &ioSection) : 
-    ObservableClass(myPathData,ioSection), 
-    PermutationNumberVar("Partition Function",IOSection,myPathData.Path.Communicator),
+  PermutationCountClass(PathDataClass &myPathData, IOSectionClass &ioSection) :
+    ObservableClass(myPathData,ioSection),
+    PossPermsVar("PossPerms", IOSection, myPathData.Path.Communicator),
     CycleCountVar("y", IOSection, myPathData.Path.Communicator),
-    SectorCountVar  ("SectorCount",IOSection,myPathData.Path.Communicator)
+    SectorCountVar("SectorCount",IOSection,myPathData.Path.Communicator)
   {
-    TimesCalled=0;
+    NumSamples = 0;
     SectorCount = 0.0;
+    CycleCount = 0.0;
   }
 
 };

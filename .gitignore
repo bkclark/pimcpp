@@ -5,3 +5,5 @@
 bin/
 CMakeFiles/
 *.o
+build/
+src/Scripts/*.txt

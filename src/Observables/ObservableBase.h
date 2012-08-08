@@ -23,6 +23,8 @@
 #include "ObservableVar.h"
 #include "../EventClass.h"
 #include "../IO/IO.h"
+#include <algorithm>
+#include <numeric>
 
 using namespace IO;
 
@@ -37,6 +39,32 @@ class ObservableClass : public EventClass
   Array<int,1> TotalPerm;
   void SetupPermSectors(int n, int MaxNSectors=0);
   void GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &PermNumber);
+
+  struct CompareVectors
+  {
+    inline bool operator() (const vector<int> &a, const vector<int> &b) {
+      //int amax = *max_element(a.begin(),a.end());
+      //int bmax = *max_element(b.begin(),b.end());
+      //if (amax == bmax)
+      //  return b.size() < a.size();
+      //else
+      //  return amax < bmax;
+      float atot = 0;
+      float asqtot = 0;
+      for (int i=0; i<a.size(); i++) {
+        atot += a[i];
+        asqtot += a[i]*a[i];
+      }
+      float btot = 0;
+      float bsqtot = 0;
+      for (int i=0; i<b.size(); i++) {
+        btot += b[i];
+        bsqtot += b[i]*b[i];
+      }
+      return (bsqtot/btot) > (asqtot/atot);
+
+    }
+  };
 
  public:
   /// The first time you write to an observable you have to do the
@@ -75,6 +103,7 @@ public:
     : EventClass (pathData, out), FirstTime(true), Prefactor(1.0)
   {
   }
+
 };
 
 

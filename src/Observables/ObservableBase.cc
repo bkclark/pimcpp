@@ -55,8 +55,7 @@ ObservableClass::DoEvent()
 
 // Permutation Counting Things
 
-#include <algorithm>
-#include <numeric>
+
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
 {
@@ -97,6 +96,8 @@ void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
   for (vector<int>::size_type j=0; j != PossPerms.size(); j++) {
     sort(PossPerms[j].begin(),PossPerms[j].end());
   }
+
+  sort(PossPerms.begin(),PossPerms.end(),CompareVectors());
 
 }
 
