@@ -31,6 +31,13 @@ using namespace IO;
 /// a pointer to PathData.
 class ObservableClass : public EventClass
 {
+ protected:
+  vector< vector<int> > PossPerms;
+  Array<bool,1> CountedAlready;
+  Array<int,1> TotalPerm;
+  void SetupPermSectors(int n, int MaxNSectors=0);
+  void GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &PermNumber);
+
  public:
   /// The first time you write to an observable you have to do the
   /// write a little differently and you might need to write additional

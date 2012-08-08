@@ -32,16 +32,10 @@ private:
     VShortVar, VLongVar, dUNonlocalVar, ResidualVar, VTailLRVar, HistStart,
     HistEnd, NumPoints;
 
-  ObservableVecDouble1 PermTotalSumVar, VTailSRVar, EnergyHistogramVar,
+  ObservableVecDouble1 PermEnergyVar, VTailSRVar, EnergyHistogramVar,
     EnergyValsVar;
 
-  Array<double,1> EnergyVals, PermTotalSum, EnergyHistogramSum;
-
-  void SetupPermSectors(int n);
-  vector< vector<int> > PossPerms;
-  Array<bool,1> CountedAlready;
-  Array<int,1> TotalPerm;
-  void GetPermInfo(int &PermSector, int &PermNumber);
+  Array<double,1> EnergyVals, PermEnergy, EnergyHistogramSum;
 
   vector<ActionBaseClass*> OtherActions;
   vector<ObservableDouble*> OtherVars;
@@ -55,6 +49,7 @@ private:
   int Freq;
   int DumpFreq;
   bool TrackSign;
+  bool CountPerms;
 public:
   void Accumulate();
   void WriteBlock();
@@ -71,7 +66,7 @@ public:
       VShortVar    ("VShort",IOSection,myPathData.Path.Communicator),
       VLongVar     ("VLong",IOSection,myPathData.Path.Communicator),
       dUNonlocalVar("dUNonlocal", IOSection,myPathData.Path.Communicator),
-      PermTotalSumVar("PermTotal",IOSection,myPathData.Path.Communicator),
+      PermEnergyVar("PermEnergy",IOSection,myPathData.Path.Communicator),
       VTailSRVar("VTail Short Range",IOSection,myPathData.Path.Communicator),
       VTailLRVar("VTail Long Range",IOSection,myPathData.Path.Communicator),
       EnergyValsVar("Energy Vals",IOSection,myPathData.Path.Communicator),
@@ -88,7 +83,7 @@ public:
     NodeSum = 0.0;
     VShortSum = 0.0;
     VLongSum = 0.0;
-    PermTotalSum = 0.0;
+    PermEnergy = 0.0;
     NumSamples = 0.0;
     TimesCalled = 0.0;
     dUNonlocalSum = 0.0;

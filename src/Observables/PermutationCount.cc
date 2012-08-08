@@ -16,89 +16,76 @@
 
 #include "PermutationCount.h"
 
-///////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////
-
-
-
 
 void PermutationCountClass::WriteBlock()
 {
   //  Array<double,1> CorSum(Correlation.size());
   //  Path.Communicator.Sum(Correlation, CorSum);
-  
-  CycleCount=CycleCount/TotalCounts;
-  CycleCountVar.Write(CycleCount);
-  PermutationNumber=PermutationNumber/TotalCounts;
-  PermutationNumberVar.Write(PermutationNumber);
-  PermutationNumber=0;
-  CycleCountVar.Flush();
-  CycleCount=0;
-  TotalCounts=0;
 
+  double norm = 1.0 / ((double) NumSamples);
+  for (int i = 0; i < SectorCount.size(); i++)
+    SectorCount(i) = Prefactor * PathData.Path.Communicator.Sum(SectorCount(i)) * norm;
+  SectorCountVar.Write(SectorCount);
+  SectorCountVar.Flush();
+  SectorCount = 0.0;
+  for (int i = 0; i < CycleCount.size(); i++)
+    CycleCount(i) = Prefactor * PathData.Path.Communicator.Sum(CycleCount(i)) * norm / PathData.Path.NumParticles();
+  CycleCountVar.Write(CycleCount);
+  CycleCountVar.Flush();
+  CycleCount = 0.0;
+  NumSamples = 0;
 }
 
 
 void PermutationCountClass::Read(IOSectionClass &in)
-{  
-
+{
   ObservableClass::Read(in);
-  string speciesName;
-  Species=-1;
-//   assert(in.ReadVar("Species1",speciesName));
-//   for (int spec=0;spec<PathData.NumSpecies();spec++){ //???what is Species ?
-//     if (PathData.Species(spec).Name==speciesName){
-//       Species=spec;
-//     }
-//   }
+
+  // Maximum number of permutation sectors tracked
+  int MaxNSectors;
+  if(!in.ReadVar("MaxNSectors", MaxNSectors))
+    MaxNSectors = 0; // 0 -> Track all sectors
+
+  // Setup Permutation Sectors
+  SetupPermSectors(PathData.Path.NumParticles(),MaxNSectors);
+
+ // string speciesName;
+ // Species=-1;
+////   assert(in.ReadVar("Species1",speciesName));
+////   for (int spec=0;spec<PathData.NumSpecies();spec++){ //???what is Species ?
+////     if (PathData.Species(spec).Name==speciesName){
+////       Species=spec;
+////     }
+////   }
   if (PathData.Path.Communicator.MyProc()==0){
     IOSection.WriteVar("Type","PermutationCount");
     IOSection.WriteVar("Cumulative", false);
   }
-  CycleCount.resize(PathData.Path.NumParticles());
-  PermutationNumber.resize(PathData.Path.NumParticles()*2);
-  CycleCount=0;
-  PermutationNumber=0;
-  TotalCounts=0;
-  /// Now write the one-time output variables
-//   if (PathData.Path.Communicator.MyProc()==0)
-//     WriteInfo();
 
+  /// Now write the one-time output variables
+  if (PathData.Path.Communicator.MyProc()==0)
+    WriteInfo();
+  SectorCount.resize(PossPerms.size());
+  SectorCount = 0.0;
+  CycleCount.resize(PathData.Path.NumParticles());
+  CycleCount = 0.0;
+  NumSamples = 0;
 }
 
 void PermutationCountClass::Accumulate()
 {
-  TotalCounts++;
-  int totalPerms=0;
-  PathClass &Path= PathData.Path;
-  int N = PathData.Path.NumParticles();
-  if (CountedAlready.size() != N) {
-    CountedAlready.resize(N);
-    TotalPerm.resize(N);
+  TimesCalled++;
+  //Move the join to the end so we don't have to worry about permutations
+  PathData.MoveJoin(PathData.NumTimeSlices() - 1);
+  NumSamples++;
+
+  int PermSector, PermNumber;
+  vector<int> ThisPerm;
+  GetPermInfo(ThisPerm,PermSector,PermNumber);
+  SectorCount(PermSector) += 1;
+  for (vector<int>::size_type j=0; j != ThisPerm.size(); j++) {
+    CycleCount(ThisPerm[j]-1)++;
   }
-  PathData.Path.TotalPermutation (TotalPerm);
-  CountedAlready =false;
-  int ptcl=0;
-  /// Only proc 0 gets TotalPerm
-  if (Path.Communicator.MyProc() == 0) 
-    while (ptcl < N) {
-      if (!CountedAlready(ptcl)) {
-	int startPtcl=ptcl;
-	int roamingPtcl=ptcl;
-	int cycleLength=0;
-	roamingPtcl = TotalPerm(roamingPtcl);
-	while (roamingPtcl!=startPtcl){
-	  CountedAlready(roamingPtcl)=true;
-	  cycleLength++;
-	  roamingPtcl=TotalPerm(roamingPtcl);
-	}
-	CycleCount(cycleLength)++;
-	totalPerms+=cycleLength;
-      }
-      ptcl++;
-    }
-  PermutationNumber(totalPerms)=PermutationNumber(totalPerms)+1;
 }
 
 

@@ -15,8 +15,6 @@
 /////////////////////////////////////////////////////////////
 //Changed Something again
 #include "ObservableEnergy.h"
-#include <algorithm>
-#include <numeric>
 
 // These are included for the new runtime 
 // specification of energy observables 
@@ -27,101 +25,6 @@
 #include "../Actions/QMCSamplingClass.h"
 #include "../Actions/DavidLongRangeClassYk.h"
 #include "../Actions/ShortRangeOn_diagonal_displace_Class.h"
-
-
-void EnergyClass::SetupPermSectors(int n)
-{
-  vector<int> a;
-  a.resize(n);
-  for (int i=0; i<n; i++) {
-    a[i] = 0;
-  }
-  int k = 1;
-  int y = n-1;
-  while (k != 0) {
-    int x = a[k-1] + 1;
-    k -= 1;
-    while (2*x <= y) {
-      a[k] = x;
-      y -= x;
-      k += 1;
-    }
-    int l = k+1;
-    while (x <= y) {
-      a[k] = x;
-      a[l] = y;
-      vector<int> b;
-      for (vector<int>::size_type j=0; j!=k+2; j++)
-        b.push_back(a[j]);
-      PossPerms.push_back(b);
-      x += 1;
-      y -= 1;
-    }
-    a[k] = x+y;
-    y = x+y-1;
-    vector<int> c;
-    for (vector<int>::size_type j=0; j!=k+1; j++)
-      c.push_back(a[j]);
-    PossPerms.push_back(c);
-  }
-
-  for (vector<int>::size_type j=0; j != PossPerms.size(); j++) {
-    sort(PossPerms[j].begin(),PossPerms[j].end());
-  }
-
-}
-
-
-void EnergyClass::GetPermInfo(int &PermSector, int &PermNumber)
-{
-  vector<int> ThisPerm;
-  PermNumber = 0;
-  PathClass & Path = PathData.Path;
-  int N = PathData.Path.NumParticles();
-  if (CountedAlready.size() != N) {
-    CountedAlready.resize(N);
-    TotalPerm.resize(N);
-  }
-  PathData.Path.TotalPermutation(TotalPerm);
-  CountedAlready = false;
-  int ptcl = 0;
-  /// Only proc 0 gets TotalPerm
-  if (Path.Communicator.MyProc() == 0) {
-    while (ptcl < N) {
-      if (!CountedAlready(ptcl)) {
-        int startPtcl = ptcl;
-        int roamingPtcl = ptcl;
-        int cycleLength = 0;
-        roamingPtcl = TotalPerm(roamingPtcl);
-        while (roamingPtcl != startPtcl) {
-          CountedAlready(roamingPtcl) = true;
-          cycleLength++;
-          roamingPtcl = TotalPerm(roamingPtcl);
-        }
-        ThisPerm.push_back(cycleLength+1);
-        PermNumber += cycleLength;
-      }
-      ptcl++;
-    }
-  } else
-    return;
-
-  sort(ThisPerm.begin(),ThisPerm.end());
-  for (vector<int>::size_type i=0; i != PossPerms.size(); i++)
-    if (ThisPerm == PossPerms[i]) {
-      PermSector = i;
-      return;
-    }
-
-  // Broken Permutation!
-  cerr << "Broken Permutation: " << endl;
-  for (vector<int>::size_type i=0; i != ThisPerm.size(); i++)
-    cerr << ThisPerm[i] << " ";
-  cerr << endl;
-
-  exit(1);
-  return;
-}
 
 
 // Fix to include final link between link M and 0
@@ -153,11 +56,14 @@ void EnergyClass::Accumulate()
   Residual += residual;
 
   // Permutation Counting
-  int PermSector, PermNumber;
-  GetPermInfo(PermSector,PermNumber);
-  if (Path.Communicator.MyProc() == 0) {
-    PermTotalSum(PermSector) += localSum;
-    EnergyVals(PermNumber) += localSum;
+  if(CountPerms) {
+    int PermSector, PermNumber;
+    vector<int> ThisPerm;
+    GetPermInfo(ThisPerm,PermSector,PermNumber);
+    if (Path.Communicator.MyProc() == 0) {
+      PermEnergy(PermSector) += localSum;
+      EnergyVals(PermNumber) += localSum;
+    }
   }
 
   // Other Energies
@@ -218,19 +124,25 @@ void EnergyClass::WriteBlock()
   VLongVar.Write(Prefactor * PathData.Path.Communicator.Sum(VLongSum) * norm);
   dUNonlocalVar.Write(Prefactor * PathData.Path.Communicator.Sum(dUNonlocalSum) * norm);
   ResidualVar.Write(Prefactor * PathData.Path.Communicator.Sum(Residual) * norm);
-  EnergyVals = Prefactor * EnergyVals * norm;
-  EnergyValsVar.Write(EnergyVals);
-  for (int i = 0; i < PermTotalSum.size(); i++)
-    PermTotalSum(i) = Prefactor * PathData.Path.Communicator.Sum(PermTotalSum(i) * norm);
-  PermTotalSumVar.Write(PermTotalSum);
-  for (int i = 0; i < EnergyHistogram.histogram.size(); i++)
-    EnergyHistogram.histogram[i] = Prefactor * EnergyHistogram.histogram[i] * norm * nslices;
-  Array <double,1> EnergyHistogramTemp(&(EnergyHistogram.histogram[0]), shape(EnergyHistogram.histogram.size()), neverDeleteData);
-  EnergyHistogramVar.Write(EnergyHistogramTemp);
   for (int n = 0; n < numEnergies; n++) {
     OtherVars[n]->Write(Prefactor * PathData.Path.Communicator.Sum(OtherSums[n]) * norm);
     OtherSums[n] = 0.0;
   }
+
+  // Permutation Counting
+  if (CountPerms) {
+    EnergyVals = Prefactor * EnergyVals * norm;
+    EnergyValsVar.Write(EnergyVals);
+    for (int i = 0; i < PermEnergy.size(); i++)
+      PermEnergy(i) = Prefactor * PathData.Path.Communicator.Sum(PermEnergy(i) * norm);
+    PermEnergyVar.Write(PermEnergy);
+  }
+
+  // Energy Histogram
+  for (int i = 0; i < EnergyHistogram.histogram.size(); i++)
+    EnergyHistogram.histogram[i] = Prefactor * EnergyHistogram.histogram[i] * norm * nslices;
+  Array <double,1> EnergyHistogramTemp(&(EnergyHistogram.histogram[0]), shape(EnergyHistogram.histogram.size()), neverDeleteData);
+  EnergyHistogramVar.Write(EnergyHistogramTemp);
 
   if (PathData.Path.Communicator.MyProc() == 0)
     IOSection.FlushFile();
@@ -243,7 +155,6 @@ void EnergyClass::WriteBlock()
   VShortSum = 0.0;
   VLongSum = 0.0;
   dUNonlocalSum = 0.0;
-  PermTotalSum = 0.0;
   Residual = 0.0;
   EnergyVals = 0.0;
   NumSamples = 0;
@@ -255,24 +166,35 @@ void EnergyClass::Read(IOSectionClass & in)
 {
   ObservableClass::Read(in);
   assert(in.ReadVar("Frequency", Freq));
-  if(!in.ReadVar("TrackSign", TrackSign))
-    TrackSign = 0;
+
   if (PathData.Path.Communicator.MyProc() == 0) {
     WriteInfo();
     IOSection.WriteVar("Type", "Scalar");
   }
 
-  // Perm Sector Counting
-  SetupPermSectors(PathData.Path.NumParticles());
-  PermTotalSum.resize(PossPerms.size());
-  PermTotalSum = 0.0;
-  int PermSector, PermNumber;
-  GetPermInfo(PermSector,PermNumber);
-  cout << "Starting in Perm Sector " << PermSector << " of " << PossPerms.size()-1 << endl;
+  // Sign Tracking
+  if(!in.ReadVar("TrackSign", TrackSign))
+    TrackSign = 0;
 
-  // Cycle Length Counting
-  EnergyVals.resize(PathData.Path.NumParticles() * 2);
-  EnergyVals = 0.0;
+  // Perm Sector Counting
+  if(!in.ReadVar("CountPerms",CountPerms))
+    CountPerms = 0;
+  if(CountPerms) {
+    int N = PathData.Path.NumParticles();
+    // Maximum number of permutation sectors tracked
+    int MaxNSectors;
+    if(!in.ReadVar("MaxNSectors", MaxNSectors))
+      MaxNSectors = 0; // 0 -> Track all sectors
+    SetupPermSectors(N,MaxNSectors);
+    PermEnergy.resize(PossPerms.size());
+    PermEnergy = 0.0;
+    EnergyVals.resize(N*2);
+    EnergyVals = 0.0;
+    int PermSector, PermNumber;
+    vector<int> ThisPerm;
+    GetPermInfo(ThisPerm,PermSector,PermNumber);
+    cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PossPerms.size()-1 << endl;
+  }
 
   // Other Energies
   Array <string,1> EnergyStrings(0);

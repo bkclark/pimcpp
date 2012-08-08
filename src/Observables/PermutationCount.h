@@ -30,6 +30,10 @@ class PermutationCountClass : public ObservableClass
   ObservableVecDouble1 CycleCountVar;
   Array<bool,1> CountedAlready;
   Array<int,1> TotalPerm;
+
+  ObservableVecDouble1 SectorCountVar;
+  Array<double,1> SectorCount;
+  int NumSamples;
 public:
   Array<double,1> CycleCount;
   int Species;
@@ -39,9 +43,11 @@ public:
   PermutationCountClass(PathDataClass &myPathData, IOSectionClass &ioSection) : 
     ObservableClass(myPathData,ioSection), 
     PermutationNumberVar("Partition Function",IOSection,myPathData.Path.Communicator),
-    CycleCountVar("y", IOSection, myPathData.Path.Communicator)
+    CycleCountVar("y", IOSection, myPathData.Path.Communicator),
+    SectorCountVar  ("SectorCount",IOSection,myPathData.Path.Communicator)
   {
     TimesCalled=0;
+    SectorCount = 0.0;
   }
 
 };
