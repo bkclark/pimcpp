@@ -49,30 +49,30 @@ bool PIMCClass::Read(IOSectionClass &in)
     //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
     // }
 
+
+
     // Read in the action information
-    cerr <<PathData.Path.Communicator.MyProc()<<" Reading Actions"<<endl;
+    cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
     assert(in.OpenSection("Action"));
     PathData.Actions.Read(in);
     in.CloseSection();
 
     // Now actually initialize the paths
-    cerr <<PathData.Path.Communicator.MyProc()<<" Initializing Paths"<<endl;
+    cout <<PathData.Path.CloneStr<<" Initializing Paths"<<endl;
     assert(in.OpenSection("System"));
     PathData.Path.InitPaths(in);
-
-
-
     in.CloseSection();
 
+    // Set Ion Config
     if (PathData.Path.UseCorrelatedSampling())
       PathData.Path.SetIonConfig(0);
 
     // Init Actions caches
-    cerr <<PathData.Path.Communicator.MyProc()<<" Initializing Actions Caches"<<endl;
+    cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
     PathData.Actions.Init();
 
     // Read in the Observables
-    cerr <<PathData.Path.Communicator.MyProc()<< " Reading Observables"<<endl;
+    cout <<PathData.Path.CloneStr<< " Reading Observables"<<endl;
     assert(in.OpenSection("Observables"));
     ReadObservables(in);
     in.CloseSection();
@@ -86,7 +86,7 @@ bool PIMCClass::Read(IOSectionClass &in)
 
     // Append Long Range Action
     if (PathData.Actions.HaveLongRange()) {
-      cerr << "Initializing Long Range" << endl;
+      cout << PathData.Path.CloneStr << "Initializing Long Range" << endl;
       assert (in.OpenSection ("Action"));
       PathData.Actions.LongRange.Init (in, OutFile);
       if (PathData.Actions.UseRPA)
@@ -99,13 +99,13 @@ bool PIMCClass::Read(IOSectionClass &in)
     }
 
     // Read in the Moves
-    cerr <<PathData.Path.Communicator.MyProc()<<" Reading Moves"<<endl;
+    cout <<PathData.Path.CloneStr<<" Reading Moves"<<endl;
     assert(in.OpenSection("Moves"));
     ReadMoves(in);
     in.CloseSection();
 
     // Read in the Algorithm
-    cerr <<PathData.Path.Communicator.MyProc()<<" Reading Algorithm"<<endl;
+    cout <<PathData.Path.CloneStr<<" Reading Algorithm"<<endl;
     assert(in.OpenSection("Algorithm"));
     ReadAlgorithm(in);
     in.CloseSection();
@@ -261,9 +261,9 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new PathDumpClass(PathData,OutFile);
     else if (observeType=="WindingNumber")
       tempObs = new WindingNumberClass(PathData,OutFile);
-    else if (observeType=="Vacancy")
-      //      tempObs = new VacancyLocClass(PathData,OutFile);
-      //    else if (observeType=="CycleCount")
+    //else if (observeType=="Vacancy")
+    //  tempObs = new VacancyLocClass(PathData,OutFile);
+    else if (observeType=="CycleCount")
       tempObs = new PermutationCountClass(PathData,OutFile);
     else if (observeType=="StructureFactor")
       tempObs = new StructureFactorClass(PathData,OutFile);
@@ -410,9 +410,9 @@ void PIMCClass::ReadAlgorithm(IOSectionClass &in)
 
 void PIMCClass::Run()
 {
-  cerr <<PathData.Path.Communicator.MyProc()<< " Simulation started." << endl;
+  cout <<PathData.Path.CloneStr<< " Simulation started." << endl;
   Algorithm.DoEvent();
-  cerr<<PathData.Path.Communicator.MyProc()<<" PIMC++ has completed"<<endl;
+  cout <<PathData.Path.CloneStr<<" PIMC++ has completed"<<endl;
   //  Array<MoveClass*,1> Moves;
 //   for (int counter=0;counter<Moves.size();counter++){
 //     cout<<"My name is "<<((MoveClass*)Moves(counter))->Name<<endl;

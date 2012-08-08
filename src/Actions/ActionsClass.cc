@@ -67,8 +67,8 @@
 
 void ActionsClass::Read(IOSectionClass &in)
 {
-  cerr<<"Reading Action."<<endl;
-  verr<<"Starting Actions Read"<<endl;
+  //cerr<<"Reading Action."<<endl;
+  //verr<<"Starting Actions Read"<<endl;
   PathClass &Path = PathData.Path;
 
   // Reading Pair Action Files
@@ -135,7 +135,7 @@ void ActionsClass::Read(IOSectionClass &in)
 //       LongRangeRPA.Init(in);
 //   }
 
-  cerr << "About to Read Nodal Action." << endl;
+  //cerr << "About to Read Nodal Action." << endl;
   ReadNodalActions (in);
 
   if (in.OpenSection("StructureReject")) {
@@ -169,13 +169,13 @@ void ActionsClass::Read(IOSectionClass &in)
 
   int numActions = in.CountSections("Action");
   vector<string> L(0);
-  cerr << "Initializing " << numActions << " action objects" << endl;
+  //cerr << "Initializing " << numActions << " action objects" << endl;
   for(int n=0; n<numActions; n++){
     in.OpenSection("Action",n);
     string type, label;
     assert(in.ReadVar("Type", type));
     assert(in.ReadVar("Name", label));
-    cerr << "  Initializing action " << label << " of type " << type;// << endl;
+    //cerr << "  Initializing action " << label << " of type " << type;// << endl;
     // add menu of all possible ActionBase objects here
     if(type == "Kinetic"){
       newAction = new KineticClass(PathData);
@@ -226,9 +226,9 @@ void ActionsClass::Read(IOSectionClass &in)
       exit(0);
     }
 
-    cerr << "; Added action of type " << type << endl;
+    cout << PathData.Path.CloneStr << " Added action of type " << type << endl;
     newAction->Read(in);
-    cerr << " with address " << newAction << endl;
+    //cerr << " with address " << newAction << endl;
     ActionList.push_back(newAction);
     ActionLabels.push_back(label);
     // check for duplicate labels
@@ -248,7 +248,7 @@ void
 ActionsClass::ReadPairActions(IOSectionClass &in)
 {
   PathClass &Path=PathData.Path;
-  cerr << "Starting to read pair action files" << endl;
+  //cerr << "Starting to read pair action files" << endl;
   Array<string,1> PAFiles;
   assert (in.ReadVar ("PairActionFiles", PAFiles));
   int numPairActions = PAFiles.size();
@@ -265,8 +265,8 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
   for (int i=0; i<numPairActions; i++) {
     // Allow for tilde-expansion in these files
     string name = ExpandFileName(PAFiles(i));
-    cerr<<"We are about to try to read the PairActon file "<<name<<endl;
-    cerr<<"If the code aborts at this point, most likely the .PairAction or .Sampling.in or .dm file are incorrect or placed in the wrong place."<<endl;
+    //cerr<<"We are about to try to read the PairActon file "<<name<<endl;
+    //cerr<<"If the code aborts at this point, most likely the .PairAction or .Sampling.in or .dm file are incorrect or placed in the wrong place."<<endl;
     if (!PAIO.OpenFile(name)){
       cerr<<"We were unable to find the PairAction file "<<name<<endl;
       cerr<<"Please make sure you have specified it correctly."<<endl;
@@ -286,7 +286,7 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
                  << PairArray(i)->Particle2.Name << ")." << endl;
             exit(-1);
           }
-          perr << "Found PAfile for pair (" 
+          cout << Path.CloneStr << " Found PAfile for pair (" 
                << Path.Species(spec1).Name << ", "
                << Path.Species(spec2).Name << ")\n";
           PairMatrix(spec1,spec2) = PairArray(i);
@@ -302,7 +302,7 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
     }
     PAIO.CloseFile();
   }
-  cerr<<"Done reading PairAction files"<<endl;
+  //cerr<<"Done reading PairAction files"<<endl;
   //cerr << "READPAIRACTION PA INIT" << endl;
   //for (int pai=0; pai<PairArray.size(); pai++) {
   //  cout << PairArray(pai) << " " << PairArray(pai)->Particle1.Name << " " << PairArray(pai)->Particle2.Name << endl;
@@ -344,9 +344,9 @@ ActionBaseClass* ActionsClass::GetAction(string name)
 void
 ActionsClass::ReadNodalActions(IOSectionClass &in)
 {
-  std::cerr << "Reading Nodal Action." << endl;
+  //std::cerr << "Reading Nodal Action." << endl;
   int numNodeSections=in.CountSections("NodalAction");
-  cerr << "Found " << numNodeSections << " Nodal Actions." << endl;
+  cout << PathData.Path.CloneStr << " Found " << numNodeSections << " Nodal Actions." << endl;
   NodalActions.resize (PathData.Path.NumSpecies());
   NodalActions = NULL;
   for (int nodeSection=0; nodeSection<numNodeSections; nodeSection++) {
@@ -392,10 +392,10 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
 //      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->IonSpeciesNum);
     }
     else if (type == "SHO") {
-      cerr << "SHO Nodal Action." << endl;
+      //cerr << "SHO Nodal Action." << endl;
       assert (in.ReadVar("Species", speciesString));
       int species = PathData.Path.SpeciesNum(speciesString);
-      cerr << "Action Species: " << species << endl;
+      //cerr << "Action Species: " << species << endl;
 // AGGRESSIVE COMPILING ERROR (FIX)
       SHONodalActionClass *nodeAction = (new SHONodalActionClass (PathData, species));
       nodeAction -> Read(in);

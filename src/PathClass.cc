@@ -225,9 +225,9 @@ void PathClass::Read (IOSectionClass &inSection)
     DavidLongRange=false;
   if (LongRange) {
     if (DavidLongRange)
-      cerr<<"Using David Long Range!"<<endl;
+      cout<<CloneStr<<" Using David Long Range."<<endl;
     else
-      cerr<<"Using Long Range!"<<endl;
+      cout<<CloneStr<<" Using Long Range."<<endl;
   }
 
   assert(inSection.OpenSection("Particles"));

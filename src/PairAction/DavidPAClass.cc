@@ -574,7 +574,7 @@ void DavidPAClass::ReadSamplingTable(string fileName)
   int startLevel=-1;
   assert(in.ReadVar("SamplingTau",SamplingTau));
   for (int i=0;i<SamplingTau.size();i++){
-    cerr<<"Tau diffs: "<<SamplingTau(i)<<" "<<DesiredTau<<" "<<SamplingTau(i)-DesiredTau<<endl;
+    //cerr<<"Tau diffs: "<<SamplingTau(i)<<" "<<DesiredTau<<" "<<SamplingTau(i)-DesiredTau<<endl;
     if (fabs(SamplingTau(i)-DesiredTau)<1e-4){
       verr<<"The sampling tau I've chosen is "<<SamplingTau(i);
       startLevel=i;
@@ -935,12 +935,12 @@ void DavidPAClass::ReadLongRangeHDF5(IOSectionClass &in)
 void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 {
   TauPos = -1;
-  cerr << "READDAVIDSQUARERFILE -- HDF5 -- " << endl;
+  //cerr << "READDAVIDSQUARERFILE -- HDF5 -- " << endl;
   double tau; //used to be in the base clase
   double smallestTau;
   IOSectionClass in;
   assert(in.OpenFile(DMFile.c_str()));
-  cerr << "opened " << DMFile << endl;  
+  cout << "Using " << DMFile << endl;
   int numOfFits;
   assert(in.OpenSection("Squarer"));
   assert(in.ReadVar("NumFits", numOfFits));
@@ -951,30 +951,30 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   n = numOfFits;
 
   // Read in  the potential
-  cerr << "reading potential" << endl;
+  //cerr << "reading potential" << endl;
   Array<double,1> potential;
   assert(in.OpenSection("Potential"));
   assert(in.ReadVar("Data", potential));
   in.CloseSection();
 
   // Get the U's
-  cerr << "reading Us" << endl;
+  //cerr << "reading Us" << endl;
   Grid *theGrid;
   //int checkNumU = in.CountSections("Ukj");
   //assert(checkNumU == (numOfFits+1));
   Array<double,1> Taus;
   for (int counter=0;counter<=numOfFits;counter++) {
-    cerr << "  " << counter << " of " << numOfFits << endl;
+    //cerr << "  " << counter << " of " << numOfFits << endl;
     ostringstream stream;
     stream << "Ukj" << counter;
     string SectionTitle(stream.str());
-    cerr << "Opening section " << SectionTitle << "||" << endl;
+    //cerr << "Opening section " << SectionTitle << "||" << endl;
     assert(in.OpenSection(SectionTitle));
 
     int theRank;
-    cerr<<"Reading rank"<<endl;
+    //cerr<<"Reading rank"<<endl;
     in.ReadVar("Rank",theRank);
-    cerr<<"rank read"<<endl;
+    //cerr<<"rank read"<<endl;
     if (theRank!=3){
       //cerr<<"ERROR! ERROR! Rank was not 3" << endl;
       counter--;
@@ -1013,10 +1013,10 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 	    //cerr <<"ERROR!!! ERROR!!! The tau grid is not a LOG Grid\n";
 	    //cerr <<shouldBeLog<<endl;
       //}
-      cerr<<"Reading taus"<<endl;
+      //cerr<<"Reading taus"<<endl;
       //Array<double,1> Taus;
       in.ReadVar("Taus",Taus);
-      cerr<<"taus read"<<endl;
+      //cerr<<"taus read"<<endl;
       smallestTau=Taus(0);
       double largestTau=Taus(Taus.size()-1);
       int numTauCalc=(int)floor(log(largestTau/smallestTau)/log(2.0)+0.5+1.0); ///I think this -1 is correct but who knows
@@ -1064,21 +1064,21 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   }
 
  //Get the beta derivative of U's 
-  cerr << "Reading du" << endl;
+  //cerr << "Reading du" << endl;
   //int checkNumdU = in.CountSections("dUkj_dBeta");
   //assert(checkNumdU == (numOfFits+1));
   for (int counter=0;counter<=numOfFits;counter++){
-    cerr << "  " << counter << " of " << numOfFits << endl;
+    //cerr << "  " << counter << " of " << numOfFits << endl;
     ostringstream stream;
     stream << "dUkjdBeta" << counter;
     string SectionTitle(stream.str());
-    cerr << "Opening section " << SectionTitle << "||" << endl;
+    //cerr << "Opening section " << SectionTitle << "||" << endl;
     assert(in.OpenSection(SectionTitle));
 
     int theRank;
-    cerr<<"Reading du rank"<<endl;
+    //cerr<<"Reading du rank"<<endl;
     in.ReadVar("Rank",theRank);
-    cerr<<"du rank read"<<endl;
+    //cerr<<"du rank read"<<endl;
     assert(theRank == 3);
     int NumGridPoints, NumUKJ;
     in.ReadVar("NumUkj",NumUKJ);
@@ -1105,9 +1105,9 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
 	    cerr << "Unrecognized grid type in ReadDavidSquarerFile (du hdf5).\n";
 	    cerr << "GridType = \"" << GridType << "\"\n";
     }
-    cerr<<"Reading taus"<<endl;
+    //cerr<<"Reading taus"<<endl;
     in.ReadVar("Taus",Taus);
-    cerr<<"taus rad"<<endl;
+    //cerr<<"taus rad"<<endl;
     smallestTau=Taus(0);
     double largestTau=Taus(Taus.size()-1);
     int numTauCalc=(int)floor(log(largestTau/smallestTau)/log(2.0)+0.5+1.0); ///I think this -1 is correct but who knows
@@ -1135,7 +1135,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     startDeriv=5.0e30;
     Array<double,1> endDeriv(NumUKJ+1);
     endDeriv=0.0;
-    cerr<<"Reading data"<<endl;
+    //cerr<<"Reading data"<<endl;
     in.ReadVar("Data",tempdUkj);
     /////      tau=largestTau; //HACK
 
@@ -1143,7 +1143,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
       for(int i=0; i<NumTau; i++){ //HACK!
 	tempdUkj2(Range::all(),0,i) = potential;
 	///	cerr<<"Current tau is "<<tau<<" "<<i<<endl;
-	cerr<<"Tau diffs: "<<tau<<" "<<DesiredTau<<" "<<tau-DesiredTau<<endl;
+	//cerr<<"Tau diffs: "<<tau<<" "<<DesiredTau<<" "<<tau-DesiredTau<<endl;
 	if (fabs(tau-DesiredTau)<1e-6){
 
 	  ///	  cerr<<"The tau I've chosen is "<<tau;
@@ -1176,7 +1176,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     ////      cerr<<"My tau is "<<tau<<endl;
     n=NMax;
     in.CloseSection();
-    cerr<<"Bottom of lop"<<endl;
+    //cerr<<"Bottom of lop"<<endl;
   }
 
   Potential.resize(potential.size());
@@ -1192,10 +1192,10 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   for (int i=0;i<TauPos;i++){
     tau *= 2;
   }
-  cerr<<"pre splining"<<endl;
-  cerr << "NumTau = " << NumTau << endl;
+  //cerr<<"pre splining"<<endl;
+  //cerr << "NumTau = " << NumTau << endl;
   for (int level=0; level<NumTau; level++) {
-    cerr<<"level is "<<level<<endl;
+    //cerr<<"level is "<<level<<endl;
     const int numDiagPoints = 20000;
     Array<double,1> udiag(numDiagPoints);
     Array<double,1> dUdiag(numDiagPoints);
@@ -1209,21 +1209,21 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     }
     UdiagSpline(level).Init (start, end, udiag);
     dUdiagSpline(level).Init (start, end, dUdiag);
-    cerr<<"Bottom of loop"<<endl;
+    //cerr<<"Bottom of loop"<<endl;
   }
-  cerr<<"done with loop"<<endl;
-  verr<<"I've selected a tau of "<<tau<< "in the PairAction file"<<endl;
-  cerr<<"TauPos is "<<TauPos<<endl;
+  //cerr<<"done with loop"<<endl;
+  //verr<<"I've selected a tau of "<<tau<< "in the PairAction file"<<endl;
+  //cerr<<"TauPos is "<<TauPos<<endl;
   if (in.OpenSection("LongRange")){
     HasLongRange=true;
-    cerr<<"In long range finding"<<endl;
+    //cerr<<"In long range finding"<<endl;
     ReadLongRangeHDF5(in);
     in.CloseSection();
-    cerr<<"done with long range finding"<<endl;
+    //cerr<<"done with long range finding"<<endl;
   }
   else
     HasLongRange=false;
-  cerr << "Leaving DavidSquarer HDF5 read" << endl;
+  //cerr << "Leaving DavidSquarer HDF5 read" << endl;
 
 }
 

@@ -41,7 +41,7 @@ void DavidLongRangeClassYk2::Build_MultipleSpecies()
       duk(i,j)=100.0;
     }
   }
-  cerr<<duk.extent(0)<<" "<<PathData.NumSpecies()<<endl;
+  //cerr<<duk.extent(0)<<" "<<PathData.NumSpecies()<<endl;
 
   for (int dim=0;dim<NDIM;dim++)
     vol*=Path.GetBox()[dim];
@@ -89,9 +89,9 @@ void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
   DavidPAClass &pa(*(DavidPAClass*)PairArray(speciesNum));
   int ncomps=Path.Species(speciesNum).NumParticles;
   double lambda=Path.Species(speciesNum).lambda;
-  cerr<<"lambda is "<<lambda<<endl;
-  cerr<<"ncomps is "<<ncomps<<endl;
-  cerr<<"Vol is "<<vol<<endl;
+  //cerr<<"lambda is "<<lambda<<endl;
+  //cerr<<"ncomps is "<<ncomps<<endl;
+  //cerr<<"Vol is "<<vol<<endl;
   for (int i=0;i<pa.kVals.size();i++){
     double k=pa.kVals(i);
     if (fequals(0.0,k,1e-10))
@@ -125,7 +125,7 @@ void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
       }
     }
   }
-  cerr<<"I have built the rpa"<<endl;
+  //cerr<<"I have built the rpa"<<endl;
   //for (int i=0;i<uk.extent(1);i++)
   //  cerr<<"KVecs: "<<sqrt(blitz::dot(Path.kVecs(i),Path.kVecs(i)))<<" "<<uk(speciesNum, i)<<" "<<duk(speciesNum, i)<<endl;
 }
@@ -139,12 +139,12 @@ void DavidLongRangeClassYk2::ReadYk()
   TimeSpent=0;
   for (int pai=0;pai<PairArray.size();pai++){
     DavidPAClass &pa(*((DavidPAClass*)PairArray(pai)));
-    cerr<<"the long range is "<<pa.LongRangeDim<<endl;
+    //cerr<<"the long range is "<<pa.LongRangeDim<<endl;
     //    assert(pa.LongRangeDim==NDIM);
-    for (int dim=0;dim<NDIM;dim++){
-      cerr<<pa.LongRangeBox(dim)<<" "<<Path.GetBox()[dim]<<endl;
-      //      assert(fabs(pa.LongRangeBox(dim)-Path.GetBox()[dim])<1e-5);
-    }
+    //for (int dim=0;dim<NDIM;dim++){
+    //  cerr<<pa.LongRangeBox(dim)<<" "<<Path.GetBox()[dim]<<endl;
+    //  //      assert(fabs(pa.LongRangeBox(dim)-Path.GetBox()[dim])<1e-5);
+    //}
     int specNum1=0;
     while (Path.Species(specNum1).Type!=pa.Particle1.Name){
       specNum1++;
@@ -155,7 +155,7 @@ void DavidLongRangeClassYk2::ReadYk()
       specNum2++;
       assert(specNum2<Path.NumSpecies());
     }
-    cerr<<"MASSES: "<<pa.LongRangeMass1<<" "<<pa.LongRangeMass2<<" "<<Path.Species(specNum1).lambda<<" "<<Path.Species(specNum2).lambda<<endl;
+    //cerr<<"MASSES: "<<pa.LongRangeMass1<<" "<<pa.LongRangeMass2<<" "<<Path.Species(specNum1).lambda<<" "<<Path.Species(specNum2).lambda<<endl;
     //    assert(fabs(pa.LongRangeMass1-Path.Species(specNum1).lambda)<1e-10);
     //    assert(fabs(pa.LongRangeMass2-Path.Species(specNum2).lambda)<1e-10);
   }

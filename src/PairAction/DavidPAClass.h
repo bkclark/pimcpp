@@ -145,8 +145,8 @@ class DavidPAClass : public PairActionFitClass
 inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
 {
   Name="DavidPAClass";
-  cerr<<"In DavidPAClass Read"<<endl;
-  cerr<<"values are "<<x<<" "<<y<<endl;
+  //cerr<<"In DavidPAClass Read"<<endl;
+  //cerr<<"values are "<<x<<" "<<y<<endl;
   string fileName;
   DesiredTau=x;
   NumLevels=y;
@@ -168,7 +168,7 @@ inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
   int l = fileName.size();
   // slice last two characters of the filename. i.e. the extension
   string extension(fileName, l-2, 2);
-  cerr << "Read dm file extension " << extension << endl;
+  //cerr << "Read dm file extension " << extension << endl;
   if(extension == "dm")
     ReadDavidSquarerFile(fileName.c_str());
   else if (extension == "h5")
@@ -177,9 +177,9 @@ inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
     assert(0);
   string samplingTableFile;
   SamplingTableRead=in.ReadVar("SamplingTableFile",samplingTableFile);
-  cerr<<"My sampling table read is "<<SamplingTableRead<<endl;
+  //cerr<<"My sampling table read is "<<SamplingTableRead<<endl;
   if (SamplingTableRead){
-    cerr<<"Reading sampling table"<<endl;
+    //cerr<<"Reading sampling table"<<endl;
     ReadSamplingTable(samplingTableFile);
   }
   

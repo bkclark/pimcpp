@@ -310,7 +310,7 @@ void PathDataClass::Read (IOSectionClass &in)
   // Setup Inter- and IntraComms
   assert ((N % procsPerClone) == 0);
   NumClones = N / procsPerClone;
-  cerr << "N : " << N << ", procPerClone : " << procsPerClone << " " << endl;
+  cout << "N : " << N << ", procPerClone : " << procsPerClone << " " << endl;
   MyCloneNum = WorldComm.MyProc()/procsPerClone;
   // Create IntraComm
   ////cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
@@ -327,14 +327,14 @@ void PathDataClass::Read (IOSectionClass &in)
   int seed;
   bool haveSeed = in.ReadVar ("Seed", seed);
   // Now, set up random number generator
-  cerr<<"I have the seed: "<<haveSeed<<endl;
-  cerr<<seed<<endl;
+  //cerr<<"I have the seed: "<<haveSeed<<endl;
+  //cerr<<seed<<endl;
 
 
 
   //  int seed;
   if (in.ReadVar("Seed",Seed)){
-    cerr<<"in here with seed: "<<Seed<<endl;
+    cout<<"RANDOM SEED: "<<Seed<<endl;
     Random.Init (Seed, NumClones, sameSeed);
   }
   else {
@@ -347,6 +347,11 @@ void PathDataClass::Read (IOSectionClass &in)
   //cerr << WorldComm.MyProc() << " clone " << Path.MyClone << " " << Seed << endl;
   //BAD BUG!  Path.MyClone=IntraComm.MyProc()/procsPerClone;
   Path.MyClone=WorldComm.MyProc()/procsPerClone;
+
+  // Clone String
+  stringstream tempCloneStr;
+  tempCloneStr << Path.MyClone << " " << Path.Communicator.MyProc();
+  Path.CloneStr = tempCloneStr.str();
 
 
 #endif

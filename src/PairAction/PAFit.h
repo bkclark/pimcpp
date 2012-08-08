@@ -24,24 +24,24 @@
 inline PairActionFitClass *ReadPAFit (IOSectionClass &in, 
 				      double smallestBeta, int numLevels)
 {
-  cerr<<"Now IN ReadPAFit"<<endl;
+  //cerr<<"Now IN ReadPAFit"<<endl;
   assert (in.OpenSection("Fits"));
   string type;
   assert (in.ReadVar("Type", type));
-  cerr<<"The type is "<<type<<endl;
+  //cerr<<"The type is "<<type<<endl;
   in.CloseSection (); // "Fits"
   PairActionFitClass *fit;
-  cerr<<"CHECKING "<<(type=="DavidFit")<<" "<<(1==1)<<endl;
+  //cerr<<"CHECKING "<<(type=="DavidFit")<<" "<<(1==1)<<endl;
   if (type == "classical"){
+    //cerr<<"Classical fit"<<endl; 
     fit = new PAclassicalFitClass;
-    cerr<<"Classical fit"<<endl; 
   }
   else if (type == "zerofit"){
-    cerr<<"zero fit"<<endl;
+    //cerr<<"Zero fit"<<endl;
     fit=new PAzeroFitClass;
   }
   else if (type=="DavidFit"){
-    cerr<<"setting fit to DavidPAClass"<<endl;
+    //cerr<<"DavidPAClass fit"<<endl;
     fit = new DavidPAClass;
   }
   else {
@@ -49,9 +49,9 @@ inline PairActionFitClass *ReadPAFit (IOSectionClass &in,
 	 << type << "\".  Exitting.\n";
     exit(1);
   }
-  cerr<<"Pre-READ"<<endl;
+  //cerr<<"Pre-READ"<<endl;
   fit->Read(in, smallestBeta, numLevels);
-  cerr<<"EXITING"<<endl;
+  //cerr<<"EXITING"<<endl;
   return (fit);
 }
 

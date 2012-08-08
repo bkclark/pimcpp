@@ -47,7 +47,7 @@ main(int argc, char **argv)
 {
   COMM::Init(argc, argv);
   string version = VERSION;
-  cerr << "pimc++ v. " << version << endl;
+  cout << "pimc++ v. " << version << endl;
 
   list<ParamClass> argList;
   argList.push_back (ParamClass("verbose", "v", false));

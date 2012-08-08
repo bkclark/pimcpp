@@ -3,3 +3,5 @@
 *.swo
 *.png
 bin/
+CMakeFiles/
+*.o

@@ -102,10 +102,7 @@ void MCTimeClass::WriteBlock()
     IOSection.FlushFile();
 
   // Block Info
-  cerr << "##################################" << endl;
-  cerr << "#  Block #: " << BlockNumber << endl;
-  cerr << "#  Block Time: " << BlockTime << endl;
-  cerr << "#  Total Time: " << TotalTime << endl;
+  cout << PathData.Path.CloneStr << " #: " << BlockNumber << " t: " << BlockTime << " T: " << TotalTime << endl;
   BlockNumber++;
 }
 

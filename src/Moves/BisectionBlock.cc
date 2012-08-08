@@ -68,13 +68,13 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     newStage->TotalLevels = NumLevels;
     newStage->BisectionLevel = level;
     newStage->UseCorrelatedSampling = useCorrelatedSampling;
-    cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
+    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
     newStage->Actions.push_back(&PathData.Actions.Kinetic);
     if (level!=LowestLevel){
       Array<string,1> higherLevelActions;
       if (in.ReadVar("HigherLevelActions",higherLevelActions)){
         for (int i=0;i<higherLevelActions.size();i++) {
-          cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(higherLevelActions(i))).GetName()<<" Action"<<endl;
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(higherLevelActions(i))).GetName()<<" Action"<<endl;
           newStage->Actions.push_back(PathData.Actions.GetAction(higherLevelActions(i)));
         }
       }
@@ -83,29 +83,29 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
       Array<string,1> samplingActions;
       assert(in.ReadVar("SamplingActions",samplingActions));
       for (int i=0;i<samplingActions.size();i++) {
-        cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
         newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
       }
       if (PathData.Path.DavidLongRange) {
-        cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
         newStage -> Actions.push_back(&PathData.Actions.DavidLongRange);
       } else if (PathData.Actions.HaveLongRange()) {
         if (PathData.Actions.UseRPA) {
-          cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
           newStage -> Actions.push_back(&PathData.Actions.LongRangeRPA);
         } else {
-          cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRange Action"<<endl;
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRange Action"<<endl;
           newStage -> Actions.push_back(&PathData.Actions.LongRange);
         }
       }
       if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
-        cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
         newStage->Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
       }
     }
     //HACK!!! These used to be only pushed on at the lowest level
     //    if (PathData.Actions.UseNonlocal) {
-    //      cout<<PathData.Path.Communicator.MyProc()<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Nonlocal Action"<<endl;
+    //      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Nonlocal Action"<<endl;
     //      newStage->Actions.push_back(&PathData.Actions.Nonlocal);
     //    }
     Stages.push_back (newStage);

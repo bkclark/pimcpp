@@ -100,18 +100,13 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
     }
     ////done broadcasting
     oss<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
-    cerr<<"Using "<<oss.str()<<endl;
+    cout<<CloneStr<<" Using "<<oss.str()<<endl;
     //    oss<<fileName<<"."<<MyClone<<".h5";
   }
   else{
     oss<<fileName<<"."<<0<<".h5";
   }
   string fullFileName=oss.str();
-  cerr<<"THE FULL FILE NAME IS "<<fullFileName<<endl;
-
-  
-  
-
 
   assert (inFile.OpenFile(fullFileName.c_str()));
   //  assert (inFile.OpenFile(fileName.c_str()));
@@ -679,7 +674,7 @@ PathClass::InitPaths (IOSectionClass &in)
 #endif
         if (ptcl % 2)
           r += 0.5*delta;
-	cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<endl;
+        //cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<endl;
         for (int slice=0; slice<NumTimeSlices(); slice++)
           Path(slice,ptcl) = r;
       }
@@ -898,15 +893,14 @@ PathClass::InitPaths (IOSectionClass &in)
       }
     }    
     else if (InitPaths=="RESTART"){
-      cerr<<"Restarting being read"<<endl;
       string pathFile;
       assert(in.ReadVar("File",pathFile));
-      cerr<<"The path file is "<<pathFile<<endl;
+      cout<<CloneStr<<" Restarting from "<<pathFile<<endl;
       Restart(in,pathFile,false,species);
-      cerr<<"Done with initpaths restart"<<endl;
+      //cerr<<"Done with initpaths restart"<<endl;
     }
     else if (InitPaths == "FILE"){
-      cerr<<"I'm going to read the file now"<<endl;
+      //cerr<<"I'm going to read the file now"<<endl;
       if (replicate){
         perr << "Replicate 'ON'; Using time slice 0 for all time slices." << endl;
       }
@@ -942,7 +936,7 @@ PathClass::InitPaths (IOSectionClass &in)
       PhaseAvoidingLeviFlight(speciesIndex, R0, sigmaFactor);
     }
     else if (InitPaths == "RANDOMFIXED") {
-      cerr << " random fixed " << endl;
+      cout <<CloneStr<< " Random fixed initialization." << endl;
       InitRandomFixed (in, species);
     }
 //     else if (InitPaths == "LEVIFLIGHT") {
@@ -970,7 +964,7 @@ PathClass::InitPaths (IOSectionClass &in)
       perr << "Unrecognize initialization strategy " << InitPaths << endl;
       abort();
     }
-    cerr<<Communicator.MyProc()<<" "<<species.Name<<" Init real slices"<<endl;
+    //cerr<<Communicator.MyProc()<<" "<<species.Name<<" Init real slices"<<endl;
     InitRealSlices();
     in.CloseSection(); // Species
   }
