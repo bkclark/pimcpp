@@ -69,7 +69,6 @@ double DisplaceStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activ
       PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
   }
 
-  PathClass &Path=PathData.Path;
   // Broadcast the new reference path to all the other processors
   PathData.Path.BroadcastRefPath();
 
@@ -87,12 +86,12 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
 
   int numToMove;
 
-  
+
   assert(in.ReadVar("NumToMove", numToMove));
   SetNumParticlesToMove(numToMove);
   DesiredAcceptRatio=-1;
   in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
- 
+
   // Read in the active species.
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
   Array<int,1> activeSpecies(activeSpeciesNames.size());
@@ -110,7 +109,7 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   Array<string,1> samplingActions;
   assert(in.ReadVar("SamplingActions",samplingActions));
   for (int i=0;i<samplingActions.size();i++) {
-    cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+    cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
     DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
   }
   // if (PathData.Path.OrderN)
@@ -120,20 +119,20 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRange);
   if (PathData.Path.LongRange) {
     if (PathData.Actions.UseRPA) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRangeRPA);
     } else if (PathData.Path.DavidLongRange) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.DavidLongRange);
     } else {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
     }
   }
   for (int i=0; i<activeSpecies.size(); i++) {
     int speciesNum = activeSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
       DisplaceStage.Actions.push_back(PathData.Actions.NodalActions(speciesNum));
     }
   }
@@ -144,13 +143,13 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   MoveAllParticles=false;
   in.ReadVar("MoveAll",MoveAllParticles);
   if (MoveAllParticles)
-    {
-      ActiveParticles.resize(PathData.Path.Species(theSpecies).NumParticles);
-      for (int i=0;i<ActiveParticles.size();i++){
-	ActiveParticles(i)=PathData.Path.Species(theSpecies).FirstPtcl+i;
-      }
-      
+  {
+    ActiveParticles.resize(PathData.Path.Species(theSpecies).NumParticles);
+    for (int i=0;i<ActiveParticles.size();i++){
+      ActiveParticles(i)=PathData.Path.Species(theSpecies).FirstPtcl+i;
     }
+
+  }
   else {
     ActiveParticles.resize(NumParticlesToMove);
   }
@@ -165,21 +164,8 @@ void DisplaceMoveClass::MakeMove()
   Slice1 = 0;
   Slice2 = PathData.Path.NumTimeSlices()-1;
 
-
-  if (!MoveAllParticles){
-    for (int i=0;i<PathData.Path.NumParticles();i++){
-      if (theSpecies == PathData.Path.ParticleSpeciesNum(i)) {
-	ActiveParticles(0)=i;
-	// Now call MultiStageClass' MakeMove
-	MultiStageClass::MakeMove();
-	NumAttempted++;
-      }
-    }
-  }
-  else {
-    // Now call MultiStageClass' MakeMove
-    MultiStageClass::MakeMove();
-    NumAttempted++;
-  }
+  // Now call MultiStageClass' MakeMove
+  MultiStageClass::MakeMove();
+  NumAttempted++;
 
 }
