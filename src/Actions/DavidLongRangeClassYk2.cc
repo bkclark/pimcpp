@@ -18,12 +18,14 @@
 #include "DavidLongRangeClassYk2.h"
 #include "../PathDataClass.h"
 #include <set>
-#include  "sys/time.h"
+#include "sys/time.h"
+
 
 bool DavidLongRangeClassYk2::fequals(double a,double b,double tol)
 {
   return abs(a-b)<tol;
 }
+
 
 bool DavidLongRangeClassYk2::vecEquals(dVec &a, dVec &b,double tol)
 {
@@ -32,6 +34,7 @@ bool DavidLongRangeClassYk2::vecEquals(dVec &a, dVec &b,double tol)
     equals= equals && fequals(a[dim],b[dim],tol);
   return equals;
 }
+
 
 void DavidLongRangeClassYk2::Build_MultipleSpecies()
 {
@@ -70,13 +73,12 @@ void DavidLongRangeClassYk2::Build_MultipleSpecies()
 
           }
         }
-
       }
       //      assert(found);
     }
   }
-
 }
+
 
 void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
 {
@@ -131,9 +133,6 @@ void DavidLongRangeClassYk2::BuildRPA_SingleSpecies()
 }
 
 
-
-
-
 void DavidLongRangeClassYk2::ReadYk()
 {
   TimeSpent=0;
@@ -185,11 +184,9 @@ inline double mag2 (const complex<double> &z)
 /// Calculates the long range part of the action using David's breakup.
 /// The short range part must be supplied as a dm file without the long
 /// range part in it.  It ignores active particles.
-double 
-DavidLongRangeClassYk2::SingleAction (int slice1, int slice2, 
+double DavidLongRangeClassYk2::SingleAction (int slice1, int slice2, 
                                    const Array<int,1> &activeParticles, 
                                    int level)
-
 {
   struct timeval start, end;
   struct timezone tz;
@@ -217,7 +214,7 @@ DavidLongRangeClassYk2::SingleAction (int slice1, int slice2,
     else
       Path.UpdateRho_ks(slice1+skip,slice2-skip,activeParticles,level);
   }
-  
+
   double total=0;
   double factor;
   int startSlice=slice1;
@@ -249,12 +246,10 @@ DavidLongRangeClassYk2::SingleAction (int slice1, int slice2,
   TimeSpent += (double)(end.tv_sec-start.tv_sec) +
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
-
   return total;
-    
 }
 
-  ///Not really d_dbeta but total energy
+
 double DavidLongRangeClassYk2::d_dBeta (int slice1, int slice2,  int level)
 {
   double total=0.0;
@@ -278,22 +273,17 @@ double DavidLongRangeClassYk2::d_dBeta (int slice1, int slice2,  int level)
           sliceTotal +=  factor*rhok2 * duk(PairIndex(species,species2), ki);
           //      if (sliceTotal>10)
           //        exit(1);
-
         }
-
       }
-
-
-
     }
-    total += sliceTotal;      
+    total += sliceTotal;
   }
   return total;
-  
+
 }
 
 
-  ///Not really d_dbeta but total energy
+///Not really d_dbeta but total energy
 double DavidLongRangeClassYk2::V (int slice1, int slice2,  int level)
 {
   double total=0.0;
@@ -318,7 +308,6 @@ double DavidLongRangeClassYk2::V (int slice1, int slice2,  int level)
 }
 
 
-
 DavidLongRangeClassYk2::DavidLongRangeClassYk2(PathDataClass &pathData,
                                              Array<PairActionFitClass* ,2> &pairMatrix,
                                                Array<PairActionFitClass*, 1> &pairArray,
@@ -329,9 +318,7 @@ DavidLongRangeClassYk2::DavidLongRangeClassYk2(PathDataClass &pathData,
 }
 
 
-
-string
-DavidLongRangeClassYk2::GetName()
+string DavidLongRangeClassYk2::GetName()
 {
   return "DavidsLongRange";
 }

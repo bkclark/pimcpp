@@ -110,7 +110,7 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   Array<string,1> samplingActions;
   assert(in.ReadVar("SamplingActions",samplingActions));
   for (int i=0;i<samplingActions.size();i++) {
-    cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+    cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
     DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
   }
   // if (PathData.Path.OrderN)
@@ -120,20 +120,20 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRange);
   if (PathData.Path.LongRange) {
     if (PathData.Actions.UseRPA) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRangeRPA);
     } else if (PathData.Path.DavidLongRange) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.DavidLongRange);
     } else {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
     }
   }
   for (int i=0; i<activeSpecies.size(); i++) {
     int speciesNum = activeSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
-      cerr<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
       DisplaceStage.Actions.push_back(PathData.Actions.NodalActions(speciesNum));
     }
   }

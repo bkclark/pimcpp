@@ -299,7 +299,7 @@ public:
 
     // Now do k-space part
     outfile.open("kData.txt");
-    outfile<<0.0<<" "<<(Vlong_k0+Vshort_k0)/boxVol<<endl;
+    outfile<<0.0<<" "<<(Vlong_k0+Vshort_k0)<<endl;
     for (int ki=0; ki < kVecs.size(); ki++) {
       double k = sqrt(dot(kVecs(ki),kVecs(ki)));
       // Sum over basis functions
@@ -308,7 +308,7 @@ public:
       // Now add on part from rc to infinity
       //pa.Vlong_k(ki) -= CalcXk(paIndex, 0, k, rc, JOB_V);
       Vlong_k(ki) -= Xk_V(k,rc) / boxVol;
-      outfile<<k<<" "<<Vlong_k(ki)<<endl;
+      outfile<<k<<" "<<Vlong_k(ki)*boxVol<<endl;
     }
     outfile.close();
   }
