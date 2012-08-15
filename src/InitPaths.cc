@@ -25,7 +25,6 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
 {
 // This was modified on Jan 19 2005 to read in a set of classical (P=1) configs and duplicate them to produce a set of PIMC (P>1) configs.  -jg
 
-  cerr<<"Restarting"<<endl;
   int myProc=Communicator.MyProc();
   IOSectionClass inFile;
   stringstream oss;
@@ -37,12 +36,10 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
     stringstream tempStream;
     int counter=0;
     tempStream<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
-    cerr<<"Checking THIS for "<<tempStream.str();
     while (fileExists(tempStream.str())){
       counter++;
       tempStream.str("");
       tempStream<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
-      cerr<<"Checking THIS for "<<tempStream.str();
     }
     counter--;
     ///broadcast so everyone agrees on the answer.  
@@ -114,7 +111,7 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
   Array<double,1> oldBox;
   inFile.ReadVar("Box",oldBox);
   inFile.CloseSection();
-  cerr<<"Read the box "<<myProc<<endl;
+  //cerr<<"Read the box "<<myProc<<endl;
   inFile.OpenSection("Observables");
   inFile.OpenSection("PathDump");
   Array<double,3> oldPaths; //(58,2560,2,3);
@@ -133,7 +130,7 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
   }
   Communicator.Broadcast(0,oldPermutation);
   //  assert(inFile.ReadVar("Permutation",oldPermutation));
-  cerr<<"Read init permutations "<<myProc<<endl;
+  //cerr<<"Read init permutations "<<myProc<<endl;
   SetMode(NEWMODE);
   //  int myProc=Communicator.MyProc();
   if (myProc==Communicator.NumProcs()-1){
@@ -141,11 +138,10 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
       Permutation(ptcl) = oldPermutation(ptcl);
     Permutation.AcceptCopy();
   }
-  cerr<<"About to read paths "<<myProc<<endl;
+  //cerr<<"About to read paths "<<myProc<<endl;
   IOVarBase *pathVar = inFile.GetVarPtr("Path");
   int numDumps=pathVar->GetExtent(0);
-  cerr<<"Number of path dumps is "<<numDumps<<endl;
-  cerr<<"Number of permutations is "<<oldPermutation.extent(0)<<endl;
+  cout<<CloneStr<<" path dumps: "<<numDumps<<" permutations: "<<oldPermutation.extent(0)<<endl;
 
   if (Communicator.MyProc()==0){
     pathVar->Read(oldPaths,numDumps-1,Range::all(),Range::all(),Range::all());  
@@ -170,16 +166,12 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
   
 
   //  assert(inFile.ReadVar("Path",oldPaths));
-  cerr<<"Read paths init "<<myProc<<endl;
   ///  cerr << "My paths are of size"  << oldPaths.extent(0) << " "
   ///       << oldPaths.extent(1)<<" " << oldPaths.extent(2) << endl;
   
 
   
   for (int ptcl=0;ptcl<NumParticles();ptcl++){
-    if (Communicator.MyProc()==1){
-      cerr<<"I've started ptcl "<<ptcl<<endl;
-    }
     int endSlice=min(myLastSlice,TotalNumSlices-1);
     for (int slice=0; slice<TotalNumSlices; slice++) {
     //    for (int slice=myFirstSlice; slice<=endSlice; slice++) {
@@ -204,15 +196,11 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
       }
       
       }
-      if (Communicator.MyProc()==1){
-	cerr<<"I've done parrticle "<<ptcl<<endl;
-      }
     //    cerr<<"All but last processor done "<<Communicator.MyProc()<<endl;
     ///If you are the last processors you must make sure the last
     ///slice is the same as the first slice on the first
     ///processors. The  join should be at the
     if (myProc==Communicator.NumProcs()-1){
-      cerr<<"The last processor is doing ptcl "<<ptcl<<endl;
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
@@ -227,9 +215,8 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
     
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
-    }
-    cerr<<"Closing things "<<endl;
-    inFile.CloseSection();
+  }
+  inFile.CloseSection();
   inFile.CloseSection();
   inFile.CloseFile();
   if (myProc==Communicator.NumProcs()-1)
@@ -242,8 +229,6 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
 //       outfile<<slice<<" "<<ptcl<<"  "<<Path(slice,ptcl)[0]<<" "<<Path(slice,ptcl)[1]<<endl;
 //   outfile.close();
 
-
-  cerr<<"I have finished initializing here so I can continue "<<Communicator.MyProc()<<endl;
 
 }
 

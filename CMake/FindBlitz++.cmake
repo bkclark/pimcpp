@@ -11,28 +11,27 @@
 #  INCLUDE(${PROJECT_CMAKE}/BlitzppConfig.cmake)
 #ENDIF(EXISTS ${PROJECT_CMAKE}/BlitzppConfig.cmake)
 
+SET(Libblitz blitz)
+IF(QMC_BUILD_STATIC)
+  SET(Libblitz libblitz.a)
+ENDIF(QMC_BUILD_STATIC)
+
 IF(Blitzpp_INCLUDE_DIRS)
   FIND_PATH(BLITZ_INCLUDE_DIR blitz/blitz.h  ${Blitzpp_INCLUDE_DIRS})
 ELSE(Blitzpp_INCLUDE_DIRS)
-  SET(TRIAL_PATHS
-    $ENV{BLITZ_HOME}
-    $ENV{HOME}/include
-    /usr/apps/include
-    /usr/include
-    /opt/include
-    /usr/local/include
-  )
-
-  FIND_PATH(BLITZ_INCLUDE_DIR blitz/blitz.h ${TRIAL_PATHS})
+  FIND_PATH(BLITZ_INCLUDE_DIR blitz/blitz.h ${BLITZ_HOME}/include $ENV{BLITZ_HOME}/include)
+  FIND_LIBRARY(BLITZ_LIBRARIES ${Libblitz} ${BLITZ_HOME}/lib $ENV{BLITZ_HOME}/lib)
 ENDIF(Blitzpp_INCLUDE_DIRS)
 
 IF(BLITZ_INCLUDE_DIR)
   SET(BLITZ_FOUND 1 CACHE BOOL "Found blitz++ library")
+  MESSAGE(STATUS "BLITZ_INCLUDE_DIR=${BLITZ_INCLUDE_DIR}")
+  MESSAGE(STATUS "BLITZ_LIBRARIES=${BLITZ_LIBRARIES}")
 ELSE(BLITZ_INCLUDE_DIR)
   SET(BLITZ_FOUND 0 CACHE BOOL "Found blitz++ library")
 ENDIF(BLITZ_INCLUDE_DIR)
 
 MARK_AS_ADVANCED(
-   BLITZ_INCLUDE_DIR
-   BLITZ_FOUND
+  BLITZ_INCLUDE_DIR
+  BLITZ_FOUND
 )
