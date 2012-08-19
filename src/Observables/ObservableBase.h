@@ -49,14 +49,14 @@ class ObservableClass : public EventClass
       //  return b.size() < a.size();
       //else
       //  return amax < bmax;
-      float atot = 0;
-      float asqtot = 0;
+      double atot = 0;
+      double asqtot = 0;
       for (int i=0; i<a.size(); i++) {
         atot += a[i];
         asqtot += a[i]*a[i];
       }
-      float btot = 0;
-      float bsqtot = 0;
+      double btot = 0;
+      double bsqtot = 0;
       for (int i=0; i<b.size(); i++) {
         btot += b[i];
         bsqtot += b[i]*b[i];

@@ -153,6 +153,12 @@ public:
     { Data[OLDMODE] = Data[NEWMODE]; }
   inline void RejectCopy ()              
     { Data[NEWMODE] = Data[OLDMODE]; }
+  inline void AcceptCopy (int slice1, int slice2)
+    { Data[OLDMODE](Range(slice1,slice2), Range::all()) =
+      Data[NEWMODE](Range(slice1,slice2), Range::all()); }
+  inline void RejectCopy (int slice1, int slice2)
+    { Data[NEWMODE](Range(slice1,slice2), Range::all()) =
+      Data[OLDMODE](Range(slice1,slice2), Range::all()); }
 };
 
 template <class T>

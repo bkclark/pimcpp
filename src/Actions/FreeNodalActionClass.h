@@ -43,6 +43,7 @@ private:
   Array<double,2> DetMatrix, Cofactors;
   Array<dVec,1> GradVec, SavePath;
   void GradientDet (int slice, double &det, Array<dVec,1> &gradient);
+  void GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath);
   void GradientDetFD (int slice, double &det, Array<dVec,1> &gradient);
   double NodalDist (int slice);
   double HybridDist(int slice, double lambdaTau);
@@ -58,7 +59,9 @@ private:
   int SpeciesNum;
   int NumGradDists, NumLineDists;
   int nSingular;
+  bool FirstTime;
 public:
+  void Init();
   double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double SimpleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double PreciseAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
@@ -68,6 +71,7 @@ public:
   /// returns true.
   bool IsPositive (int slice);
   double Det (int slice);
+  double Det (int slice, Array<dVec,1> &tempPath);
   //  Array<double,2> GetMatrix(int slice);
   void Read (IOSectionClass &in);
   bool IsGroundState();

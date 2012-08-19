@@ -73,11 +73,37 @@ void PathClass::SetTail(const dVec &r)
 }
 
 
-
-
 void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp)
 {
   disp = Path(slice, ptcl)- RefPath(refPtcl);
+
+  for (int i=0; i<NDIM; i++) {
+    double n = -floor(disp(i)*BoxInv(i)+0.5);
+    disp(i) += n*IsPeriodic(i)*Box(i);
+    if (!(-Box(i)/2.0<=disp(i)+0.00001)){
+      perr<<"ERROR: "<<Box(i)<<" "<<disp(i)<<" "<<slice<<" "<<ptcl<<" "<<refPtcl<<" "<<BoxInv(i)<<Path(slice,ptcl)<<" "<<endl;
+    }
+  }
+  dist = sqrt(dot(disp,disp));
+
+#ifdef DEBUG
+  dVec DBdisp = Path(slice, ptcl) -RefPath(refPtcl);
+  for (int i=0; i<NDIM; i++) {
+    while (DBdisp(i) > 0.5*Box(i))
+      DBdisp(i) -= Box(i);
+    while (DBdisp(i) < -0.5*Box(i)) 
+      DBdisp(i) += Box(i);
+    if (fabs(DBdisp(i)-disp(i)) > 1.0e-12){ 
+      perr<<DBdisp(i)<<" "<<disp(i)<<endl;
+    }
+  }
+#endif
+}
+
+
+void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath)
+{
+  disp = tempPath(ptcl) - RefPath(refPtcl);
 
   for (int i=0; i<NDIM; i++) {
     double n = -floor(disp(i)*BoxInv(i)+0.5);
@@ -452,6 +478,7 @@ void PathClass::Allocate()
 #endif
     Rho_k.resize(MyNumSlices, NumSpecies(), kVecs.size());
   }
+
   //  InitializeJosephsonCode();
 }
 
@@ -748,6 +775,7 @@ void PathClass::MoveJoin(int oldJoin, int newJoin)
   //  perr<<"Starting"<<endl;
   //  perr<<Path(OpenLink,OpenPtcl)<<endl;
   bool swappedAlready=false;
+  int numSpecies=NumSpecies();
   //  cerr<<"A MOve join"<<endl;
   if (newJoin>oldJoin){
     //    cerr<<"Here I am "<<oldJoin<<" "<<newJoin<<" "<<" "<<endl;
@@ -769,10 +797,9 @@ void PathClass::MoveJoin(int oldJoin, int newJoin)
     //    cerr<<"B MOve join"<<endl;
     //Now that we've copied the data from B into A, we need to copy the 
     //information into B
-    for (int timeSlice=oldJoin+1;timeSlice<=newJoin;timeSlice++){ 
-      for (int ptcl=0;ptcl<NumParticles();ptcl++){
+    for (int timeSlice=oldJoin+1;timeSlice<=newJoin;timeSlice++) {
+      for (int ptcl=0;ptcl<NumParticles();ptcl++)
         Path[NEWMODE](timeSlice,ptcl)=Path[OLDMODE](timeSlice,ptcl);
-      }
     }
   }
   else if (oldJoin>newJoin){
@@ -846,6 +873,10 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
   Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
+  if (UseNodeDist)
+    for (int species=0; species<NumSpecies(); species++)
+      NodeDist[OLDMODE](Range(startSlice,endSlice), species) =
+        NodeDist[NEWMODE](Range(startSlice,endSlice), species);
 
   if (OpenPaths){
     OpenPtcl.AcceptCopy();
@@ -897,6 +928,11 @@ void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &act
   Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
+  if (UseNodeDist)
+    for (int species=0; species<NumSpecies(); species++)
+      NodeDist[NEWMODE](Range(startSlice,endSlice), species) =
+        NodeDist[OLDMODE](Range(startSlice,endSlice), species);
+
   if (OpenPaths){
     OpenPtcl.RejectCopy();
     OpenLink.RejectCopy();
@@ -920,6 +956,8 @@ void PathClass::ShiftData(int slicesToShift)
   if (WormOn)
     ShiftParticleExist(slicesToShift);
   ShiftPathData(slicesToShift);
+  if (UseNodeDist)
+    ShiftNodeDist(slicesToShift);
   if (LongRange)
     // ShiftRho_kData(slicesToShift);
     UpdateRho_ks();
@@ -1037,6 +1075,89 @@ void PathClass::ShiftRho_kData(int slicesToShift)
 
   // And we're done! 
 }
+
+
+void PathClass::ShiftNodeDist(int slicesToShift)
+{
+  int numProcs=Communicator.NumProcs();
+  int myProc=Communicator.MyProc();
+  int recvProc, sendProc;
+  int numSpecies=NumSpecies();
+  int numSlices=NumTimeSlices();
+  assert(abs(slicesToShift)<numSlices);
+  sendProc=(myProc+1) % numProcs;
+  recvProc=((myProc-1) + numProcs) % numProcs;
+  if (slicesToShift<0){
+    int tempProc=sendProc;
+    sendProc=recvProc;
+    recvProc=tempProc;
+  }
+
+  ///First shifts the data in the A copy left 
+  ///or right by the appropriate amount   
+  if (slicesToShift>0){
+    for (int slice=numSlices-1; slice>=slicesToShift;slice--)
+      for (int species=0;species<numSpecies;species++)
+        NodeDist[NEWMODE](slice,species) = NodeDist[NEWMODE](slice-slicesToShift,species);
+  }
+  else {
+    for (int slice=0; slice<numSlices+slicesToShift;slice++)
+      for (int species=0;species<numSpecies;species++)
+        NodeDist[NEWMODE](slice,species) = NodeDist[NEWMODE](slice-slicesToShift,species);
+  }
+
+  /// Now bundle up the data to send to adjacent processor
+  int bufferSize=abs(slicesToShift)*numSpecies;
+  Array<double,1> sendBuffer(bufferSize), receiveBuffer(bufferSize);
+  int startSlice;
+  int buffIndex=0;
+  if (slicesToShift>0){
+    startSlice=numSlices-slicesToShift;
+    for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+      for (int species=0;species<numSpecies;species++) {
+        ///If shifting forward, don't send the last time slice (so always)
+        ///send slice-1
+        sendBuffer(buffIndex)=NodeDist[OLDMODE](slice-1,species);
+        buffIndex++;
+      }
+    }
+  }
+  else {
+    startSlice=0;
+    for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+      for (int species=0;species<numSpecies;species++) {
+        ///If shifting backward, don't send the first time slice (so always)
+        ///send slice+1
+        sendBuffer(buffIndex)=NodeDist[OLDMODE](slice+1,species);
+        buffIndex++;
+      }
+    }
+  }
+
+  /// Send and receive data to/from neighbors.
+  Communicator.SendReceive(sendProc, sendBuffer,recvProc, receiveBuffer);
+
+  if (slicesToShift>0)
+    startSlice=0;
+  else
+    startSlice=numSlices+slicesToShift;
+
+  /// Copy the data into the A copy
+  buffIndex=0;
+  for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+    for (int species=0;species<numSpecies;species++){
+      NodeDist[NEWMODE](slice,species)=receiveBuffer(buffIndex);
+      buffIndex++;
+    }
+  }
+
+  // Now copy A into B, since A has all the good, shifted data now.
+  for (int slice=0; slice<numSlices; slice++)
+    for (int species=0;species<numSpecies;species++)
+      NodeDist[OLDMODE](slice,species) = NodeDist[NEWMODE](slice,species);
+
+}
+
 
 void PathClass::ShiftPathData(int slicesToShift)
 {

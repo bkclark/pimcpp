@@ -63,14 +63,15 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
   double logAcceptProb = logSampleRatio - currActionChange + prevActionChange;
   bool toAccept = logAcceptProb >= log(PathData.Path.Random.Local()); // Accept condition
 
+  //cout << "Local Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
   if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
     if (toAccept) {
       if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
-        cerr << "Broken Local Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        cerr << PathData.Path.CloneStr <<" Broken Local Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
-        cerr << "Broken Local Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        cerr << PathData.Path.CloneStr << " Broken Local Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " <<  oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       else
-         cerr << "Broken Local Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+         cerr << PathData.Path.CloneStr <<" Broken Local Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       toAccept = 0;
       assert(1==2);
     }
@@ -106,14 +107,15 @@ bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activePa
   double logAcceptProb = logSampleRatio - currActionChange + prevActionChange;
   bool toAccept = logAcceptProb >= log(PathData.Path.Random.Common()); /// Accept condition
 
+  //cout << "Common Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
   if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
     if (toAccept) {
       if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
-        cerr << "Broken Common Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        cerr << PathData.Path.CloneStr <<" Broken Common Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
-        cerr << "Broken Common Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        cerr << PathData.Path.CloneStr <<" Broken Common Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       else
-         cerr << "Broken Common Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        cerr << PathData.Path.CloneStr <<" Broken Common Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
       toAccept = 0;
       assert(1==2);
     }

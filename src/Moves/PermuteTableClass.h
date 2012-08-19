@@ -35,7 +35,7 @@ class CycleClass
  public:
   int Length;
   TinyVector<int,4> CycleRep;
-  float P, C;
+  double P, C;
   ///Takes the number of particles you have and returns the
   ///representation such that p(j) is the particle that the j'th
   ///particle permutes onto. 
@@ -80,7 +80,7 @@ public:
   void ConstructHTable();
 
   CycleClass CurrentCycle;
-  Array<float,2> HTable;
+  Array<double,2> HTable;
   Array<CycleClass,1> CycleTable;
   void UpdateHTable(const CycleClass &perm);
 

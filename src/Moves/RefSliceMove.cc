@@ -104,12 +104,13 @@ bool RefSliceMoveClass::NodeCheck()
 
     // Check if Broken
     if ((abs(newLocalNode) > 1e50 || abs(oldLocalNode) > 1e50) && toAccept) {
-      std::cout << "Broken NodeCheck!!! " << toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
+      cout << Path.CloneStr << " Broken NodeCheck!!! " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
       toAccept = 0;
       assert(1==2);
-    } else {
-      //std::cout << toAccept << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
     }
+    //else {
+    //  cout << Path.CloneStr << " NodeCheck " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
+    //}
 
     return toAccept;
   }
@@ -168,20 +169,23 @@ void RefSliceMoveClass::MakeMoveMaster()
       NodeAccept++;
       Accept();
       Path.RefPath.AcceptCopy();
-      //cerr<<"ACCEPTING REF SLICE MOVE"<<endl;
+      Path.NodeDist.AcceptCopy();
+      //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
     }
     else {
       NodeReject++;
       Reject();
       Path.RefPath.RejectCopy();
-      //cerr<<"REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
+      Path.NodeDist.RejectCopy();
+      //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   }
   // Otherwise, reject the whole move
   else {
     Reject();
-    //cerr<<"REJECTING REF SLICE MOVE BY LOCAL REJECT"<<endl;
     Path.RefPath.RejectCopy();
+    Path.NodeDist.RejectCopy();
+    //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY LOCAL REJECT"<<endl;
   }
 
 }
@@ -223,14 +227,25 @@ void RefSliceMoveClass::MakeMoveSlave()
   PathData.Path.Communicator.Broadcast (master, accept);
   if (accept==1) {
     if (NodeCheck()) {
-      Path.RefPath.AcceptCopy();
       NodeAccept++;
-    }
-    else {
-      Path.RefPath.RejectCopy();
+      Accept();
+      Path.RefPath.AcceptCopy();
+      Path.NodeDist.AcceptCopy();
+      //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
+    } else {
       NodeReject++;
+      Reject();
+      Path.RefPath.RejectCopy();
+      Path.NodeDist.RejectCopy();
+      //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
+  } else {
+    Reject();
+    Path.RefPath.RejectCopy();
+    Path.NodeDist.RejectCopy();
+    //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY LOCAL REJECT"<<endl;
   }
+
 }
 
 
@@ -241,10 +256,10 @@ void RefSliceMoveClass::MakeMove()
   MasterProc = Path.SliceOwner (Path.GetRefSlice());
   //cerr<<"Starting RefSlice move."<<endl;
   if (PathData.Path.Communicator.MyProc() == MasterProc){
-    //std::cout<<"MakeMoveMaster();"<<endl;
+    //cout<<"MakeMoveMaster();"<<endl;
     MakeMoveMaster();
   } else {
-    //std::cout<<"MakeMoveSlave();"<<endl;
+    //cout<<"MakeMoveSlave();"<<endl;
     MakeMoveSlave();
   }
   if ((NodeAccept+NodeReject) % 1000 == 999)

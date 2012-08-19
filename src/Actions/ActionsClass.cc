@@ -401,6 +401,13 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
       nodeAction -> Read(in);
       NodalActions(species) = nodeAction;
     }
+
+    // Whether or not to track the nodal distance to save time
+    if(!in.ReadVar ("UseNodeDist", PathData.Path.UseNodeDist))
+      PathData.Path.UseNodeDist = false;
+    if (PathData.Path.UseNodeDist)
+      PathData.Path.NodeDist.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
+    cout << PathData.Path.CloneStr << " UseNodeDist: " << PathData.Path.UseNodeDist << endl;
     in.CloseSection();
   }
   verr<<"Ending actions read"<<endl;

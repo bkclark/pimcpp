@@ -21,7 +21,7 @@
 
 void 
 PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
-		   SpeciesClass &species)
+                   SpeciesClass &species)
 {
 // This was modified on Jan 19 2005 to read in a set of classical (P=1) configs and duplicate them to produce a set of PIMC (P>1) configs.  -jg
 
@@ -49,49 +49,49 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
       bool doBCC;
       assert(in.ReadVar("DoBCC",doBCC));
       if (doBCC){
-	assert(NDIM==2);
-	int num = species.NumParticles;
-	bool isCubic = (Box[0]==Box[1]);
-	if (!isCubic) {
-	  perr << "A cubic box is typically preferred for cubic initilization\n";
-	  //	  abort();
-	}
-	int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/2.0)-1.0e-6);
-	double delta = Box[0] / (double)numPerDim;
-	for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-	  int ip = (ptcl-species.FirstPtcl)/2;
-	  int ix, iy;
-	  ix = ip/(numPerDim);
-	  iy = (ip-(ix*numPerDim));
-	dVec r;
-	r[0] = ix*delta-0.5*Box[0];
-	r[1] = iy*delta-0.5*Box[1];
-	if (ptcl % 2) 
-	  r += 0.5*delta;
-	for (int slice=0; slice<NumTimeSlices(); slice++) 
-	  Path(slice,ptcl) = r;
-	cerr<<"INIT PATH: "<<Path(0,ptcl)[0]<<" "
-	    <<Path(0,ptcl)[1]
-	    <<endl;
-	
+        assert(NDIM==2);
+        int num = species.NumParticles;
+        bool isCubic = (Box[0]==Box[1]);
+        if (!isCubic) {
+          perr << "A cubic box is typically preferred for cubic initilization\n";
+          //      abort();
+        }
+        int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/2.0)-1.0e-6);
+        double delta = Box[0] / (double)numPerDim;
+        for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+          int ip = (ptcl-species.FirstPtcl)/2;
+          int ix, iy;
+          ix = ip/(numPerDim);
+          iy = (ip-(ix*numPerDim));
+        dVec r;
+        r[0] = ix*delta-0.5*Box[0];
+        r[1] = iy*delta-0.5*Box[1];
+        if (ptcl % 2) 
+          r += 0.5*delta;
+        for (int slice=0; slice<NumTimeSlices(); slice++) 
+          Path(slice,ptcl) = r;
+        cerr<<"INIT PATH: "<<Path(0,ptcl)[0]<<" "
+            <<Path(0,ptcl)[1]
+            <<endl;
+        
 
-	}
+        }
       }
       else {
-	Array<double,2> Positions;
-	assert (in.ReadVar ("Positions", Positions));
-	assert (Positions.rows() == species.NumParticles);
-	assert (Positions.cols() == species.NumDim);
-	for (int ptcl=species.FirstPtcl; 
-	     ptcl<=species.LastPtcl; ptcl++){
-	  for (int slice=0; slice<NumTimeSlices(); slice++) {
-	    dVec pos;
-	    pos = 0.0;
-	    for (int dim=0; dim<species.NumDim; dim++)
-	      pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
-	    Path(slice,ptcl) = pos;
-	  }      
-	}
+        Array<double,2> Positions;
+        assert (in.ReadVar ("Positions", Positions));
+        assert (Positions.rows() == species.NumParticles);
+        assert (Positions.cols() == species.NumDim);
+        for (int ptcl=species.FirstPtcl; 
+             ptcl<=species.LastPtcl; ptcl++){
+          for (int slice=0; slice<NumTimeSlices(); slice++) {
+            dVec pos;
+            pos = 0.0;
+            for (int dim=0; dim<species.NumDim; dim++)
+              pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
+            Path(slice,ptcl) = pos;
+          }      
+        }
       }
       return;
     }
@@ -180,19 +180,19 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
       int relSlice = slice-myFirstSlice;
       ///      if (myProc==sliceOwner){
       if (myFirstSlice<=slice && slice<=myLastSlice){
-	dVec pos;
-	pos = 0.0;
-	for (int dim=0; dim<NDIM; dim++)
-	  if (replicate){
-	    pos(dim) = oldPaths(ptcl,0,dim)*(Box[dim]/oldBox(dim));
-	  }
-	  else if (slice>=oldPaths.extent(1)){
-	    pos(dim)=oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
-	  }
-	  else{
-	    pos(dim) = oldPaths(ptcl,slice,dim)*(Box[dim]/oldBox(dim));
-	  }
-	Path(relSlice,ptcl) = pos;
+        dVec pos;
+        pos = 0.0;
+        for (int dim=0; dim<NDIM; dim++)
+          if (replicate){
+            pos(dim) = oldPaths(ptcl,0,dim)*(Box[dim]/oldBox(dim));
+          }
+          else if (slice>=oldPaths.extent(1)){
+            pos(dim)=oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
+          }
+          else{
+            pos(dim) = oldPaths(ptcl,slice,dim)*(Box[dim]/oldBox(dim));
+          }
+        Path(relSlice,ptcl) = pos;
       }
       
       }
@@ -291,22 +291,22 @@ PathClass::ReadSqueeze(IOSectionClass &in,string fileName,bool replicate)
       int relSlice = slice-myFirstSlice;
       ///      if (myProc==sliceOwner){
       if (myFirstSlice<=slice && slice<=myLastSlice){
-	dVec pos;
-	pos = 0.0;
-	for (int dim=0; dim<NDIM; dim++)
-	  if (replicate){
-	    pos(dim) = oldPaths(ptcl,0,dim)*(Box[dim]/oldBox(dim));
-	  }
-	//UNHACK	  else if (slice>=oldPaths.extent(2)){
-	  else if (sliceRatio*slice>=oldPaths.extent(1)){
-	    pos(dim)=oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
-	  }
-	  else{
-	    //UNHACK	    pos(dim) = oldPaths(oldPaths.extent(0)-1,ptcl,slice,dim)*(Box[dim]/oldBox(dim));
-	    pos(dim) = oldPaths(ptcl,(int)trunc(sliceRatio*slice),dim)*(Box[dim]/oldBox(dim));
-	  }
+        dVec pos;
+        pos = 0.0;
+        for (int dim=0; dim<NDIM; dim++)
+          if (replicate){
+            pos(dim) = oldPaths(ptcl,0,dim)*(Box[dim]/oldBox(dim));
+          }
+        //UNHACK          else if (slice>=oldPaths.extent(2)){
+          else if (sliceRatio*slice>=oldPaths.extent(1)){
+            pos(dim)=oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
+          }
+          else{
+            //UNHACK        pos(dim) = oldPaths(oldPaths.extent(0)-1,ptcl,slice,dim)*(Box[dim]/oldBox(dim));
+            pos(dim) = oldPaths(ptcl,(int)trunc(sliceRatio*slice),dim)*(Box[dim]/oldBox(dim));
+          }
 
-	Path(relSlice,ptcl) = pos;
+        Path(relSlice,ptcl) = pos;
       }
     }      
     ///If you are the last processors you must make sure the last
@@ -316,12 +316,12 @@ PathClass::ReadSqueeze(IOSectionClass &in,string fileName,bool replicate)
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-	if (replicate){//not sure this works for replicate
-	  pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-	}
-	else{//you want to end up on the person you permute onto
-	  pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-	}
+        if (replicate){//not sure this works for replicate
+          pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
+        }
+        else{//you want to end up on the person you permute onto
+          pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
+        }
     
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
@@ -399,23 +399,23 @@ PathClass::Tile(IOSectionClass &in,string fileName,bool replicate)
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-	pos(dim) = oldPaths(ptcl % oldParticles,(int)trunc(sliceRatio*slice),dim); //(Box[dim]/oldBox(dim));
+        pos(dim) = oldPaths(ptcl % oldParticles,(int)trunc(sliceRatio*slice),dim); //(Box[dim]/oldBox(dim));
       PutInBox(pos,oldBox_dVec);
       if (ptcl/oldParticles==1 || ptcl/oldParticles==3)
-	pos(0)=pos(0)+oldBox(0);
+        pos(0)=pos(0)+oldBox(0);
       if (ptcl/oldParticles==2 || ptcl/oldParticles==3)
-	pos(1)=pos(1)+oldBox(1);
+        pos(1)=pos(1)+oldBox(1);
       if (slice!=0){
-	dVec diff=pos-prev_pos;
-	PutInBox(diff,oldBox_dVec);
-	pos=diff+prev_pos;
+        dVec diff=pos-prev_pos;
+        PutInBox(diff,oldBox_dVec);
+        pos=diff+prev_pos;
       }
       assert(NDIM==2);
       prev_pos=pos;
       if (slice==0)
-	first_slice(ptcl)=pos;
+        first_slice(ptcl)=pos;
       if (myFirstSlice<=slice && slice<=myLastSlice){
-	Path(relSlice,ptcl) = pos;
+        Path(relSlice,ptcl) = pos;
       }
     }
     ///If you are the last processors you must make sure the last
@@ -425,23 +425,23 @@ PathClass::Tile(IOSectionClass &in,string fileName,bool replicate)
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-	pos(dim) = oldPaths(ptcl % oldParticles,0,dim); //*(Box[dim]/oldBox(dim));
+        pos(dim) = oldPaths(ptcl % oldParticles,0,dim); //*(Box[dim]/oldBox(dim));
       PutInBox(pos,oldBox_dVec);
       if (ptcl/oldParticles==1 || ptcl/oldParticles==3)
-	pos(0)=pos(0)+oldBox(0);
+        pos(0)=pos(0)+oldBox(0);
       if (ptcl/oldParticles==2 || ptcl/oldParticles==3)
-	pos(1)=pos(1)+oldBox(1);
+        pos(1)=pos(1)+oldBox(1);
       dVec diff=pos-prev_pos;
       PutInBox(diff,oldBox_dVec);
       pos=diff+prev_pos;
       if (fabs(pos[0]-first_slice(ptcl)[0])>1e-5 || fabs(pos[1]-first_slice(ptcl)[1])>1e-5){
-	cerr<<"BROKEN: "<<ptcl<<" "<<pos<<" "<<first_slice(ptcl)<<" "<<prev_pos<<" "<<diff<<" "<<endl;
-	cerr<<"BROKEN2: "<<oldPaths(ptcl % oldParticles,0,0)<<" "<<oldPaths(ptcl % oldParticles,0,1)<<" "<<oldPaths(ptcl % oldParticles,0,2)<<endl;
-	cerr<<"NUMTIMESLICES "<<NumTimeSlices()<<endl;
-	for (int slice=0;slice<TotalNumSlices;slice++)
-	  cerr<<"A1234 "<<slice<<" "<<oldPaths(ptcl % oldParticles,slice,0)<<" "<<oldPaths(ptcl % oldParticles,slice,1)<<" "<<oldPaths(ptcl % oldParticles,slice,2)<<endl;
+        cerr<<"BROKEN: "<<ptcl<<" "<<pos<<" "<<first_slice(ptcl)<<" "<<prev_pos<<" "<<diff<<" "<<endl;
+        cerr<<"BROKEN2: "<<oldPaths(ptcl % oldParticles,0,0)<<" "<<oldPaths(ptcl % oldParticles,0,1)<<" "<<oldPaths(ptcl % oldParticles,0,2)<<endl;
+        cerr<<"NUMTIMESLICES "<<NumTimeSlices()<<endl;
+        for (int slice=0;slice<TotalNumSlices;slice++)
+          cerr<<"A1234 "<<slice<<" "<<oldPaths(ptcl % oldParticles,slice,0)<<" "<<oldPaths(ptcl % oldParticles,slice,1)<<" "<<oldPaths(ptcl % oldParticles,slice,2)<<endl;
       
-	assert(pos==first_slice(ptcl));
+        assert(pos==first_slice(ptcl));
       }
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
@@ -477,11 +477,11 @@ PathClass::ReadOld(string fileName,bool replicate)
       dVec pos; 
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-	if (replicate){
+        if (replicate){
           pos(dim) = oldPaths(oldPaths.extent(0)-1,ptcl,0,dim);
         }
         else{
-	  pos(dim) = oldPaths(oldPaths.extent(0)-1,ptcl,slice,dim);
+          pos(dim) = oldPaths(oldPaths.extent(0)-1,ptcl,slice,dim);
         }
       Path(slice,ptcl) = pos;
     }      
@@ -505,7 +505,7 @@ PathClass::InitPaths (IOSectionClass &in)
 {
       //cerr<<"Printing Permutation InitPath 0"<<endl;
       for (int ptcl=0;ptcl<NumParticles();ptcl++)
-	//cerr<<Permutation(ptcl)<<endl;
+        //cerr<<Permutation(ptcl)<<endl;
 
 
   NowOpen=false;
@@ -513,7 +513,7 @@ PathClass::InitPaths (IOSectionClass &in)
   //cerr<<"I am in mode "<<GetMode()<<endl;
   //    cerr<<"Printing Permutation InitPath 0p"<<endl;
   //    for (int ptcl=0;ptcl<NumParticles();ptcl++)
-	//cerr<<Permutation(ptcl)<<endl;
+        //cerr<<Permutation(ptcl)<<endl;
 
 
 
@@ -534,12 +534,12 @@ PathClass::InitPaths (IOSectionClass &in)
   int numSpecies = NumSpecies();
 //      cerr<<"Printing Permutation InitPath 0ppp"<<endl;
 //      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	cerr<<Permutation(ptcl)<<endl;
+//      cerr<<Permutation(ptcl)<<endl;
 
   // Now initialize the Path
 //      cerr<<"Printing Permutation InitPath a"<<endl;
 //      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	cerr<<Permutation(ptcl)<<endl;
+//      cerr<<Permutation(ptcl)<<endl;
 
   for (int speciesIndex=0; speciesIndex<numSpecies; speciesIndex++)
   {
@@ -553,7 +553,7 @@ PathClass::InitPaths (IOSectionClass &in)
     in.ReadVar ("Replicate", replicate);
 //      cerr<<"Printing Permutation InitPath c"<<endl;
 //      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	cerr<<Permutation(ptcl)<<endl;
+//      cerr<<Permutation(ptcl)<<endl;
 
     if (InitPaths == "RANDOM") {
       perr << "Don't know how to do RANDOM yet.\n";
@@ -573,25 +573,25 @@ PathClass::InitPaths (IOSectionClass &in)
       isCubic = (Box[0]==Box[1]) && (Box[1]==Box[2]);
 #endif
       if (!isCubic) {
-	perr << isCubic << " A cubic box is current required for cubic initilization\n";
-	abort();
+        perr << isCubic << " A cubic box is current required for cubic initilization\n";
+        abort();
       }
       int numPerDim = (int) ceil (pow((double)num, 1.0/3.0)-1.0e-6);
       double delta = Box[0] / numPerDim;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-	int ix, iy, iz;
-	int ip = ptcl-species.FirstPtcl;
-	ix = ip/(numPerDim*numPerDim);
-	iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
-	dVec r;
-	r[0] = ix*delta;
-	r[1] = iy*delta;
+        int ix, iy, iz;
+        int ip = ptcl-species.FirstPtcl;
+        ix = ip/(numPerDim*numPerDim);
+        iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
+        dVec r;
+        r[0] = ix*delta;
+        r[1] = iy*delta;
 #if NDIM==3    
-	iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
-	r[2] = iz*delta;
+        iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
+        r[2] = iz*delta;
 #endif
-	for (int slice=0; slice<NumTimeSlices(); slice++) 
-	  Path(slice,ptcl) = r;
+        for (int slice=0; slice<NumTimeSlices(); slice++) 
+          Path(slice,ptcl) = r;
         dVec disp = r;
         cerr << ptcl << " " << r << " " << endl;
       }
@@ -605,10 +605,10 @@ PathClass::InitPaths (IOSectionClass &in)
       double sigma=sqrt(2*species.lambda*tau);
       for (int ptcl =0;ptcl<NumParticles();ptcl++){
         Random.LocalGaussianVec(1,r0);//under common
-	///        cerr<<"in PathClass"<<r0*SphereRadius/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2])<<endl;
-	for (int slice=0;slice <NumTimeSlices();slice++){
+        ///        cerr<<"in PathClass"<<r0*SphereRadius/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2])<<endl;
+        for (int slice=0;slice <NumTimeSlices();slice++){
           SetPos(slice,ptcl,r0*SphereRadius * (1.0/sqrt(r0[0]*r0[0]+r0[1]*r0[1]+r0[2]*r0[2])));                      
-	}
+        }
       }
     }
     else if(InitPaths=="UniformPointsSphere") {
@@ -673,8 +673,8 @@ PathClass::InitPaths (IOSectionClass &in)
         r[2] = ptcl;
 #endif
         for (int slice=0; slice<NumTimeSlices(); slice++) {
-	  dVec temp=0.1*r * (1./sqrt(3.0*(double)ptcl*(double)ptcl));
-	  temp=r+temp;
+          dVec temp=0.1*r * (1./sqrt(3.0*(double)ptcl*(double)ptcl));
+          temp=r+temp;
           Path(slice,ptcl) =temp;
         }
       }
@@ -731,35 +731,35 @@ PathClass::InitPaths (IOSectionClass &in)
       Array<double,3> Positions;
       assert(in.ReadVar("Positions",Positions));
       for (int ptcl=0;ptcl<NumParticles();ptcl++){
-	for (int slice=0;slice<TotalNumSlices;slice++){
+        for (int slice=0;slice<TotalNumSlices;slice++){
 
-	  int sliceOwner = SliceOwner(slice);
-	  int relSlice = slice-myFirstSlice;
-	  ///      if (myProc==sliceOwner){
-	  if (myFirstSlice<=slice && slice<=myLastSlice){
-	    dVec pos;
-	    pos = 0.0;
-	    for (int dim=0; dim<NDIM; dim++)
-	      pos(dim) = Positions(slice,ptcl,dim);
-	    Path(relSlice,ptcl) = pos;
-	  }
-	}
-	///If you are the last processors you must make sure the last
-	///slice is the same as the first slice on the first
-	///processors. The  join should be at the
-	if (myProc==Communicator.NumProcs()-1){
-	  dVec pos;
-	  pos = 0.0;
-	  for (int dim=0; dim<NDIM; dim++)
-	    pos(dim) = Positions(0,ptcl,dim);
-	  Path(NumTimeSlices()-1,ptcl) = pos;
-	}
+          int sliceOwner = SliceOwner(slice);
+          int relSlice = slice-myFirstSlice;
+          ///      if (myProc==sliceOwner){
+          if (myFirstSlice<=slice && slice<=myLastSlice){
+            dVec pos;
+            pos = 0.0;
+            for (int dim=0; dim<NDIM; dim++)
+              pos(dim) = Positions(slice,ptcl,dim);
+            Path(relSlice,ptcl) = pos;
+          }
+        }
+        ///If you are the last processors you must make sure the last
+        ///slice is the same as the first slice on the first
+        ///processors. The  join should be at the
+        if (myProc==Communicator.NumProcs()-1){
+          dVec pos;
+          pos = 0.0;
+          for (int dim=0; dim<NDIM; dim++)
+            pos(dim) = Positions(0,ptcl,dim);
+          Path(NumTimeSlices()-1,ptcl) = pos;
+        }
       }
     }
     else if (InitPaths == "FIXED") {
 //      cerr<<"Printing Permutation InitPath 1"<<endl;
 //      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	cerr<<Permutation(ptcl)<<endl;
+//      cerr<<Permutation(ptcl)<<endl;
 
 
       Array<double,2> Positions;
@@ -767,24 +767,24 @@ PathClass::InitPaths (IOSectionClass &in)
       assert (Positions.rows() == species.NumParticles);
       assert (Positions.cols() == species.NumDim);
       for (int ptcl=species.FirstPtcl; 
-	   ptcl<=species.LastPtcl; ptcl++){
-	for (int slice=0; slice<NumTimeSlices(); slice++) {
-	  dVec pos;
-	  pos = 0.0;
-	  for (int dim=0; dim<species.NumDim; dim++)
-	    pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
-	  Path(slice,ptcl) = pos;
-	}      
+           ptcl<=species.LastPtcl; ptcl++){
+        for (int slice=0; slice<NumTimeSlices(); slice++) {
+          dVec pos;
+          pos = 0.0;
+          for (int dim=0; dim<species.NumDim; dim++)
+            pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
+          Path(slice,ptcl) = pos;
+        }      
       }
 //      cerr<<"Printing Permutation InitPath 2"<<endl;
-//	for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	  cerr<<Permutation(ptcl)<<endl;
+//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
+//        cerr<<Permutation(ptcl)<<endl;
 
 
 
 //      cerr<<"Printing Permutation InitPath 3"<<endl;
-//	for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//	  cerr<<Permutation(ptcl)<<endl;
+//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
+//        cerr<<Permutation(ptcl)<<endl;
 
 
       //      PrintRealSlices();
@@ -797,29 +797,29 @@ PathClass::InitPaths (IOSectionClass &in)
 //       assert (Positions.rows() == species.NumParticles);
 //       assert (Positions.cols() == species.NumDim);
 //       for (int ptcl=species.FirstPtcl; 
-// 	   ptcl<=species.LastPtcl; ptcl++){
-// 	for (int slice=0; slice<NumTimeSlices(); slice++) {
-// 	  ParticleExist(slice,ptcl)=1.0;
-// 	  dVec pos;
-// 	  pos = 0.0;
-// 	  for (int dim=0; dim<species.NumDim; dim++)
-// 	    pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
-// 	  Path(slice,ptcl) = pos;
-// 	}      
+//         ptcl<=species.LastPtcl; ptcl++){
+//      for (int slice=0; slice<NumTimeSlices(); slice++) {
+//        ParticleExist(slice,ptcl)=1.0;
+//        dVec pos;
+//        pos = 0.0;
+//        for (int dim=0; dim<species.NumDim; dim++)
+//          pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
+//        Path(slice,ptcl) = pos;
+//      }      
 //       }
 //       int startEmpty;
 //       assert(in.ReadVar("NumRealParticles",startEmpty));
 
 //       //      int startEmpty=1;
 //       for (int ptcl=startEmpty;ptcl<NumParticles();ptcl++)
-// 	for (int slice=0;slice<NumTimeSlices();slice++){
-// 	  ParticleExist(slice,ptcl)=0.0;
-// 	}
+//      for (int slice=0;slice<NumTimeSlices();slice++){
+//        ParticleExist(slice,ptcl)=0.0;
+//      }
 //       ParticleExist(NumTimeSlices()-1,startEmpty)=0.0;
 //       ParticleExist(0,startEmpty)=0.0;
 //       //      ParticleExist.AcceptCopy();
 //       for (int ptcl=startEmpty-1;ptcl<NumParticles()-1;ptcl++){
-// 	Permutation(ptcl)=ptcl+1;
+//      Permutation(ptcl)=ptcl+1;
 //       }
 //       Permutation(NumParticles()-1)=startEmpty-1;
 //       Permutation.AcceptCopy();
@@ -837,14 +837,14 @@ PathClass::InitPaths (IOSectionClass &in)
       Positions.resizeAndPreserve(species.NumParticles,Positions.extent(1));
       ///      cerr<<"My ptcl are "<<Path.extent(1)<<" and agaisnt "<<Positions.extent(0)<<endl;
       for (int ptcl=species.FirstPtcl; 
-	   ptcl<=species.LastPtcl; ptcl++){
-	for (int slice=0; slice<NumTimeSlices(); slice++) {
-	  dVec pos;
-	  pos = 0.0;
-	  for (int dim=0; dim<species.NumDim; dim++)
-	    pos(dim) = Positions(ptcl-species.FirstPtcl,dim)*ScaleBox;
-	  Path(slice,ptcl) = pos;
-	}      
+           ptcl<=species.LastPtcl; ptcl++){
+        for (int slice=0; slice<NumTimeSlices(); slice++) {
+          dVec pos;
+          pos = 0.0;
+          for (int dim=0; dim<species.NumDim; dim++)
+            pos(dim) = Positions(ptcl-species.FirstPtcl,dim)*ScaleBox;
+          Path(slice,ptcl) = pos;
+        }      
       }
       //      cerr<<"My species and numparticles are "<<species.NumParticles<<endl;
       //      Positions.resizeAndPreserve(Positions.extent(0),species.NumParticles);
@@ -858,23 +858,23 @@ PathClass::InitPaths (IOSectionClass &in)
       assert (Positions.extent(1) == TotalNumSlices);
       assert (Positions.extent(2) == species.NumDim);
       for (int ptcl=species.FirstPtcl; 
-	   ptcl<=species.LastPtcl; ptcl++){
-	for (int slice=0; slice<TotalNumSlices; slice++) {
-	  perr<<ptcl;
-	  dVec pos;
-	  pos = 0.0;
-	  for (int dim=0; dim<species.NumDim; dim++)
-	    pos(dim) = Positions(ptcl-species.FirstPtcl,slice,dim);
-	  Path(slice,ptcl) = pos;
-	}      
-	int slice=NumTimeSlices()-1;
-	dVec pos;
-	pos = 0.0;
-	for (int dim=0; dim<species.NumDim; dim++)
-	  pos(dim) = Positions(ptcl-species.FirstPtcl,0,dim);
-	Path(slice,ptcl) = pos;
-	
-	
+           ptcl<=species.LastPtcl; ptcl++){
+        for (int slice=0; slice<TotalNumSlices; slice++) {
+          perr<<ptcl;
+          dVec pos;
+          pos = 0.0;
+          for (int dim=0; dim<species.NumDim; dim++)
+            pos(dim) = Positions(ptcl-species.FirstPtcl,slice,dim);
+          Path(slice,ptcl) = pos;
+        }      
+        int slice=NumTimeSlices()-1;
+        dVec pos;
+        pos = 0.0;
+        for (int dim=0; dim<species.NumDim; dim++)
+          pos(dim) = Positions(ptcl-species.FirstPtcl,0,dim);
+        Path(slice,ptcl) = pos;
+        
+        
       }
     }    
     else if (InitPaths=="RESTART"){
@@ -910,13 +910,13 @@ PathClass::InitPaths (IOSectionClass &in)
       double sigmaFactor = 1.0;
       assert (in.ReadVar ("Positions", Positions));
       if (in.ReadVar ("SigmaFactor", sigmaFactor, 1.0))
-	perr << "SigmaFactor = " << sigmaFactor << endl;
+        perr << "SigmaFactor = " << sigmaFactor << endl;
       assert (Positions.rows() == species.NumParticles);
       assert (Positions.cols() == species.NumDim);
       Array<dVec,1> R0(species.NumParticles);
       for (int ptcl=0; ptcl<species.NumParticles; ptcl++) 
-	for (int dim=0; dim<NDIM; dim++)
-	  R0(ptcl)[dim] = Positions(ptcl,dim);
+        for (int dim=0; dim<NDIM; dim++)
+          R0(ptcl)[dim] = Positions(ptcl,dim);
       // NodeAvoidingLeviFlight (speciesIndex,R0);
       PhaseAvoidingLeviFlight(speciesIndex, R0, sigmaFactor);
     }
@@ -933,15 +933,15 @@ PathClass::InitPaths (IOSectionClass &in)
 //       assert (Positions.cols() == species.NumDim);
 //       Array<dVec,1> flight(TotalNumSlices+1);
 //       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-// 	for (int dim=0; dim<NDIM; dim++) {
-// 	  flight(0)[dim] = Positions(ptcl-species.FirstPtcl,dim);
-// 	  flight(TotalNumSlices)[dim] = Positions(ptcl-species.FirstPtcl,dim);
-// 	}
-// 	LeviFlight (flight, species.lambda);
-// // 	for (int i=0; i<MyNumSlices; i++)
-// // 	  Path(i, ptcl) = flight(i-RefSlice);
-// 	for (int slice=myStart; slice<=myEnd; slice++)
-// 	  Path(slice-myStart, ptcl) = flight(slice);
+//      for (int dim=0; dim<NDIM; dim++) {
+//        flight(0)[dim] = Positions(ptcl-species.FirstPtcl,dim);
+//        flight(TotalNumSlices)[dim] = Positions(ptcl-species.FirstPtcl,dim);
+//      }
+//      LeviFlight (flight, species.lambda);
+// //   for (int i=0; i<MyNumSlices; i++)
+// //     Path(i, ptcl) = flight(i-RefSlice);
+//      for (int slice=myStart; slice<=myEnd; slice++)
+//        Path(slice-myStart, ptcl) = flight(slice);
 //       }
 //     }
 
@@ -1010,6 +1010,7 @@ PathClass::InitPaths (IOSectionClass &in)
   RefPath.AcceptCopy();
   Weight.AcceptCopy();
   ExistsCoupling.AcceptCopy();
+  NodeDist.AcceptCopy();
   if (LongRange)
     UpdateRho_ks();
 }
@@ -1018,7 +1019,7 @@ PathClass::InitPaths (IOSectionClass &in)
 
 void
 PathClass::InitRandomFixed(IOSectionClass &in,
-			   SpeciesClass &species)
+                           SpeciesClass &species)
 {
   double radius;
   assert (in.ReadVar("Radius", radius));
@@ -1030,17 +1031,17 @@ PathClass::InitRandomFixed(IOSectionClass &in,
     while ((overlap) && (tries < 1000)) {
       tries++;
       for (int dim=0; dim<NDIM; dim++) 
-	R(i)[dim] = Box[dim]*(Random.World()-0.5);
+        R(i)[dim] = Box[dim]*(Random.World()-0.5);
       overlap = false;
       for (int j=0; j<i; j++) {
-	dVec disp = R(j)-R(i);
-	PutInBox(disp);
-	overlap = overlap || (dot(disp,disp) < (4.0*radius*radius));
+        dVec disp = R(j)-R(i);
+        PutInBox(disp);
+        overlap = overlap || (dot(disp,disp) < (4.0*radius*radius));
       }
     }
     if (tries == 1000) {
       cerr << "Exceed 1000 tries in InitRandomFixed.  "
-	   << "Decrease excluded radius.\n";
+           << "Decrease excluded radius.\n";
       abort();
     }
   }
@@ -1116,9 +1117,9 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
   if (myProc == 0)
     if (haveNodeAction)
       if (! Actions.NodalActions(speciesNum)->IsPositive(0)) {
-	perr << "Initially negative node action.  Swapping two particles "
-	     << "for species " << species.Name << ".\n";
-	swapFirst = true;
+        perr << "Initially negative node action.  Swapping two particles "
+             << "for species " << species.Name << ".\n";
+        swapFirst = true;
       }
   Communicator.Broadcast (0,swapFirst);
 
@@ -1134,10 +1135,10 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
       (*this)(0,species.FirstPtcl)   = R0(0);
       (*this)(0,species.FirstPtcl+1) = R0(1);  
       if (!Actions.NodalActions(speciesNum)->IsPositive(0)) {
-	perr << "Still not positive after swap!!!!!!!!!!!!\n";
-	/// HACK HACK HACK -- commenting out abort for now to allow
-	/// fixed-phase to continue.
-	// abort();
+        perr << "Still not positive after swap!!!!!!!!!!!!\n";
+        /// HACK HACK HACK -- commenting out abort for now to allow
+        /// fixed-phase to continue.
+        // abort();
       }
     }
   }
@@ -1156,60 +1157,60 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
     do {
       // Randomly construct new slice
       for (int ptcl=0; ptcl<numPtcls; ptcl++) {
-	dVec center = (1.0/(delta+1.0))*(delta*prevSlice(ptcl) + R0(ptcl));
-	Random.CommonGaussianVec(sigma, newSlice(ptcl));
-	newSlice(ptcl) += center;
+        dVec center = (1.0/(delta+1.0))*(delta*prevSlice(ptcl) + R0(ptcl));
+        Random.CommonGaussianVec(sigma, newSlice(ptcl));
+        newSlice(ptcl) += center;
       }
       // Now check the nodal sign if we're a fermion species
       if (!haveNodeAction)
-	positive = true;
+        positive = true;
       else {
-	// Now assign to Path
-	if (sliceOwner == myProc ) {
-	  for (int ptcl=0; ptcl<numPtcls; ptcl++)
-	    (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
-	  positive = 
-	    Actions.NodalActions(speciesNum)->IsPositive(relSlice);
-	}
-	// Now broadcast whether or not I'm positive to everyone
-	Communicator.Broadcast(sliceOwner, positive);
+        // Now assign to Path
+        if (sliceOwner == myProc ) {
+          for (int ptcl=0; ptcl<numPtcls; ptcl++)
+            (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
+          positive = 
+            Actions.NodalActions(speciesNum)->IsPositive(relSlice);
+        }
+        // Now broadcast whether or not I'm positive to everyone
+        Communicator.Broadcast(sliceOwner, positive);
       }
       if (!positive) {
-	numRejects++;
-	if ((numRejects%50)==0)
-	  cerr << "numRejects = " << numRejects << endl;
+        numRejects++;
+        if ((numRejects%50)==0)
+          cerr << "numRejects = " << numRejects << endl;
       }
     } while (!positive);
     // Copy slice into Path if I'm the slice owner.
     if ((slice>=myFirstSlice) && (slice<=myLastSlice)) {
       for (int ptcl=0; ptcl<numPtcls; ptcl++) 
-	(*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
+        (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
       // Check to make sure we're positive now.
       if (haveNodeAction) {
-// 	if ((slice==myFirstSlice)||(slice==myLastSlice)) {
-// 	  fprintf (stderr, "myProc=%d slice=%d det=%1.8e\n", myProc, slice, 
-// 		   Actions.NodalActions(speciesNum)->Det(relSlice));
-// 	  Array<double,2> matrix(numPtcls,numPtcls);
-// 	  matrix = Actions.NodalActions(speciesNum)->GetMatrix(relSlice);
-// 	  char fname[100];
-// 	  snprintf (fname, 100, "matrix%d-%d.dat", slice, myProc);
-// 	  FILE *fout=fopen (fname, "w");
-// 	  for (int i=0; i<numPtcls; i++) {
-// 	    for (int j=0; j<numPtcls; j++) 
-// 	      fprintf (fout, "%1.16e ", matrix(i,j));
-// 	    fprintf (fout, "\n");
-// 	  }
-// 	  fclose(fout);
-// 	  for (int ptcl=0; ptcl<numPtcls; ptcl++) 
-// 	    fprintf (stderr, "myProc=%d newSlice(%d)=[%10.7e %10.7e %10.7e]\n",
-// 		     myProc, ptcl, 
-// 		     newSlice(ptcl)[0], newSlice(ptcl)[1], newSlice(ptcl)[2]);
-// 	}
-	if (!Actions.NodalActions(speciesNum)->IsPositive(relSlice)) {
-	  perr << "Still not postive at slice " << slice 
-	       << " myProc = " << myProc << "relslice=" << relSlice <<endl;
-	  abort();
-	}	
+//      if ((slice==myFirstSlice)||(slice==myLastSlice)) {
+//        fprintf (stderr, "myProc=%d slice=%d det=%1.8e\n", myProc, slice, 
+//                 Actions.NodalActions(speciesNum)->Det(relSlice));
+//        Array<double,2> matrix(numPtcls,numPtcls);
+//        matrix = Actions.NodalActions(speciesNum)->GetMatrix(relSlice);
+//        char fname[100];
+//        snprintf (fname, 100, "matrix%d-%d.dat", slice, myProc);
+//        FILE *fout=fopen (fname, "w");
+//        for (int i=0; i<numPtcls; i++) {
+//          for (int j=0; j<numPtcls; j++) 
+//            fprintf (fout, "%1.16e ", matrix(i,j));
+//          fprintf (fout, "\n");
+//        }
+//        fclose(fout);
+//        for (int ptcl=0; ptcl<numPtcls; ptcl++) 
+//          fprintf (stderr, "myProc=%d newSlice(%d)=[%10.7e %10.7e %10.7e]\n",
+//                   myProc, ptcl, 
+//                   newSlice(ptcl)[0], newSlice(ptcl)[1], newSlice(ptcl)[2]);
+//      }
+        if (!Actions.NodalActions(speciesNum)->IsPositive(relSlice)) {
+          perr << "Still not postive at slice " << slice 
+               << " myProc = " << myProc << "relslice=" << relSlice <<endl;
+          abort();
+        }       
       }
     }
     // continue on to next slice
@@ -1221,10 +1222,10 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
       changedParticles(i) = i+species.FirstPtcl;
     double localAction = 
       Actions.NodalActions(speciesNum)->Action(0, NumTimeSlices()-1, 
-					       changedParticles,0);
+                                               changedParticles,0);
     Communicator.PrintSync();
 //     perr << "myProc = " << myProc << " localAction = " 
-// 	 << localAction << " NumTimeSlices = " << NumTimeSlices() << endl;
+//       << localAction << " NumTimeSlices = " << NumTimeSlices() << endl;
     double globalAction = Communicator.AllSum(localAction);
     cerr << "After AllSum.\n";
     if (Communicator.MyProc()==0)
@@ -1244,7 +1245,7 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
 //   for (int slice=0; slice<(NumTimeSlices()-1); slice++) {
 //     for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) 
 //       for (int i=0; i<NDIM; i++)
-// 	fprintf (fout, "%1.12e ", (*this)(slice, ptcl)[i]);
+//      fprintf (fout, "%1.12e ", (*this)(slice, ptcl)[i]);
 //     fprintf (fout, "\n");
 //   }
 //   fclose(fout);
@@ -1253,7 +1254,7 @@ PathClass::NodeAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0)
 
 void 
 PathClass::PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0,
-				    double sigmaFactor)
+                                    double sigmaFactor)
 {
   SpeciesClass &species = Species(speciesNum);
   int numPtcls = species.NumParticles;
@@ -1296,52 +1297,52 @@ PathClass::PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0,
     do {
       // Randomly construct new slice
       for (int ptcl=0; ptcl<numPtcls; ptcl++) {
-	dVec center = (1.0/(delta+1.0))*(delta*prevSlice(ptcl) + R0(ptcl));
-	Random.CommonGaussianVec(sigma, newSlice(ptcl));
-	newSlice(ptcl) += center;
+        dVec center = (1.0/(delta+1.0))*(delta*prevSlice(ptcl) + R0(ptcl));
+        Random.CommonGaussianVec(sigma, newSlice(ptcl));
+        newSlice(ptcl) += center;
       }
       // Now check the nodal sign if we're a fermion species
       if (!haveNodeAction)
-	positive = true;
+        positive = true;
       else {
-	// Now assign to Path
-	if (sliceOwner == myProc ) {
-	  for (int ptcl=0; ptcl<numPtcls; ptcl++)
-	    (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
-	  double action = Actions.NodalActions(speciesNum)->SingleAction
-	    (relSlice-1, relSlice, species.Ptcls, 0);
-	  positive = action < maxAction;
-	}
-	// Now broadcast whether or not I'm positive to everyone
-	Communicator.Broadcast(sliceOwner, positive);
+        // Now assign to Path
+        if (sliceOwner == myProc ) {
+          for (int ptcl=0; ptcl<numPtcls; ptcl++)
+            (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
+          double action = Actions.NodalActions(speciesNum)->SingleAction
+            (relSlice-1, relSlice, species.Ptcls, 0);
+          positive = action < maxAction;
+        }
+        // Now broadcast whether or not I'm positive to everyone
+        Communicator.Broadcast(sliceOwner, positive);
       }
       if (!positive) {
-	numRejects++;
-	if (numRejects > 200) {
-	  /// Create a new starting point and start over
-	  for (int i=0; i<R0.size(); i++)
-	    for (int dim=0; dim<NDIM; dim++)
-	      R0(i)[dim] = Box[dim] *(Random.Common()-0.5);
-	  perr << "Calling recursively to start over.\n";
-	  PhaseAvoidingLeviFlight (speciesNum, R0, sigmaFactor);
-	  return;
-	}
-// 	if ((numRejects%50)==0)
-// 	  perr << "numRejects = " << numRejects << endl;
+        numRejects++;
+        if (numRejects > 200) {
+          /// Create a new starting point and start over
+          for (int i=0; i<R0.size(); i++)
+            for (int dim=0; dim<NDIM; dim++)
+              R0(i)[dim] = Box[dim] *(Random.Common()-0.5);
+          perr << "Calling recursively to start over.\n";
+          PhaseAvoidingLeviFlight (speciesNum, R0, sigmaFactor);
+          return;
+        }
+//      if ((numRejects%50)==0)
+//        perr << "numRejects = " << numRejects << endl;
       }
     } while (!positive);
     // Copy slice into Path if I'm the slice owner.
     if ((slice>=myFirstSlice) && (slice<=myLastSlice)) {
       for (int ptcl=0; ptcl<numPtcls; ptcl++) 
-	(*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
+        (*this)(relSlice, ptcl+species.FirstPtcl) = newSlice(ptcl);
       // Check to make sure we're positive now.
       if (haveNodeAction && (relSlice > 0)) {
-	if (Actions.NodalActions(speciesNum)->Action 
-	    (relSlice-1, relSlice, species.Ptcls, 0) > maxAction) {
-	  perr << "exceeded maximum action at slice " << slice 
-	       << " myProc = " << myProc << "relslice=" << relSlice <<endl;
-	  abort();
-	}	
+        if (Actions.NodalActions(speciesNum)->Action 
+            (relSlice-1, relSlice, species.Ptcls, 0) > maxAction) {
+          perr << "exceeded maximum action at slice " << slice 
+               << " myProc = " << myProc << "relslice=" << relSlice <<endl;
+          abort();
+        }       
       }
     }
     // continue on to next slice
@@ -1353,7 +1354,7 @@ PathClass::PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0,
       changedParticles(i) = i+species.FirstPtcl;
     double localAction = 
       Actions.NodalActions(speciesNum)->Action(0, NumTimeSlices()-1, 
-					       changedParticles,0);
+                                               changedParticles,0);
     double globalAction = Communicator.AllSum(localAction);
     if (Communicator.MyProc()==0)
       perr << "Phase Action after Levi flight = " << globalAction << endl;
@@ -1365,7 +1366,7 @@ PathClass::PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &R0,
 
 void
 PathClass::InitLangevin(IOSectionClass &in, 
-			SpeciesClass &species)
+                        SpeciesClass &species)
 {
   // Read the name of the previous runs output file
   string langevinName;
@@ -1392,7 +1393,7 @@ PathClass::InitLangevin(IOSectionClass &in,
   for (int slice=0; slice<NumTimeSlices(); slice++) 
     for (int ptcl=first; ptcl<=last; ptcl++) 
       for (int dim=0; dim<NDIM; dim++)
-	Path(slice,ptcl)[dim] = lastPos(ptcl-first,dim);
+        Path(slice,ptcl)[dim] = lastPos(ptcl-first,dim);
 
   perr << "Successfully read Langevin initial positions."  << endl;
 }

@@ -52,6 +52,31 @@ double FreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double dis
 }
 
 
+void FreeNodalActionClass::Init()
+{
+  FirstTime = 1;
+  // Initialize NodeDist
+  if (PathData.Path.UseNodeDist) {
+    SetMode(NEWMODE);
+    SpeciesClass &species = PathData.Path.Species(SpeciesNum);
+    double lambda = species.lambda;
+    double levelTau = PathData.Path.tau;
+    int myStart, myEnd;
+    Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+    int refSlice = Path.GetRefSlice() - myStart;
+    int startSlice = 0;
+    int endSlice = PathData.Path.NumTimeSlices()-1;
+    for (int slice=startSlice; slice<endSlice; slice++) {
+      int sliceDiff = abs(slice-refSlice);
+      sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices-sliceDiff);
+      if (sliceDiff!=0)
+        PathData.Path.NodeDist(slice,SpeciesNum) = HybridDist(slice, lambda*levelTau);
+    }
+    PathData.Path.NodeDist[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
+      PathData.Path.NodeDist[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
+  }
+}
+
 void 
 FreeNodalActionClass::SetupFreeActions()
 {
@@ -104,6 +129,40 @@ FreeNodalActionClass::FreeNodalActionClass (PathDataClass &pathData, int species
 }
 
 
+double FreeNodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
+{
+  SpeciesClass &species = Path.Species(SpeciesNum);
+  int first = species.FirstPtcl;
+  int last = species.LastPtcl;
+
+  int myStartSlice, myEndSlice;
+  int myProc = PathData.Path.Communicator.MyProc();
+  Path.SliceRange (myProc, myStartSlice, myEndSlice);
+  int refSlice = Path.GetRefSlice()-myStartSlice;
+  int sliceDiff = abs(slice-refSlice);
+  sliceDiff = min (sliceDiff, Path.TotalNumSlices-sliceDiff);
+  assert (sliceDiff <= Path.TotalNumSlices);
+  assert (sliceDiff > 0);
+
+  int N = last - first + 1;
+  Array<double,2> detMatrix(N,N);
+  // Fill up determinant matrix
+  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
+    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+      dVec diff;
+      double dist;
+      Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
+      double action = 0.0;
+      for (int dim=0; dim<NDIM; dim++)
+        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
+    }
+  }
+
+  return Determinant (detMatrix);
+}
+
+
 double FreeNodalActionClass::Det (int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
@@ -152,6 +211,79 @@ bool FreeNodalActionClass::IsPositive (int slice)
   else
     return (Det(slice) > 0.0);
 }
+
+
+void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath)
+{
+  SpeciesClass &species = Path.Species(SpeciesNum);
+  int first = species.FirstPtcl;
+  int last = species.LastPtcl;
+
+  int myStartSlice, myEndSlice;
+  int myProc = PathData.Path.Communicator.MyProc();
+  Path.SliceRange (myProc, myStartSlice, myEndSlice);
+  int refSlice = Path.GetRefSlice()-myStartSlice;
+  int sliceDiff = abs(slice-refSlice);
+  sliceDiff = min (sliceDiff, Path.TotalNumSlices-sliceDiff);
+  assert (sliceDiff <= Path.TotalNumSlices);
+  assert (sliceDiff > 0);
+
+  int N = last - first + 1;
+  Array<double,2> detMatrix(N,N), cofactors(N,N);
+
+  // Fill up determinant matrix
+  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
+    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+      dVec diff;
+      double dist;
+      Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
+      double action = 0.0;
+      for (int dim=0; dim<NDIM; dim++)
+        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
+    }
+  }
+
+  // Compute determinant
+  det = Determinant (detMatrix);
+  if (det < 0.0) {
+    return;
+  }
+
+  // Check if singular
+  if (det == 0.0 || isnan(det)) {
+    if (((nSingular)%100000) == 99999) {
+      cerr << "Num Singular Matrices = " << nSingular << endl;
+    }
+    // cerr << "Singular Matrix at slice: " << slice << endl;
+    nSingular++;
+    det = -1.0;
+    gradient(0)[0] = sqrt(-1.0);
+    return;
+  }
+
+  cofactors = detMatrix;
+  GJInverse (cofactors);
+  Transpose (cofactors);
+  cofactors = det * cofactors;
+
+  // Now compute gradient of determinant
+  for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+    gradient(ptcl-first) = 0.0;
+    for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
+      dVec diff;
+      double dist;
+      Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
+      dVec gradPhi;
+      for (int dim=0; dim<NDIM; dim++)
+        gradPhi[dim] = -ActionSplines(sliceDiff)[dim].Deriv(diff[dim]) * detMatrix(refPtcl-first, ptcl-first);
+      //dVec gradPhi = -2.0*C*diff*DetMatrix(refPtcl-first,ptcl-first);
+
+      gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*cofactors(refPtcl-first, ptcl-first);
+    }
+  }
+}
+
 
 
 void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient)
@@ -370,6 +502,9 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
     NumLineDists++;
     return LineSearchDist(slice);
   }
+  //double lineSearchDist = NewtonRaphsonDist(slice);// LineSearchDist(slice);
+  //cout << slice << " " << sqrt(4.0*lambdaTau) << " " << gradDist << " " << lineSearchDist << " " << NewtonRaphsonDist(slice) << endl;
+  //return lineSearchDist;
 }
 
 
@@ -409,26 +544,27 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   int N = last-first+1;
   double retVal;
 
-  Array<dVec,1> GradVec2(N), SavePath2(N);
+  Array<dVec,1> gradVec(N), tempPath(N), savePath(N);
 
   // Save the current path
-  for (int i=0; i < N; i++)
-    SavePath2(i) = Path(slice,i+first);
+  for (int i=0; i < N; i++) {
+    savePath(i) = Path(slice,i+first);
+    tempPath(i) = Path(slice,i+first);
+  }
 
-  GradientDet (slice, det0, GradVec2);
+  GradientDet (slice, det0, gradVec, tempPath);
   if (det0 < 0.0)
     return -1.0;
 
   double grad2=0.0;
   for (int i=0; i<N; i++)
-    grad2 += dot (GradVec2(i), GradVec2(i));
+    grad2 += dot (gradVec(i), gradVec(i));
   double gradMag = sqrt (grad2);
 
   for (int i=0; i<N; i++)
-    GradVec2(i) = (1.0/gradMag)*GradVec2(i);
+    gradVec(i) = (1.0/gradMag)*gradVec(i);
 
   double dist = det0/gradMag;
-
 
   double minFactor, maxFactor, tryFactor, newDet;
   minFactor = 0.0;
@@ -441,8 +577,8 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   while ((det*det0 > 0.0) && ((maxFactor*dist)<maxDist)) {
     maxFactor *= 2.0;
     for (int i=0; i<N; i++)
-      Path (slice, i+first) = SavePath2(i) - maxFactor*dist*GradVec2(i);
-    det = Det(slice);
+      tempPath(i) = savePath(i) - maxFactor*dist*gradVec(i);
+    det = Det(slice,tempPath);
   }
 
   if (det*det0 >= 0.0)
@@ -452,8 +588,8 @@ double FreeNodalActionClass::LineSearchDist (int slice)
     while (((maxFactor-minFactor)*dist > epsilon) && (minFactor*dist < maxDist)) {
       tryFactor = 0.5*(maxFactor+minFactor);
       for (int i=0; i<N; i++)
-        Path (slice, i+first) = SavePath2(i) - tryFactor*dist*GradVec2(i);
-      det = Det (slice);
+        tempPath(i) = savePath(i) - tryFactor*dist*gradVec(i);
+      det = Det (slice,tempPath);
       if (det*det0 > 0.0)
         minFactor = tryFactor;
       else
@@ -466,8 +602,8 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   }
 
   // Restore original Path position
-  for (int i=0; i<N; i++)
-    Path (slice, i+first) = SavePath2(i);
+  //for (int i=0; i<N; i++)
+  //  Path (slice, i+first) = SavePath2(i);
   return retVal; //min (maxDist, retVal);
 }
 
@@ -489,16 +625,17 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
     return (-1.0);
 
   // Save the current path
-  Array<dVec,1> savePath(N), lastPath(N);
+  Array<dVec,1> savePath(N), tempPath(N), lastPath(N);
   for (int i=0; i<N; i++) {
     savePath(i) = Path(slice,i+first);
+    tempPath(i) = Path(slice,i+first);
     lastPath(i) = Path(slice,i+first);
   }
 
   bool done = false;
   int numIter = 0;
   // Do Newton-Raphson iterations
-  GradientDet (slice, det, GradVec);
+  GradientDet (slice, det, GradVec, tempPath);
   double grad2=0.0;
   for (int i=0; i<N; i++)
     grad2 += dot (GradVec(i), GradVec(i));
@@ -511,19 +648,20 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
     do {
       dist *= 0.5;
       for (int i=0; i<N; i++)
-        Path(slice, first+i) = lastPath(i) -(dist/gradMag)*GradVec(i);
-    } while (Det (slice) < 0.0);
+        tempPath(i) = lastPath(i) -(dist/gradMag)*GradVec(i);
+    } while (Det (slice, tempPath) < 0.0);
 
     for (int i=0; i<N; i++)
-      lastPath(i) = Path(slice, first+i);
+      lastPath(i) = tempPath(i);
 
     if (dist < 0.001*firstDist)
       done = true;
-    GradientDet (slice, det, GradVec);
+    GradientDet (slice, det, GradVec, tempPath);
     // If we come to a singular determinant matrix...
     if (isnan(GradVec(0)[0])) {
-      for (int i=0; i<N; i++)
-        Path(slice,first+i) = savePath(i);
+      //for (int i=0; i<N; i++)
+      //  Path(slice,first+i) = savePath(i);
+      //cout << "hi" << endl;
       return (LineSearchDist(slice));
     }
     grad2 = 0.0;
@@ -535,14 +673,14 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
 
   double totalDist = 0.0;
   for (int i=0; i<N; i++) {
-    dVec diff = Path(slice, first+i) - savePath(i);
+    dVec diff = tempPath(i) - savePath(i);
     totalDist += dot (diff,diff);
   }
   totalDist = sqrt (totalDist);
 
   // Restore original Path
-  for (int i=0; i<N; i++)
-    Path(slice,i+first)  = savePath(i);
+  //for (int i=0; i<N; i++)
+  //  Path(slice,i+first)  = savePath(i);
 
   return totalDist;
 }
@@ -559,12 +697,10 @@ void FreeNodalActionClass::Read (IOSectionClass &in)
 
 double FreeNodalActionClass::SingleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
-  if (PathData.Path.Equilibrate) {
+  if (PathData.Path.Equilibrate)
     return SimpleAction(startSlice,endSlice,changePtcls,level);
-  }
-  else {
+  else
     return PreciseAction(startSlice,endSlice,changePtcls,level);
-  }
 }
 
 
@@ -634,9 +770,14 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
   if (numSlices < 2)
     cerr << "ERROR: numSlices < 2 in FreeNodalAction" << endl;
   double dist[numSlices];
+
   for (int i=0; i<numSlices; i++)
     dist[i] = 0.0;
   bool abort = 0;
+  //if (GetMode()==OLDMODE)
+  //  cout << PathData.Path.CloneStr << " start, end " << startSlice << ", " << endSlice << "!!!!!!!!!!!!!!!!!!!ACTION(OLD)" << endl;
+  //else
+  //  cout << PathData.Path.CloneStr << " start, end " << startSlice << ", " << endSlice << "!!!!!!!!!!!!!!!!!!!ACTION(NEW)" << endl;
   #pragma omp parallel for
   for (int slice=startSlice; slice <= endSlice; slice+=skip) {
     #pragma omp flush (abort)
@@ -644,7 +785,11 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - startSlice)/skip;
-        dist[i] = HybridDist (slice, lambda*levelTau);
+        if (((GetMode()==NEWMODE)||FirstTime)||!PathData.Path.UseNodeDist)
+          dist[i] = HybridDist (slice, lambda*levelTau);
+        else
+          dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+        //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
         if (dist[i] < 0.0) {
           #pragma omp critical
           {
@@ -659,15 +804,21 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
   if (abort)
     uNode = 1.0e100;
   else {
-    int i = 0;
     for (int slice = startSlice; slice < endSlice; slice+=skip) {
+      int i = (slice - startSlice)/skip;
+
       bool slice1IsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
       double dist1 = dist[i];
       double dist2 = dist[i+1];
+      if (((level==0 && GetMode()==NEWMODE) || FirstTime) && PathData.Path.UseNodeDist) {
+        PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+        PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+        FirstTime = 0;
+      }
       if (!slice1IsRef && (dist1<0.0))
         abort = 1;
-      else if (!slice2IsRef && (dist2 < 0.0))
+      else if (!slice2IsRef && (dist2<0.0))
         abort = 1;
       else if (slice1IsRef || (dist1==0.0))
         uNode -= log1p(-exp(-dist2*dist2/(lambda*levelTau)));
@@ -675,7 +826,6 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
         uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
       else
         uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
-      i += 1;
     }
   }
 
@@ -713,6 +863,10 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
   for (int i=0; i<numSlices; i++)
     dist[i] = 0.0;
   bool abort = 0;
+  //if (GetMode()==OLDMODE)
+  //  cout << PathData.Path.CloneStr << " start, end " << slice1 << ", " << slice2 << "!!!!!!!!!!!!!!!!!!!ENERGY(OLD)" << endl;
+  //else
+  //  cout << PathData.Path.CloneStr << " start, end " << slice1 << ", " << slice2 << "!!!!!!!!!!!!!!!!!!!ENERGY(NEW)" << endl;
   #pragma omp parallel for
   for (int slice=slice1; slice <= slice2; slice+=skip) {
     #pragma omp flush (abort)
@@ -720,7 +874,11 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - slice1)/skip;
-        dist[i] = HybridDist (slice, lambda*levelTau);
+        if (FirstTime||!PathData.Path.UseNodeDist)
+          dist[i] = HybridDist (slice,lambda*levelTau);
+        else
+          dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+        //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
         if (dist[i] < 0.0) {
           #pragma omp critical
           {
@@ -742,6 +900,11 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
     bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
     double dist1 = dist[i];
     double dist2 = dist[i+1];
+    if ((level==0 || FirstTime) && PathData.Path.UseNodeDist) {
+      PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+      PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+      FirstTime = 0;
+    }
     double prod;
     if (slice1IsRef || (dist1==0.0))
       prod = dist2*dist2;

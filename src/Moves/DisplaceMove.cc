@@ -23,50 +23,66 @@ void DisplaceMoveClass::WriteRatio()
   MultiStageClass::WriteRatio();
 
   double AcceptRatio = (double)NumAccepted/(double)NumAttempted;
-  if (DesiredAcceptRatio>0)
+  if (PathData.Path.Equilibrate && DesiredAcceptRatio>0)
     Sigma *= 1.0 - DesiredAcceptRatio + AcceptRatio; // Recalculate step size
   dVec Box = PathData.Path.GetBox();
   if (Sigma > Box(0))
     Sigma = Box(0)/2.;
-  cout << "Sigma: " << Sigma << " AcceptRatio: " << AcceptRatio << endl;
 }
 
 void DisplaceStageClass::Accept()
 {
   CommonStageClass::Accept();
   Path.RefPath.AcceptCopy();
-  //do nothing for now
+  Path.NodeDist.AcceptCopy();
 }
 
 void DisplaceStageClass::Reject()
 {
   CommonStageClass::Reject();
   Path.RefPath.RejectCopy();
-  //do nothing for now
+  Path.NodeDist.RejectCopy();
 }
 
 double DisplaceStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
+  // Get the Perm Table
+  int N = PathData.Path.NumParticles();
+  Array<int,1> TotalPerm(N);
+  PathData.Path.TotalPermutation(TotalPerm);
+  /// Only proc 0 gets TotalPerm
+  Array<int,1> doDisplace(activeParticles.size());
+  doDisplace = 0;
+  if (Path.Communicator.MyProc() == 0) {
+    for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+      int ptcl = activeParticles(ptclIndex);
+      if (TotalPerm(ptcl) == ptcl) // Only displace identity permutations
+        doDisplace(ptclIndex) = 1;
+    }
+  }
+  PathData.Path.Communicator.Broadcast(0, doDisplace);
+
   /// Now, choose a random displacement
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
-    dVec disp;
-    ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
+    if (doDisplace(ptclIndex)) {
+      dVec disp;
+      ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
 #if NDIM==3
-    disp(0)=PathData.Path.Random.Common()-0.5;
-    disp(1)=PathData.Path.Random.Common()-0.5;
-    disp(2)=PathData.Path.Random.Common()-0.5;
+      disp(0)=PathData.Path.Random.Common()-0.5;
+      disp(1)=PathData.Path.Random.Common()-0.5;
+      disp(2)=PathData.Path.Random.Common()-0.5;
 #endif
 #if NDIM==2
-    disp(0)=PathData.Path.Random.Common()-0.5;
-    disp(1)=PathData.Path.Random.Common()-0.5;
+      disp(0)=PathData.Path.Random.Common()-0.5;
+      disp(1)=PathData.Path.Random.Common()-0.5;
 #endif
-    disp=disp*Sigma;
-
-    // Actually displace the path
-    SetMode(NEWMODE);
-    for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
-      PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
+      disp=disp*Sigma;
+      // Actually displace the path
+      SetMode(NEWMODE);
+      for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
+        PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
+    }
   }
 
   // Broadcast the new reference path to all the other processors
@@ -84,20 +100,28 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   DisplaceStage.Sigma = Sigma;
   Array<string,1> activeSpeciesNames;
 
-  int numToMove;
-
-
-  assert(in.ReadVar("NumToMove", numToMove));
-  SetNumParticlesToMove(numToMove);
-  DesiredAcceptRatio=-1;
-  in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
-
   // Read in the active species.
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
-  Array<int,1> activeSpecies(activeSpeciesNames.size());
+  activeSpecies.resize(activeSpeciesNames.size());
   for (int i=0; i<activeSpecies.size(); i++)
     activeSpecies(i) = PathData.Path.SpeciesNum(activeSpeciesNames(i));
   SetActiveSpecies (activeSpecies);
+
+  // Determine number of particles to move
+  int numToMove = 0;
+  MoveAllParticles = false;
+  in.ReadVar("MoveAll",MoveAllParticles);
+  if (MoveAllParticles) {
+    for (int i=0; i<activeSpecies.size(); i++) {
+      int speciesNum = activeSpecies(i);
+      numToMove += PathData.Path.Species(speciesNum).NumParticles;
+    }
+  } else
+    assert(in.ReadVar("NumToMove", numToMove));
+  SetNumParticlesToMove(numToMove);
+
+  DesiredAcceptRatio=-1;
+  in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
 
   // // Move all particles at the same time.
   // int totalNum = 0;
@@ -136,23 +160,21 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
       DisplaceStage.Actions.push_back(PathData.Actions.NodalActions(speciesNum));
     }
   }
-  theSpecies = activeSpecies(0);
   // Now construct stage list
   Stages.push_back(&DisplaceStage);
 
-  MoveAllParticles=false;
-  in.ReadVar("MoveAll",MoveAllParticles);
-  if (MoveAllParticles)
-  {
-    ActiveParticles.resize(PathData.Path.Species(theSpecies).NumParticles);
-    for (int i=0;i<ActiveParticles.size();i++){
-      ActiveParticles(i)=PathData.Path.Species(theSpecies).FirstPtcl+i;
+  ActiveParticles.resize(numToMove);
+  if (MoveAllParticles) {
+    int k = 0;
+    for (int i=0; i<activeSpecies.size(); i++) {
+      int speciesNum = activeSpecies(i);
+      for (int j=0; j<PathData.Path.Species(speciesNum).NumParticles; j++) {
+        ActiveParticles(k) = PathData.Path.Species(speciesNum).FirstPtcl + j;
+        k += 1;
+      }
     }
+  }
 
-  }
-  else {
-    ActiveParticles.resize(NumParticlesToMove);
-  }
   NumAttempted = 0;
 }
 
@@ -160,9 +182,30 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
 
 void DisplaceMoveClass::MakeMove()
 {
+  PathClass &Path = PathData.Path;
+
   // Next, set timeslices
   Slice1 = 0;
-  Slice2 = PathData.Path.NumTimeSlices()-1;
+  Slice2 = Path.NumTimeSlices()-1;
+
+  // PROBABLY A SMARTER WAY OF DOING THIS WITH VECTORS (WHAT TO DO IF SAME PARTICLE CHOSEN TWICE)
+  Array<bool,1> ptclChecker(PathData.Path.NumParticles());
+  ptclChecker = 0;
+
+  if (!MoveAllParticles) {
+    for (int j = 0; j < ActiveParticles.size(); j++) {
+      while (1) {
+        int speciesNum = activeSpecies(Path.Random.CommonInt(activeSpecies.size()));
+        int ptclNum = Path.Species(speciesNum).FirstPtcl + Path.Random.CommonInt(Path.Species(speciesNum).NumParticles);
+        if (!ptclChecker(ptclNum)) {
+          ActiveParticles(j) = ptclNum;
+          ptclChecker(ptclNum) = 1;
+          //cout << j << " " << speciesNum << "  " << ActiveParticles(j) << endl;
+          break;
+        }
+      }
+    }
+  }
 
   // Now call MultiStageClass' MakeMove
   MultiStageClass::MakeMove();

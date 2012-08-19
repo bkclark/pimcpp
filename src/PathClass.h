@@ -205,6 +205,7 @@ public:
 
   void RefDistDisp (int slice, int refPtcl, int ptcl,
 		    double &dist, dVec &disp);
+  void RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath);
   //  inline double Distance (int slice, int ptcl1, int ptcl2);Not used?
   inline dVec Velocity (int sliceA, int sliceB, int ptcl);
   inline dVec VelocityBetweenPtcl (int sliceA, int ptclA,int sliceB, int ptclB);
@@ -333,7 +334,9 @@ public:
   /// Fermions           ///
   //////////////////////////
   inline bool HasFermions(const Array<int,1>& activeParticles);
-
+  Mirrored2DClass<double> NodeDist;
+  bool UseNodeDist;
+  void ShiftNodeDist(int sliceToShift);
 
   //////////////////////////
   /// Open Loops         ///

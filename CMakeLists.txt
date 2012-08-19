@@ -5,18 +5,26 @@ cmake_minimum_required (VERSION 2.6)
 #-------------------------------------------------------------------
 # Compilers
 #-------------------------------------------------------------------
-SET(CMAKE_CXX_COMPILER,"mpiicpc")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O3 -DNDIM=3 -DUSE_MPI -w")
+SET(CMAKE_CXX_COMPILER,"CC")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
 #SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -Wno-write-strings -w")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
-SET(CMAKE_C_COMPILER,"mpiicc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -msse3 -O3 -DNDIM=3 -DUSE_MPI -w")
+SET(CMAKE_C_COMPILER,"cc")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
-SET(CMAKE_Fortran_COMPILER,"mpiifort")
+SET(CMAKE_Fortran_COMPILER,"ftn")
 SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3")
 SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
+
+set(QMC_BUILD_STATIC FALSE)
+IF(QMC_BUILD_STATIC)
+  set(BUILD_SHARED_LIBS FALSE)
+  set(CMAKE_EXE_LINKER_FLAGS '-static')
+  set(LINK_SEARCH_END_STATIC TRUE)
+  set(HDF5_USE_STATIC_LIBRARIES TRUE)
+ENDIF(QMC_BUILD_STATIC)
 
 #-------------------------------------------------------------------
 # Directories
@@ -47,7 +55,7 @@ ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
     /usr/local/lib
     /opt/lib
     /sw/lib
-   )
+  )
   SET(TRIAL_INCLUDE_PATHS
     $ENV{MPI_HOME}/include
     /usr/include
@@ -78,6 +86,9 @@ INCLUDE(${PROJECT_CMAKE}/FindBlitz++.cmake)
 IF(BLITZ_FOUND)
   SET(HAVE_BLITZ 1)
   INCLUDE_DIRECTORIES(${BLITZ_INCLUDE_DIR})
+  IF(QMC_BUILD_STATIC)
+    LINK_LIBRARIES(${BLITZ_LIBRARIES})
+  ENDIF(QMC_BUILD_STATIC)
 ELSE(BLITZ_FOUND)
   MESSAGE(FATAL_ERROR "Require Blitz++. Set BLITZ_HOME")
 ENDIF(BLITZ_FOUND)
@@ -371,3 +382,12 @@ src/IO/InputOutputHDF5.cc
 message(STATUS "FreeParticles:${SRCS}")
 add_executable (FreeParticles ${SRCS})
 SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)
+
+## sources
+#SET(SRCS "")
+#add_sources(src/test.cc
+#)
+#
+#message(STATUS "test:${SRCS}")
+#add_executable (test ${SRCS})
+#SET_TARGET_PROPERTIES("test" PROPERTIES LINKER_LANGUAGE CXX)
