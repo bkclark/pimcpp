@@ -1011,6 +1011,7 @@ PathClass::InitPaths (IOSectionClass &in)
   Weight.AcceptCopy();
   ExistsCoupling.AcceptCopy();
   NodeDist.AcceptCopy();
+  NodeDet.AcceptCopy();
   if (LongRange)
     UpdateRho_ks();
 }

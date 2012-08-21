@@ -59,7 +59,7 @@ private:
   int SpeciesNum;
   int NumGradDists, NumLineDists;
   int nSingular;
-  bool FirstTime;
+  bool FirstDistTime, FirstDetTime;
 public:
   void Init();
   double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);

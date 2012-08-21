@@ -334,9 +334,10 @@ public:
   /// Fermions           ///
   //////////////////////////
   inline bool HasFermions(const Array<int,1>& activeParticles);
-  Mirrored2DClass<double> NodeDist;
-  bool UseNodeDist;
+  Mirrored2DClass<double> NodeDist, NodeDet;
+  bool UseNodeDist, UseNodeDet;
   void ShiftNodeDist(int sliceToShift);
+  void ShiftNodeDet(int sliceToShift);
 
   //////////////////////////
   /// Open Loops         ///

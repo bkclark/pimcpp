@@ -34,55 +34,44 @@ void DisplaceStageClass::Accept()
 {
   CommonStageClass::Accept();
   Path.RefPath.AcceptCopy();
-  Path.NodeDist.AcceptCopy();
+  if (Path.UseNodeDist)
+    Path.NodeDist.AcceptCopy();
+  if (Path.UseNodeDet)
+    Path.NodeDet.AcceptCopy();
 }
 
 void DisplaceStageClass::Reject()
 {
   CommonStageClass::Reject();
   Path.RefPath.RejectCopy();
-  Path.NodeDist.RejectCopy();
+  if (Path.UseNodeDist)
+    Path.NodeDist.RejectCopy();
+  if (Path.UseNodeDet)
+    Path.NodeDet.RejectCopy();
 }
 
 double DisplaceStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
-  // Get the Perm Table
-  int N = PathData.Path.NumParticles();
-  Array<int,1> TotalPerm(N);
-  PathData.Path.TotalPermutation(TotalPerm);
-  /// Only proc 0 gets TotalPerm
-  Array<int,1> doDisplace(activeParticles.size());
-  doDisplace = 0;
-  if (Path.Communicator.MyProc() == 0) {
-    for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
-      int ptcl = activeParticles(ptclIndex);
-      if (TotalPerm(ptcl) == ptcl) // Only displace identity permutations
-        doDisplace(ptclIndex) = 1;
-    }
-  }
-  PathData.Path.Communicator.Broadcast(0, doDisplace);
 
   /// Now, choose a random displacement
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
-    if (doDisplace(ptclIndex)) {
-      dVec disp;
-      ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
+    dVec disp;
+    ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
 #if NDIM==3
-      disp(0)=PathData.Path.Random.Common()-0.5;
-      disp(1)=PathData.Path.Random.Common()-0.5;
-      disp(2)=PathData.Path.Random.Common()-0.5;
+    disp(0)=PathData.Path.Random.Common()-0.5;
+    disp(1)=PathData.Path.Random.Common()-0.5;
+    disp(2)=PathData.Path.Random.Common()-0.5;
 #endif
 #if NDIM==2
-      disp(0)=PathData.Path.Random.Common()-0.5;
-      disp(1)=PathData.Path.Random.Common()-0.5;
+    disp(0)=PathData.Path.Random.Common()-0.5;
+    disp(1)=PathData.Path.Random.Common()-0.5;
 #endif
-      disp=disp*Sigma;
-      // Actually displace the path
-      SetMode(NEWMODE);
-      for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
-        PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
-    }
+    disp=disp*Sigma;
+    // Actually displace the path
+    SetMode(NEWMODE);
+    for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
+      PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
   }
 
   // Broadcast the new reference path to all the other processors
@@ -207,8 +196,30 @@ void DisplaceMoveClass::MakeMove()
     }
   }
 
+  // See if we have any with just identity permutation
+  int N = PathData.Path.NumParticles();
+  Array<int,1> TotalPerm(N), doDisplace(ActiveParticles.size());
+  PathData.Path.TotalPermutation(TotalPerm);
+  /// Only proc 0 gets TotalPerm
+  doDisplace = 0;
+  if (Path.Communicator.MyProc() == 0) {
+    for (int ptclIndex=0; ptclIndex<ActiveParticles.size(); ptclIndex++) {
+      int ptcl = ActiveParticles(ptclIndex);
+      if (TotalPerm(ptcl) == ptcl) // Only displace identity permutations
+        doDisplace(ptclIndex) = 1;
+    }
+  }
+  PathData.Path.Communicator.Broadcast(0, doDisplace);
+
+  bool MakeTheMove = 0;
+  for (int ptclIndex=0; ptclIndex<ActiveParticles.size(); ptclIndex++) {
+    if (doDisplace(ptclIndex))
+      MakeTheMove = 1;
+  }
+
   // Now call MultiStageClass' MakeMove
-  MultiStageClass::MakeMove();
+  if (MakeTheMove)
+    MultiStageClass::MakeMove();
   NumAttempted++;
 
 }

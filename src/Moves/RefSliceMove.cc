@@ -169,14 +169,20 @@ void RefSliceMoveClass::MakeMoveMaster()
       NodeAccept++;
       Accept();
       Path.RefPath.AcceptCopy();
-      Path.NodeDist.AcceptCopy();
+      if (Path.UseNodeDist)
+        Path.NodeDist.AcceptCopy();
+      if (Path.UseNodeDet)
+        Path.NodeDet.AcceptCopy();
       //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
     }
     else {
       NodeReject++;
       Reject();
       Path.RefPath.RejectCopy();
-      Path.NodeDist.RejectCopy();
+      if (Path.UseNodeDist)
+        Path.NodeDist.RejectCopy();
+      if (Path.UseNodeDet)
+        Path.NodeDet.RejectCopy();
       //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   }
@@ -184,7 +190,10 @@ void RefSliceMoveClass::MakeMoveMaster()
   else {
     Reject();
     Path.RefPath.RejectCopy();
-    Path.NodeDist.RejectCopy();
+    if (Path.UseNodeDist)
+      Path.NodeDist.RejectCopy();
+    if (Path.UseNodeDet)
+      Path.NodeDet.RejectCopy();
     //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY LOCAL REJECT"<<endl;
   }
 
@@ -228,21 +237,30 @@ void RefSliceMoveClass::MakeMoveSlave()
   if (accept==1) {
     if (NodeCheck()) {
       NodeAccept++;
-      Accept();
+      //Accept();
       Path.RefPath.AcceptCopy();
-      Path.NodeDist.AcceptCopy();
+      if (Path.UseNodeDist)
+        Path.NodeDist.RejectCopy();
+      if (Path.UseNodeDet)
+        Path.NodeDet.RejectCopy();
       //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
     } else {
       NodeReject++;
-      Reject();
+      //Reject();
       Path.RefPath.RejectCopy();
-      Path.NodeDist.RejectCopy();
+      if (Path.UseNodeDist)
+        Path.NodeDist.RejectCopy();
+      if (Path.UseNodeDet)
+        Path.NodeDet.RejectCopy();
       //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   } else {
-    Reject();
+    //Reject();
     Path.RefPath.RejectCopy();
-    Path.NodeDist.RejectCopy();
+    if (Path.UseNodeDist)
+      Path.NodeDist.RejectCopy();
+    if (Path.UseNodeDet)
+      Path.NodeDet.RejectCopy();
     //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY LOCAL REJECT"<<endl;
   }
 

@@ -54,9 +54,10 @@ double FreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double dis
 
 void FreeNodalActionClass::Init()
 {
-  FirstTime = 1;
-  // Initialize NodeDist
-  if (PathData.Path.UseNodeDist) {
+  FirstDistTime = 1;
+  FirstDetTime = 1;
+  // Initialize NodeDist and/or NodeDet
+  if (PathData.Path.UseNodeDist||PathData.Path.UseNodeDet) {
     SetMode(NEWMODE);
     SpeciesClass &species = PathData.Path.Species(SpeciesNum);
     double lambda = species.lambda;
@@ -69,11 +70,19 @@ void FreeNodalActionClass::Init()
     for (int slice=startSlice; slice<endSlice; slice++) {
       int sliceDiff = abs(slice-refSlice);
       sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices-sliceDiff);
-      if (sliceDiff!=0)
-        PathData.Path.NodeDist(slice,SpeciesNum) = HybridDist(slice, lambda*levelTau);
+      if (sliceDiff!=0) {
+        if (PathData.Path.UseNodeDist)
+          PathData.Path.NodeDist(slice,SpeciesNum) = HybridDist(slice, lambda*levelTau);
+        if (PathData.Path.UseNodeDet)
+          PathData.Path.NodeDet(slice,SpeciesNum) = Det(slice);
+      }
     }
-    PathData.Path.NodeDist[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
-      PathData.Path.NodeDist[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
+    if (PathData.Path.UseNodeDist)
+      PathData.Path.NodeDist[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
+        PathData.Path.NodeDist[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
+    if (PathData.Path.UseNodeDet)
+      PathData.Path.NodeDet[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
+        PathData.Path.NodeDet[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
   }
 }
 
@@ -717,28 +726,47 @@ double FreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const A
   int refSlice = Path.GetRefSlice() - myStart;
   //std::cout << "FreeNodalAction --------------" << endl;
 
+  int totalSlices = Path.TotalNumSlices;
+  int numSlices = (endSlice - startSlice)/skip + 1;
+  double deter[numSlices];
+  for (int i=0; i<numSlices; i++)
+    deter[i] = 0.0;
   double uNode = 0.0;
   bool abort = 0;
   #pragma omp parallel for
   for (int slice=startSlice; slice <= endSlice; slice+=skip) {
     #pragma omp flush (abort)
-    if (!abort) {
-      if ((slice != refSlice) && (slice != refSlice+Path.TotalNumSlices)) {
-        double deter = Det(slice);
-        if (deter <= 0.0) {
-          #pragma omp critical
-          {
-            abort = 1;
-          }
+    bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    if (!sliceIsRef&&!abort) {
+      int i = (slice - startSlice)/skip;
+      if (((GetMode()==NEWMODE)||FirstDetTime)||!PathData.Path.UseNodeDet)
+        deter[i] = Det (slice);
+      else
+        deter[i] = PathData.Path.NodeDet(slice,SpeciesNum);
+      if (deter[i] <= 0.0) {
+        #pragma omp critical
+        {
+          abort = 1;
         }
-        //std::cout<<slice<<" "<<deter<<endl;
       }
+      //std::cout<<slice<<" "<<deter<<endl;
     }
   }
   #pragma omp barrier
 
   if(abort)
     uNode = 1.0e100;
+  else {
+    if (((level==0 && GetMode()==NEWMODE) || FirstDetTime) && PathData.Path.UseNodeDet) {
+      for (int slice=startSlice; slice <= endSlice; slice+=skip) {
+        int i = (slice - startSlice)/skip;
+        bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+        if (!sliceIsRef)
+          PathData.Path.NodeDet(slice,SpeciesNum) = deter[i];
+      }
+      FirstDetTime = 0;
+    }
+  }
 
   gettimeofday(&end, &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
@@ -785,7 +813,7 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - startSlice)/skip;
-        if (((GetMode()==NEWMODE)||FirstTime)||!PathData.Path.UseNodeDist)
+        if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
           dist[i] = HybridDist (slice, lambda*levelTau);
         else
           dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
@@ -811,10 +839,10 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
       double dist1 = dist[i];
       double dist2 = dist[i+1];
-      if (((level==0 && GetMode()==NEWMODE) || FirstTime) && PathData.Path.UseNodeDist) {
+      if (((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.UseNodeDist) {
         PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
         PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
-        FirstTime = 0;
+        FirstDistTime = 0;
       }
       if (!slice1IsRef && (dist1<0.0))
         abort = 1;
@@ -874,7 +902,7 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - slice1)/skip;
-        if (FirstTime||!PathData.Path.UseNodeDist)
+        if (FirstDistTime||!PathData.Path.UseNodeDist)
           dist[i] = HybridDist (slice,lambda*levelTau);
         else
           dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
@@ -900,10 +928,10 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
     bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
     double dist1 = dist[i];
     double dist2 = dist[i+1];
-    if ((level==0 || FirstTime) && PathData.Path.UseNodeDist) {
+    if ((level==0 || FirstDistTime) && PathData.Path.UseNodeDist) {
       PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
       PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
-      FirstTime = 0;
+      FirstDistTime = 0;
     }
     double prod;
     if (slice1IsRef || (dist1==0.0))

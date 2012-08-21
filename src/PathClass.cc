@@ -877,6 +877,10 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
     for (int species=0; species<NumSpecies(); species++)
       NodeDist[OLDMODE](Range(startSlice,endSlice), species) =
         NodeDist[NEWMODE](Range(startSlice,endSlice), species);
+  if (UseNodeDet)
+    for (int species=0; species<NumSpecies(); species++)
+      NodeDet[OLDMODE](Range(startSlice,endSlice), species) =
+        NodeDet[NEWMODE](Range(startSlice,endSlice), species);
 
   if (OpenPaths){
     OpenPtcl.AcceptCopy();
@@ -932,6 +936,10 @@ void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &act
     for (int species=0; species<NumSpecies(); species++)
       NodeDist[NEWMODE](Range(startSlice,endSlice), species) =
         NodeDist[OLDMODE](Range(startSlice,endSlice), species);
+  if (UseNodeDet)
+    for (int species=0; species<NumSpecies(); species++)
+      NodeDet[NEWMODE](Range(startSlice,endSlice), species) =
+        NodeDet[OLDMODE](Range(startSlice,endSlice), species);
 
   if (OpenPaths){
     OpenPtcl.RejectCopy();
@@ -958,6 +966,8 @@ void PathClass::ShiftData(int slicesToShift)
   ShiftPathData(slicesToShift);
   if (UseNodeDist)
     ShiftNodeDist(slicesToShift);
+  if (UseNodeDet)
+    ShiftNodeDet(slicesToShift);
   if (LongRange)
     // ShiftRho_kData(slicesToShift);
     UpdateRho_ks();
@@ -1074,6 +1084,88 @@ void PathClass::ShiftRho_kData(int slicesToShift)
         Rho_k[1](slice,species,ki) = Rho_k[0](slice,species,ki);
 
   // And we're done! 
+}
+
+
+void PathClass::ShiftNodeDet(int slicesToShift)
+{
+  int numProcs=Communicator.NumProcs();
+  int myProc=Communicator.MyProc();
+  int recvProc, sendProc;
+  int numSpecies=NumSpecies();
+  int numSlices=NumTimeSlices();
+  assert(abs(slicesToShift)<numSlices);
+  sendProc=(myProc+1) % numProcs;
+  recvProc=((myProc-1) + numProcs) % numProcs;
+  if (slicesToShift<0){
+    int tempProc=sendProc;
+    sendProc=recvProc;
+    recvProc=tempProc;
+  }
+
+  ///First shifts the data in the A copy left 
+  ///or right by the appropriate amount   
+  if (slicesToShift>0){
+    for (int slice=numSlices-1; slice>=slicesToShift;slice--)
+      for (int species=0;species<numSpecies;species++)
+        NodeDet[NEWMODE](slice,species) = NodeDet[NEWMODE](slice-slicesToShift,species);
+  }
+  else {
+    for (int slice=0; slice<numSlices+slicesToShift;slice++)
+      for (int species=0;species<numSpecies;species++)
+        NodeDet[NEWMODE](slice,species) = NodeDet[NEWMODE](slice-slicesToShift,species);
+  }
+
+  /// Now bundle up the data to send to adjacent processor
+  int bufferSize=abs(slicesToShift)*numSpecies;
+  Array<double,1> sendBuffer(bufferSize), receiveBuffer(bufferSize);
+  int startSlice;
+  int buffIndex=0;
+  if (slicesToShift>0){
+    startSlice=numSlices-slicesToShift;
+    for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+      for (int species=0;species<numSpecies;species++) {
+        ///If shifting forward, don't send the last time slice (so always)
+        ///send slice-1
+        sendBuffer(buffIndex)=NodeDet[OLDMODE](slice-1,species);
+        buffIndex++;
+      }
+    }
+  }
+  else {
+    startSlice=0;
+    for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+      for (int species=0;species<numSpecies;species++) {
+        ///If shifting backward, don't send the first time slice (so always)
+        ///send slice+1
+        sendBuffer(buffIndex)=NodeDet[OLDMODE](slice+1,species);
+        buffIndex++;
+      }
+    }
+  }
+
+  /// Send and receive data to/from neighbors.
+  Communicator.SendReceive(sendProc, sendBuffer,recvProc, receiveBuffer);
+
+  if (slicesToShift>0)
+    startSlice=0;
+  else
+    startSlice=numSlices+slicesToShift;
+
+  /// Copy the data into the A copy
+  buffIndex=0;
+  for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++){
+    for (int species=0;species<numSpecies;species++){
+      NodeDet[NEWMODE](slice,species)=receiveBuffer(buffIndex);
+      buffIndex++;
+    }
+  }
+
+  // Now copy A into B, since A has all the good, shifted data now.
+  for (int slice=0; slice<numSlices; slice++)
+    for (int species=0;species<numSpecies;species++)
+      NodeDet[OLDMODE](slice,species) = NodeDet[NEWMODE](slice,species);
+
 }
 
 
