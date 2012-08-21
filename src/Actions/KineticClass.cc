@@ -28,12 +28,17 @@ void KineticClass::Read(IOSectionClass& in)
 KineticClass::KineticClass(PathDataClass &pathData ) : 
   ActionBaseClass (pathData)
 {
+  TimeSpent = 0.0;
 }
 
 double 
 KineticClass::SingleAction (int slice1, int slice2,
 			    const Array<int,1> &changedParticles, int level)
 {
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
   double TotalK = 0.0;
   int numChangedPtcls = changedParticles.size();
   int skip = 1<<level;
@@ -86,6 +91,10 @@ KineticClass::SingleAction (int slice1, int slice2,
   //    TotalK-=100*PathData.Path.ExistsCoupling*log(0.9);
     //    TotalK+=pow(0.8,100*PathData.Path.ExistsCoupling);
   //  cerr<<"My total K is "<<TotalK<<endl;
+  //
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
   return (TotalK);
 }
 
@@ -95,6 +104,10 @@ KineticClass::SingleActionForcedTau (int slice1, int slice2,
 				     int level,
 				     double forcedTau)
 {
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
   double TotalK = 0.0;
   int numChangedPtcls = changedParticles.size();
   int skip = 1<<level;
@@ -121,6 +134,10 @@ KineticClass::SingleActionForcedTau (int slice1, int slice2,
       }
     }
   }
+
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
   return (TotalK);
 }
 
@@ -130,6 +147,10 @@ double KineticClass::d_dBetaForcedTau (int slice1, int slice2,
 				       int level,
 				       double forcedTau)
 {
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
   double spring=0.0;
   double levelTau=ldexp(forcedTau, level);
   spring  = 0.0;  
@@ -177,6 +198,10 @@ double KineticClass::d_dBetaForcedTau (int slice1, int slice2,
     cerr<<"NAN!"<<endl;
     PathData.Path.PrintRealSlices();
   }
+
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
   return spring;
 }
 
@@ -187,7 +212,9 @@ double KineticClass::d_dBetaForcedTau (int slice1, int slice2,
 double KineticClass::d_dBeta (int slice1, int slice2,
 			      int level)
 {
-
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
 
   double spring=0.0;
   // ldexp(double x, int n) = x*2^n
@@ -252,6 +279,10 @@ double KineticClass::d_dBeta (int slice1, int slice2,
     cerr<<"NAN!"<<endl;
     PathData.Path.PrintRealSlices();
   }
+
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
   return spring;
 }
 

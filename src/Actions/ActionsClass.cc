@@ -155,8 +155,12 @@ void ActionsClass::Read(IOSectionClass &in)
     verr << "Not using RPA for long range action.\n";
 
   ///Reading in information for David long range action
-  if (PathData.Path.DavidLongRange)
+  if (PathData.Path.DavidLongRange) {
     DavidLongRange.ReadYk();
+    DavidLongRangeClassYk2 *lr = (DavidLongRangeClassYk2 *) (&(PathData.Actions.DavidLongRange));
+    ActionList.push_back(lr);
+    ActionLabels.push_back("DavidLongRange");
+  }
 
   if (PathData.Path.OpenPaths)
     OpenLoopImportance.Read(in);
@@ -240,6 +244,9 @@ void ActionsClass::Read(IOSectionClass &in)
       }
     }
 
+    // HACK FOR TIME ANALYSIS, REALLY NEED TO CLEAN THIS UP
+    ActionList.push_back(&Kinetic);
+    ActionLabels.push_back("Kinetic");
     in.CloseSection();
   }
 }
@@ -360,6 +367,7 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
         *(new FreeNodalActionClass (PathData, species));
       nodeAction.Read(in);
       NodalActions(species) = &nodeAction;
+      ActionList.push_back(&nodeAction);
     }
     else if (type == "GROUNDSTATE") {
 //       GroundStateClass &groundState = *new GroundStateClass(PathData);
@@ -400,6 +408,7 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
       SHONodalActionClass *nodeAction = (new SHONodalActionClass (PathData, species));
       nodeAction -> Read(in);
       NodalActions(species) = nodeAction;
+      ActionList.push_back(nodeAction);
     }
 
     // Whether or not to track the nodal distance to save time
@@ -408,11 +417,19 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     if (PathData.Path.UseNodeDist)
       PathData.Path.NodeDist.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
     cout << PathData.Path.CloneStr << " UseNodeDist: " << PathData.Path.UseNodeDist << endl;
+
+    // Whether or not to track the nodal determinants to save time
+    if(!in.ReadVar ("UseNodeDet", PathData.Path.UseNodeDet))
+      PathData.Path.UseNodeDet = false;
+    if (PathData.Path.UseNodeDet)
+      PathData.Path.NodeDet.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
+    cout << PathData.Path.CloneStr << " UseNodeDet: " << PathData.Path.UseNodeDet << endl;
+
+    ActionLabels.push_back(type);
     in.CloseSection();
   }
   verr<<"Ending actions read"<<endl;
 }
-
 
 
 void
