@@ -66,6 +66,14 @@ void PairCorrelationClass::Read(IOSectionClass& in)
   Histogram.resize(numGridPoints-1);
   Histogram=0;
   in.CloseSection();
+
+  HaveRefSlice = ((PathData.Path.Species(Species1).GetParticleType() == FERMION &&
+                   PathData.Actions.NodalActions(Species1) != NULL &&
+                   !PathData.Actions.NodalActions(Species1)->IsGroundState()) ||
+                  (PathData.Path.Species(Species2).GetParticleType() == FERMION &&
+                   PathData.Actions.NodalActions(Species2) != NULL &&
+                   !PathData.Actions.NodalActions(Species2)->IsGroundState()));
+
   /// Now write the one-time output variables
   if (PathData.Path.Communicator.MyProc()==0)
     WriteInfo();
@@ -94,6 +102,7 @@ void PairCorrelationClass::WriteInfo()
   IOSection.WriteVar("Species2", PathData.Species(Species2).Name);
   IOSection.WriteVar("Type","CorrelationFunction");
   IOSection.WriteVar("Cumulative", false);
+  IOSection.WriteVar("HaveRefSlice", HaveRefSlice);
 }
 
 
@@ -105,12 +114,20 @@ void PairCorrelationClass::WriteBlock()
   double norm=0.0;
   int N1 = PathData.Species(Species1).NumParticles;
   int N2 = PathData.Species(Species2).NumParticles;
-  if (Species1==Species2) //Normalizes things when species are same
-    norm = 0.5*(double)TotalCounts * PathData.Path.TotalNumSlices*
-      (double)(N1*(N1-1.0))/PathData.Path.GetVol();
-  else
-    norm = (double)TotalCounts * PathData.Path.TotalNumSlices*
-      (double)(N1*N2)/PathData.Path.GetVol();
+
+  if (HaveRefSlice) {
+    if (Species1==Species2) //Normalizes things when species are same
+      norm = 0.5*(double)TotalCounts * (double)(N1*(N1-1.0))/PathData.Path.GetVol();
+    else
+      norm = (double)TotalCounts * (double)(N1*N2)/PathData.Path.GetVol();
+  } else {
+    if (Species1==Species2) //Normalizes things when species are same
+     norm = 0.5*(double)TotalCounts * PathData.Path.TotalNumSlices*
+       (double)(N1*(N1-1.0))/PathData.Path.GetVol();
+   else
+     norm = (double)TotalCounts * PathData.Path.TotalNumSlices*
+       (double)(N1*N2)/PathData.Path.GetVol();
+  }
 
   Path.Communicator.Sum(Histogram, HistSum);
   Array<double,1> gofrArray(HistSum.size());
@@ -124,10 +141,10 @@ void PairCorrelationClass::WriteBlock()
 #if NDIM==2
     double binVol = M_PI * (r2*r2-r1*r1);
 #endif
-		//////////////////////////
-		// This line does not normalize by volume for a dimer, e.g. -jg
+                //////////////////////////
+                // This line does not normalize by volume for a dimer, e.g. -jg
     //gofrArray(i) = (double) HistSum(i) / (norm);
-		//////////////////////////
+                //////////////////////////
     gofrArray(i) = (double) HistSum(i) / (binVol*norm);
   }
   gofrVar.Write(gofrArray);
@@ -164,9 +181,9 @@ void PairCorrelationClass::Accumulate()
 //     if (!PathData.Path.NowOpen){
 //       int numP=0;
 //       for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++)
-// 	if (PathData.Path.IsFull(ptcl)){
-// 	  numP++;
-// 	}
+//      if (PathData.Path.IsFull(ptcl)){
+//        numP++;
+//      }
 //       Histogram(numP)=Histogram(numP)+1;
       
       
@@ -176,49 +193,83 @@ void PairCorrelationClass::Accumulate()
 //     if (TotalCounts!=0){
 //       cerr<<"OBSERVE: ";
 //       for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++){
-// 	cerr<<Histogram(ptcl)/(double)TotalCounts<<" ";
+//      cerr<<Histogram(ptcl)/(double)TotalCounts<<" ";
 //       }
 //       cerr<<endl;
 //       cerr<<"OBS Perm: "<<PathData.Path.Permutation(0)<<" "
-// 	  <<PathData.Path.Permutation(1)<<" "
-// 	  <<PathData.Path.Permutation(2)<<" "
-// 	  <<numP<<endl;
+//        <<PathData.Path.Permutation(1)<<" "
+//        <<PathData.Path.Permutation(2)<<" "
+//        <<numP<<endl;
       
 //     }
 //     }
 //     return;
-    TotalCounts++;
+  TotalCounts++;
+  if (HaveRefSlice) {
+    int myProc = PathData.Path.Communicator.MyProc();
+    int procWithRefSlice = PathData.Path.SliceOwner (PathData.Path.RefSlice);
+    if (procWithRefSlice == myProc) {
+      /// Note:  Pair Correlation only defined on reference slice
+      int firstSlice, lastSlice;
+      Path.SliceRange (myProc, firstSlice, lastSlice);
+      int localRef = Path.GetRefSlice() - firstSlice;
+      if (Species1==Species2) {
+        for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
+          for (int ptcl2=ptcl1+1;ptcl2<=species1.LastPtcl;ptcl2++) {
+            dVec disp;
+            double dist;
+            PathData.Path.DistDisp(localRef,ptcl1,ptcl2,dist,disp);
+            if (dist<grid.End) {
+              int index=grid.ReverseMap(dist);
+              Histogram(index)++;
+            }
+          }
+      } else {
+        for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
+          for (int ptcl2=species2.FirstPtcl;ptcl2<=species2.LastPtcl;ptcl2++){
+            //  if (PathData.Path.MolRef(ptcl1)!=PathData.Path.MolRef(ptcl2)){
+            dVec disp;
+            double dist;
+            PathData.Path.DistDisp(localRef,ptcl1,ptcl2,dist,disp);
+            if (dist<grid.End) {
+              int index=grid.ReverseMap(dist);
+              Histogram(index)++;
+            }
+          }
+      }
+    }
+  } else {
     if (Species1==Species2) {
-    /// Note:  we make sure we don't count that last times slice
-    /// we have.  This prevents double counting "shared" slices.
-    for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) 
-      for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
-	for (int ptcl2=ptcl1+1;ptcl2<=species1.LastPtcl;ptcl2++) {
-	  // if (PathData.Path.MolRef(ptcl1)!=PathData.Path.MolRef(ptcl2)){
-	  dVec disp;
-	  double dist;
-	  PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
-	  if (dist<grid.End) {
-	    int index=grid.ReverseMap(dist);
-	    Histogram(index)++;
-	  } 
-        }
-  }
-  else {
-    /// Note:  we make sure we don't count that last times slice
-    /// we have.  This prevents double counting "shared" slices.
-    for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) 
-      for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
-	for (int ptcl2=species2.FirstPtcl;ptcl2<=species2.LastPtcl;ptcl2++){
-	  //  if (PathData.Path.MolRef(ptcl1)!=PathData.Path.MolRef(ptcl2)){
-	  dVec disp;
-	  double dist;
-	  PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
-	  if (dist<grid.End) {
-	    int index=grid.ReverseMap(dist);
-	    Histogram(index)++;
-	  }
-	}
+      /// Note:  we make sure we don't count that last times slice
+      /// we have.  This prevents double counting "shared" slices.
+      for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++)
+        for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
+          for (int ptcl2=ptcl1+1;ptcl2<=species1.LastPtcl;ptcl2++) {
+            // if (PathData.Path.MolRef(ptcl1)!=PathData.Path.MolRef(ptcl2)){
+            dVec disp;
+            double dist;
+            PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
+            if (dist<grid.End) {
+              int index=grid.ReverseMap(dist);
+              Histogram(index)++;
+            }
+          }
+    } else {
+      /// Note:  we make sure we don't count that last times slice
+      /// we have.  This prevents double counting "shared" slices.
+      for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) 
+        for (int ptcl1=species1.FirstPtcl;ptcl1<=species1.LastPtcl;ptcl1++)
+          for (int ptcl2=species2.FirstPtcl;ptcl2<=species2.LastPtcl;ptcl2++){
+            //  if (PathData.Path.MolRef(ptcl1)!=PathData.Path.MolRef(ptcl2)){
+            dVec disp;
+            double dist;
+            PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
+            if (dist<grid.End) {
+              int index=grid.ReverseMap(dist);
+              Histogram(index)++;
+            }
+          }
+    }
   }
 }
 
@@ -283,6 +334,7 @@ void nofrClass::Read(IOSectionClass& in)
   Histogram.resize(numGridPoints-1);
   Histogram=0;
   in.CloseSection();
+
 }
 
 ///Writes the data relevant for this classes output including its
@@ -340,7 +392,7 @@ void nofrClass::WriteBlock()
 #if NDIM==2
       double binVol = M_PI * (r2*r2-r1*r1);
 #endif
-      //////////////////////////
+      ////////////////)/////////
       // This line does not normalize by volume for a dimer, e.g. -jg
       // nofrArray(i) = (double) HistSum(i) / (norm);
       //////////////////////////
@@ -388,7 +440,7 @@ void nofrClass::Accumulate()
     int openLink=(int)(PathData.Path.OpenLink);
     int openPtcl=(int)(PathData.Path.OpenPtcl);
     PathData.Path.DistDisp(openLink,openPtcl,PathData.Path.NumParticles(),
-    			   dist2,disp); //This is distance between head and tail!
+                           dist2,disp); //This is distance between head and tail!
     cerr<<"DIST IS "<<dist2<<endl;
   int numLinks=PathData.Path.NumTimeSlices()-1;
   disp=0.0;
@@ -429,20 +481,20 @@ void nofrClass::Accumulate()
     if (dist<grid.End){
       int index=grid.ReverseMap(dist);
       //      if (PathData.Actions.OpenLoopImportance.ImpChoice==DISPXIMP){
-      //	int myProc=PathData.GetCloneNum();
-      //	double shift=(myProc % 16)+0.5;
-      //	Histogram(index)=Histogram(index)+exp(-(disp(0)-shift)*(disp(0)-shift));
+      //        int myProc=PathData.GetCloneNum();
+      //        double shift=(myProc % 16)+0.5;
+      //        Histogram(index)=Histogram(index)+exp(-(disp(0)-shift)*(disp(0)-shift));
       //      }
       //      else {
-	//    Histogram(index)=Histogram(index)+(0.5)/(dist*dist)+(0.9*exp(-dist*dist)+0.1);
-	Histogram(index)=Histogram(index)+1.0;
-	//   }
+        //    Histogram(index)=Histogram(index)+(0.5)/(dist*dist)+(0.9*exp(-dist*dist)+0.1);
+        Histogram(index)=Histogram(index)+1.0;
+        //   }
     //      if (disp(0)<grid.End && disp(1)<grid.End && disp(2)<grid.End){
-    //	int index0=grid.ReverseMap(disp(0));
-    //	int index1=grid.ReverseMap(disp(1));
-    //	int index2=grid.ReverseMap(disp(2));
-	//\\      Histogram3d(index0,index1,index2)=Histogram3d(index0,index1,index2)+1.0;
-	//      }
+    //  int index0=grid.ReverseMap(disp(0));
+    //  int index1=grid.ReverseMap(disp(1));
+    //  int index2=grid.ReverseMap(disp(2));
+        //\\      Histogram3d(index0,index1,index2)=Histogram3d(index0,index1,index2)+1.0;
+        //      }
     }
     TotalCounts++;  
   }

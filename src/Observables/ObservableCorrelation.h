@@ -31,6 +31,7 @@ private:
   int TimesCalled;
   int Freq;
   int DumpFreq;
+  bool HaveRefSlice;
 public:
   /// The species between which I am calculating the pair correlation
   /// function.

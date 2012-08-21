@@ -46,8 +46,6 @@ void StructureFactorClass::Read(IOSectionClass& in)
 
   TotalCounts=0;
 
-  
-
   //These are kVecs that wouldn't be calculated given the kcutoff
   Array<double,2> tempkvecs;
   Array<double,1> kMagRange;
@@ -56,7 +54,7 @@ void StructureFactorClass::Read(IOSectionClass& in)
     Additionalkvecs.resize(tempkvecs.extent(0));
     for (int kvec=0;kvec<tempkvecs.extent(0);kvec++)
       for (int dim=0;dim<NDIM;dim++){
-	Additionalkvecs(kvec)[dim]=tempkvecs(kvec,dim);
+        Additionalkvecs(kvec)[dim]=tempkvecs(kvec,dim);
       }
   }
   else if (in.ReadVar("kMagRange",kMagRange)){
@@ -68,18 +66,18 @@ void StructureFactorClass::Read(IOSectionClass& in)
     cerr<<"Maxes are "<<maxI<<" "<<maxJ<<endl;
     for (int i=0;i<maxI;i++)
       for (int j=0;j<maxJ;j++){
-	double kmag=sqrt(
-			 (2*i*M_PI/PathData.Path.GetBox()[0])*
-			 (2*i*M_PI/PathData.Path.GetBox()[0])+
-			 (2*j*M_PI/PathData.Path.GetBox()[1])*
-			 (2*j*M_PI/PathData.Path.GetBox()[1]));
-	//	cerr<<kMagRange(0)<<" "<<kmag<<" "<<kMagRange(1)<<" "<<i<<" "<<j<<endl;
-	if (kMagRange(0)<kmag && kmag<kMagRange(1)){
-	  dVec kVec((2*i*M_PI/PathData.Path.GetBox()[0]),(2*j*M_PI/PathData.Path.GetBox()[1]));
-	  tempkvecs_vec.push_back(kVec);
-	  kVec[0]=-kVec[0];
-	  tempkvecs_vec.push_back(kVec);
-	}
+        double kmag=sqrt(
+                         (2*i*M_PI/PathData.Path.GetBox()[0])*
+                         (2*i*M_PI/PathData.Path.GetBox()[0])+
+                         (2*j*M_PI/PathData.Path.GetBox()[1])*
+                         (2*j*M_PI/PathData.Path.GetBox()[1]));
+        //      cerr<<kMagRange(0)<<" "<<kmag<<" "<<kMagRange(1)<<" "<<i<<" "<<j<<endl;
+        if (kMagRange(0)<kmag && kmag<kMagRange(1)){
+          dVec kVec((2*i*M_PI/PathData.Path.GetBox()[0]),(2*j*M_PI/PathData.Path.GetBox()[1]));
+          tempkvecs_vec.push_back(kVec);
+          kVec[0]=-kVec[0];
+          tempkvecs_vec.push_back(kVec);
+        }
       }
     Additionalkvecs.resize(tempkvecs_vec.size());
     //    cerr<<"Additional kvecs are "<<endl;
@@ -89,9 +87,9 @@ void StructureFactorClass::Read(IOSectionClass& in)
     }
     cerr<<"done"<<endl;
 #else
-	cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
+        cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
 #endif
-  }	  
+  }       
   else{
     Additionalkvecs.resize(0);
   }
@@ -112,7 +110,13 @@ void StructureFactorClass::Read(IOSectionClass& in)
 #endif
     PathData.Path.Rho_k.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies(), PathData.Path.kVecs.size());
   }
-  
+
+  HaveRefSlice = ((PathData.Path.Species(Species1).GetParticleType() == FERMION &&
+                   PathData.Actions.NodalActions(Species1) != NULL &&
+                   !PathData.Actions.NodalActions(Species1)->IsGroundState()) ||
+                  (PathData.Path.Species(Species2).GetParticleType() == FERMION &&
+                   PathData.Actions.NodalActions(Species2) != NULL &&
+                   !PathData.Actions.NodalActions(Species2)->IsGroundState()));
 
   Sk.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
   rho_k_real.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
@@ -163,7 +167,10 @@ void StructureFactorClass::WriteBlock()
   double norm=0.0;
   int num1 = PathData.Path.Species(Species1).NumParticles;
   int num2 = PathData.Path.Species(Species1).NumParticles;
-  norm = PathData.Path.TotalNumSlices*TotalCounts * sqrt((double)num1*num2);
+  if (HaveRefSlice)
+    norm = TotalCounts * sqrt((double)num1*num2);
+  else
+    norm = PathData.Path.TotalNumSlices*TotalCounts * sqrt((double)num1*num2);
   SkMaxVar.Write(SkMax);
 
   Array<double,1> rho_k_realSum(kVecs.size()+Additionalkvecs.size());
@@ -205,67 +212,114 @@ void StructureFactorClass::WriteBlock()
 
 void StructureFactorClass::Accumulate()
 {
-   Array<dVec,1> &kVecs = PathData.Path.kVecs;
-   //  cerr<<"I have been told to accumulate"<<endl;
-   SpeciesClass &species1=PathData.Path.Species(Species1);
-   SpeciesClass &species2=PathData.Path.Species(Species2);
+  Array<dVec,1> &kVecs = PathData.Path.kVecs;
+  //  cerr<<"I have been told to accumulate"<<endl;
+  SpeciesClass &species1=PathData.Path.Species(Species1);
+  SpeciesClass &species2=PathData.Path.Species(Species2);
 
+  TotalCounts++;
+  if (HaveRefSlice) {
+    int myProc = PathData.Path.Communicator.MyProc();
+    int procWithRefSlice = PathData.Path.SliceOwner (PathData.Path.RefSlice);
+    if (procWithRefSlice == myProc) {
+      /// Note:  Pair Correlation only defined on reference slice
+      int firstSlice, lastSlice;
+      Path.SliceRange (myProc, firstSlice, lastSlice);
+      int slice = Path.GetRefSlice() - firstSlice; // localRef
 
-   if (!PathData.Path.LongRange) {
-     for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
-       PathData.Path.CalcRho_ks_Fast(slice, Species1);
-     if (Species2 != Species1)
-       for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
- 	PathData.Path.CalcRho_ks_Fast(slice, Species2);
-   }
-   if (Additionalkvecs.extent(0)!=0){
-     assert(Species1==Species2);
-     for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++)
-       PathData.Path.CalcRho_ks_Slow(slice,Species1,
- 				    Additionalkvecs,
- 				    AdditionalRho_k);
-   }
-   TotalCounts++;
-   for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
-     multimap<double,double > kList;
-     for (int ki=0; ki<kVecs.size(); ki++) {
-       double a = PathData.Path.Rho_k(slice, Species1, ki).real();
-       double b = PathData.Path.Rho_k(slice, Species1, ki).imag();
-       double c = PathData.Path.Rho_k(slice, Species2, ki).real();
-       double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
-       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-       double sk=a*c+b*d;
-       rho_k_real(ki)+=a;
-       rho_k_imag(ki)+=b;
-       if (sk>SkMax){
- 	SkMax=sk;
- 	MaxkVec=kVecs(ki);
-       }
-       double kMag=sqrt(kVecs(ki)[0]*kVecs(ki)[0]+kVecs(ki)[1]*kVecs(ki)[1]);
-       kList.insert(pair<double,double> (kMag,sk));
- 		   //      cerr<<slice<<" "<<ki<<" "<<sk<<endl;
-       Sk(ki) += sk;
-     }
-     for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
-       int kk=ki-kVecs.size();
-       double a = (AdditionalRho_k(slice, Species1, kk)).real();
-       double b = AdditionalRho_k(slice, Species1, kk).imag();
-       double c = AdditionalRho_k(slice, Species2, kk).real();
-       double d = AdditionalRho_k(slice, Species2, kk).imag();
+      if (!PathData.Path.LongRange) {
+        PathData.Path.CalcRho_ks_Fast(slice, Species1);
+        if (Species2 != Species1)
+          PathData.Path.CalcRho_ks_Fast(slice, Species2);
+      }
+      if (Additionalkvecs.extent(0)!=0){
+        assert(Species1==Species2);
+        PathData.Path.CalcRho_ks_Slow(slice,Species1,Additionalkvecs,AdditionalRho_k);
+      }
+      multimap<double,double > kList;
+      for (int ki=0; ki<kVecs.size(); ki++) {
+        double a = PathData.Path.Rho_k(slice, Species1, ki).real();
+        double b = PathData.Path.Rho_k(slice, Species1, ki).imag();
+        double c = PathData.Path.Rho_k(slice, Species2, ki).real();
+        double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
+        // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+        double sk=a*c+b*d;
+        rho_k_real(ki)+=a;
+        rho_k_imag(ki)+=b;
+        if (sk>SkMax){
+         SkMax=sk;
+         MaxkVec=kVecs(ki);
+        }
+        double kMag=sqrt(kVecs(ki)[0]*kVecs(ki)[0]+kVecs(ki)[1]*kVecs(ki)[1]);
+        kList.insert(pair<double,double> (kMag,sk));
+                    //      cerr<<slice<<" "<<ki<<" "<<sk<<endl;
+        Sk(ki) += sk;
+      }
+      for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
+        int kk=ki-kVecs.size();
+        double a = (AdditionalRho_k(slice, Species1, kk)).real();
+        double b = AdditionalRho_k(slice, Species1, kk).imag();
+        double c = AdditionalRho_k(slice, Species2, kk).real();
+        double d = AdditionalRho_k(slice, Species2, kk).imag();
+        // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+        double sk=a*c+b*d;
+        Sk(ki) += sk;
+        rho_k_real(ki)+=a;
+        rho_k_imag(ki)+=b;
+      }
+    } else {
+      if (!PathData.Path.LongRange) {
+        for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
+          PathData.Path.CalcRho_ks_Fast(slice, Species1);
+        if (Species2 != Species1)
+          for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
+            PathData.Path.CalcRho_ks_Fast(slice, Species2);
+      }
+      if (Additionalkvecs.extent(0)!=0){
+        assert(Species1==Species2);
+        for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++)
+          PathData.Path.CalcRho_ks_Slow(slice,Species1,Additionalkvecs,AdditionalRho_k);
+      }
+      for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
+        multimap<double,double > kList;
+        for (int ki=0; ki<kVecs.size(); ki++) {
+          double a = PathData.Path.Rho_k(slice, Species1, ki).real();
+          double b = PathData.Path.Rho_k(slice, Species1, ki).imag();
+          double c = PathData.Path.Rho_k(slice, Species2, ki).real();
+          double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
+          // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+          double sk=a*c+b*d;
+          rho_k_real(ki)+=a;
+          rho_k_imag(ki)+=b;
+          if (sk>SkMax){
+           SkMax=sk;
+           MaxkVec=kVecs(ki);
+          }
+          double kMag=sqrt(kVecs(ki)[0]*kVecs(ki)[0]+kVecs(ki)[1]*kVecs(ki)[1]);
+          kList.insert(pair<double,double> (kMag,sk));
+                      //      cerr<<slice<<" "<<ki<<" "<<sk<<endl;
+          Sk(ki) += sk;
+        }
+        for (int ki=kVecs.size();ki<kVecs.size()+Additionalkvecs.size();ki++){
+          int kk=ki-kVecs.size();
+          double a = (AdditionalRho_k(slice, Species1, kk)).real();
+          double b = AdditionalRho_k(slice, Species1, kk).imag();
+          double c = AdditionalRho_k(slice, Species2, kk).real();
+          double d = AdditionalRho_k(slice, Species2, kk).imag();
 
-       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-       double sk=a*c+b*d;
-       Sk(ki) += sk;
-       rho_k_real(ki)+=a;
-       rho_k_imag(ki)+=b;
+          // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
+          double sk=a*c+b*d;
+          Sk(ki) += sk;
+          rho_k_real(ki)+=a;
+          rho_k_imag(ki)+=b;
 
-     }
- //     for (multimap<double,double  >::iterator iter=kList.begin();
- // 	 iter!=kList.end();iter++)
- //       cerr<<(*iter).first<<" "<<(*iter).second<<endl;
-    
-   }
+        }
+      }
+    }
+  }
 }
+
+
 void StructureFactorClass::Clear()
 {
   Sk=0;
@@ -274,6 +328,7 @@ void StructureFactorClass::Clear()
 
   TotalCounts=0;
 }
+
 
 void StructureFactorClass::Calculate()
 {
@@ -284,7 +339,7 @@ void StructureFactorClass::Calculate()
       PathData.Path.CalcRho_ks_Fast(slice, Species1);
     if (Species2 != Species1)
       for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
-	PathData.Path.CalcRho_ks_Fast(slice, Species2);
+        PathData.Path.CalcRho_ks_Fast(slice, Species2);
   }
 
   for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
@@ -294,11 +349,10 @@ void StructureFactorClass::Calculate()
       double c = PathData.Path.Rho_k(slice, Species2, ki).real();
       double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-      Sk(ki) += a*c + b*d;	
+      Sk(ki) += a*c + b*d;      
     }
   }
 
-  
 }
 void StructureFactorClass::Initialize()
 {
@@ -306,7 +360,6 @@ void StructureFactorClass::Initialize()
   TimesCalled=0;
   SkMax=0;
   MaxkVec=0;
-  
 
 }
 
