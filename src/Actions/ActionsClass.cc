@@ -475,24 +475,23 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
     dULong = DavidLongRange.d_dBeta(0,M,0);
     vLong = DavidLongRange.V(0,M,0);
   }
+
+  for (int slice=0; slice <= M; slice++) {
+    double factor = ((slice==0)||(slice==M)) ? 0.5 : 1.0;
+    vShort += factor * ShortRangePot.V(slice);
+    if (doLongRange&&!PathData.Path.DavidLongRange)
+      vLong  += factor * LongRangePot.V(slice);
+  }
+
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
     if (NodalActions(species) != NULL)
       node += NodalActions(species)->d_dBeta(0, M, 0);
 
-
-//   ///HACK! BUG! Removing V  
-//   for (int slice=0; slice <= M; slice++) {
-//     double factor = ((slice==0)||(slice==M)) ? 0.5 : 1.0;
-//     vShort += factor * ShortRangePot.V(slice);
-//     if (doLongRange)
-//       vLong  += factor *  LongRangePot.V(slice);
- 
-//   }
-//   if (UseNonlocal)
-//     duNonlocal = Nonlocal.d_dBeta(0,M,0);
-//   else
-    duNonlocal = 0.0;
+  //if (UseNonlocal)
+  //  duNonlocal = Nonlocal.d_dBeta(0,M,0);
+  //else
+  //  duNonlocal = 0.0;
   //Energies["kinetic"] = kinetic;
   //Energies["dUShort"] = dUShort;
   //Energies["dULong"] = dULong;

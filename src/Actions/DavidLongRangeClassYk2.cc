@@ -265,14 +265,9 @@ double DavidLongRangeClassYk2::d_dBeta (int slice1, int slice2,  int level)
       for (int species2=0; species2<Path.NumSpecies(); species2++) {
         Path.CalcRho_ks_Fast(slice,species2);
         for (int ki=0; ki<Path.kVecs.size(); ki++) {
-          //      double rhok2 = mag2(Path.Rho_k(slice,species,ki));
-            double rhok2 = Path.Rho_k(slice,species,ki).real()*Path.Rho_k(slice,species2,ki).real()+
-              Path.Rho_k(slice,species,ki).imag()*Path.Rho_k(slice,species2,ki).imag();
-            //      assert(ki<duk.extent(1));
-            //      cerr<<"ANS: "<<species<<" "<<species2<<" "<<ki<<" "<<duk(PairIndex(species,species2), ki)<<" "<< factor*rhok2 * duk(PairIndex(species,species2), ki)<<endl;
-          sliceTotal +=  factor*rhok2 * duk(PairIndex(species,species2), ki);
-          //      if (sliceTotal>10)
-          //        exit(1);
+          double rhok2 = Path.Rho_k(slice,species,ki).real()*Path.Rho_k(slice,species2,ki).real()+
+            Path.Rho_k(slice,species,ki).imag()*Path.Rho_k(slice,species2,ki).imag();
+          sliceTotal += factor*rhok2 * duk(PairIndex(species,species2), ki);
         }
       }
     }
@@ -296,9 +291,13 @@ double DavidLongRangeClassYk2::V (int slice1, int slice2,  int level)
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
       Path.CalcRho_ks_Fast(slice,species);
-      for (int ki=0; ki<Path.kVecs.size(); ki++) {
-        double rhok2 = mag2(Path.Rho_k(slice,species,ki));
-        sliceTotal +=  factor*rhok2 * Vlong_k(species, ki);
+      for (int species2=0; species2<Path.NumSpecies(); species2++) {
+        Path.CalcRho_ks_Fast(slice,species2);
+        for (int ki=0; ki<Path.kVecs.size(); ki++) {
+          double rhok2 = Path.Rho_k(slice,species,ki).real()*Path.Rho_k(slice,species2,ki).real()+
+            Path.Rho_k(slice,species,ki).imag()*Path.Rho_k(slice,species2,ki).imag();
+          sliceTotal +=  factor*rhok2 * Vlong_k(PairIndex(species,species2), ki);
+        }
       }
     }
     total += sliceTotal;
