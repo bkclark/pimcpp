@@ -312,6 +312,10 @@ void PathClass::Read (IOSectionClass &inSection)
     abort();
   }
 
+  // Default to false
+  UseNodeDist = false;
+  UseNodeDet = false;
+
 }
 
 
