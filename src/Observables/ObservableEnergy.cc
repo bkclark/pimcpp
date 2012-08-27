@@ -62,6 +62,7 @@ void EnergyClass::Accumulate()
     GetPermInfo(ThisPerm,PermSector,PermNumber);
     if (Path.Communicator.MyProc() == 0) {
       PermEnergy(PermSector) += localSum;
+      PermHist(PermSector) += 1;
       EnergyVals(PermNumber) += localSum;
     }
   }
@@ -133,9 +134,14 @@ void EnergyClass::WriteBlock()
   if (CountPerms) {
     EnergyVals = Prefactor * EnergyVals * norm;
     EnergyValsVar.Write(EnergyVals);
-    for (int i = 0; i < PermEnergy.size(); i++)
-      PermEnergy(i) = Prefactor * PathData.Path.Communicator.Sum(PermEnergy(i) * norm);
+    for (int i = 0; i < PermEnergy.size(); i++) {
+      PermEnergy(i) = Prefactor * PathData.Path.Communicator.Sum(PermEnergy(i) / ((double)nslices*(double)PermHist(i)));
+      PermHist(i) = Prefactor * PathData.Path.Communicator.Sum(PermHist(i) / (double)NumSamples);
+    }
     PermEnergyVar.Write(PermEnergy);
+    //PermHistVar.Write(PermHist); May want to do this later
+    PermEnergy = 0.0;
+    PermHist = 0;
   }
 
   // Energy Histogram
@@ -188,6 +194,8 @@ void EnergyClass::Read(IOSectionClass & in)
     SetupPermSectors(N,MaxNSectors);
     PermEnergy.resize(PossPerms.size());
     PermEnergy = 0.0;
+    PermHist.resize(PossPerms.size());
+    PermHist = 0;
     EnergyVals.resize(N*2);
     EnergyVals = 0.0;
     int PermSector, PermNumber;
