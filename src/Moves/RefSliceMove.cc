@@ -280,7 +280,7 @@ void RefSliceMoveClass::MakeMove()
     //cout<<"MakeMoveSlave();"<<endl;
     MakeMoveSlave();
   }
-  if ((NodeAccept+NodeReject) % 1000 == 999)
-    fprintf (stderr, "Node accept ratio = %5.3f\n", (double)NodeAccept/(double)(NodeAccept+NodeReject));
+  if ((NodeAccept+NodeReject) % 10000 == 9999)
+    cout << PathData.Path.CloneStr <<  " Node accept ratio = " << (double)NodeAccept/(double)(NodeAccept+NodeReject);
   //cerr<<"Finished RefSlice move."<<endl;
 }

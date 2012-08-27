@@ -262,9 +262,9 @@ void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &g
   // Check if singular
   if (det == 0.0 || isnan(det)) {
     if (((nSingular)%100000) == 99999) {
-      cerr << "Num Singular Matrices = " << nSingular << endl;
+      cerr << "Warning: Num Singular Matrices = " << nSingular << endl;
     }
-    // cerr << "Singular Matrix at slice: " << slice << endl;
+    cerr << "Warning: Singular Matrix at slice: " << slice << endl;
     nSingular++;
     det = -1.0;
     gradient(0)[0] = sqrt(-1.0);
