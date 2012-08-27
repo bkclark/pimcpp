@@ -277,6 +277,7 @@ src/IO/InputOutputASCII.cc
 src/Observables/SpecificHeatA.cc
 src/IO/InputOutputHDF5.cc
 src/Observables/StructureFactor.cc
+src/Observables/RefStructureFactor.cc
 src/InitPaths.cc
 src/Observables/SuperfluiDrop.cc
 src/LoopClass.cc

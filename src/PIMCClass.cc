@@ -271,6 +271,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new StructureFactorClass(PathData,OutFile);
     else if (observeType=="DynamicStructureFactor")
       tempObs = new DynamicStructureFactorClass(PathData,OutFile);
+    else if (observeType=="RefStructureFactor")
+      tempObs = new RefStructureFactorClass(PathData,OutFile);
     else if (observeType=="Weight")
       tempObs = new WeightClass(PathData,OutFile);
     else if (observeType=="Forces")

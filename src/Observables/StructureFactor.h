@@ -30,7 +30,6 @@ class StructureFactorClass : public ObservableClass
   int TimesCalled;
   int Freq;
   int DumpFreq;
-  bool HaveRefSlice;
 public:
   int TotalCounts;
   ObservableDouble SkMaxVar;
