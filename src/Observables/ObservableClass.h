@@ -29,6 +29,7 @@
 #include "HBond.h"
 #include "JosephsonPathDump.h"
 #include "ObservableCorrelation.h"
+#include "ObservableRefCorrelation.h"
 #include "ObservableDiffusion.h"
 #include "ObservableEnergy.h"
 #include "OpenOrientation.h"

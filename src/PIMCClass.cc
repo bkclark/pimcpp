@@ -200,14 +200,16 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
     if (iAmRoot)
       OutFile.NewSection(observeType);
     ObservableClass* tempObs;
-    if (observeType=="PairCorrelation") 
-	tempObs = new PairCorrelationClass(PathData,OutFile);
+    if (observeType=="PairCorrelation")
+      tempObs = new PairCorrelationClass(PathData,OutFile);
+    else if (observeType=="RefPairCorrelation")
+      tempObs = new RefPairCorrelationClass(PathData,OutFile);
     else if (observeType=="nofr")
-      tempObs=new nofrClass(PathData,OutFile);
+      tempObs = new nofrClass(PathData,OutFile);
     else if (observeType=="PlaneDensity")
-      tempObs=new PlaneDensityClass(PathData,OutFile);
+      tempObs = new PlaneDensityClass(PathData,OutFile);
     else if (observeType=="ParticleAverageLoc")
-      tempObs= new ParticleAverageLocClass(PathData,OutFile);
+      tempObs = new ParticleAverageLocClass(PathData,OutFile);
     else if (observeType=="DropletSuperfluidity")
       tempObs = new SuperfluiDrop(PathData,OutFile);
     else if (observeType=="SpecificHeatA")
@@ -216,7 +218,7 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new SpecificHeatClass(PathData,OutFile);
     else if (observeType=="SuperfluidFractionPerLayer")
       tempObs = new SuperfluidFractionPerLayerClass(PathData,OutFile); 
-   else if (observeType=="SuperfluidFraction")
+    else if (observeType=="SuperfluidFraction")
       tempObs = new SuperfluidFractionClass(PathData,OutFile);
     else if (observeType=="Sign")
       tempObs = new SignClass(PathData,OutFile);
