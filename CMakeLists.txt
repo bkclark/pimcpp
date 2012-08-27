@@ -250,6 +250,7 @@ src/Actions/TIP5PWaterClass.cc
 src/Observables/ObservableBase.cc
 src/Actions/Tether.cc
 src/Observables/ObservableCorrelation.cc
+src/Observables/ObservableRefCorrelation.cc
 src/Observables/ObservableDiffusion.cc
 src/Observables/ObservableEnergy.cc
 src/Common.cc
