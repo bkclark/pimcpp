@@ -33,16 +33,23 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
     parallelFileRead=true;
   }
   if (parallelFileRead){
+    /// If NumClones > MaxClones, reuse earlier .h5 files to restart
+    int tmpMyClone = MyClone;
+    int MaxClones;
+    if (in.ReadVar("MaxClones",MaxClones))
+      if (MyClone > MaxClones-1)
+        tmpMyClone = MyClone % MaxClones;
+    cout << CloneStr << " " << MaxClones << " " << MyClone << " " << tmpMyClone << endl;
     stringstream tempStream;
     int counter=0;
-    tempStream<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
+    tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
     while (fileExists(tempStream.str())){
       counter++;
       tempStream.str("");
-      tempStream<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
+      tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
     }
     counter--;
-    ///broadcast so everyone agrees on the answer.  
+    ///broadcast so everyone agrees on the answer.
     Communicator.Broadcast(0,counter);
 
     if (counter==-1){
@@ -96,9 +103,9 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
       return;
     }
     ////done broadcasting
-    oss<<fileName<<"."<<counter<<"."<<MyClone<<".h5";
+    oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
     cout<<CloneStr<<" Using "<<oss.str()<<endl;
-    //    oss<<fileName<<"."<<MyClone<<".h5";
+    //    oss<<fileName<<"."<<tmpMyClone<<".h5";
   }
   else{
     oss<<fileName<<"."<<0<<".h5";
