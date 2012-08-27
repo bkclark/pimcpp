@@ -45,6 +45,15 @@ CommunicatorClass::NumProcs()
   return numProcs;
 }
 
+string
+CommunicatorClass::MyHost()
+{
+  int len;
+  char hostname[MPI_MAX_PROCESSOR_NAME];
+  MPI_Get_processor_name(hostname, &len);
+  return hostname;
+}
+
 void 
 CommunicatorClass::Send (void *sendBuf, int count, MPI_Datatype datatype,
 			      int dest, int tag)

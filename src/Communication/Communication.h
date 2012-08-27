@@ -89,6 +89,7 @@ public:
   void SetWorld();
   int MyProc();
   int NumProcs();
+  string MyHost();
   void Send (void *sendBuf, int count, MPI_Datatype datatype,
 	     int dest, int tag);
   void Send (int toProc, blitz::Array<double,1> &buff);
@@ -386,6 +387,11 @@ public:
   inline int NumProcs()
   {
     return 1;
+  }
+
+  inline string MyHost()
+  {
+    return "ThisProc";
   }
 
   inline void Gather (blitz::Array<complex<double>,1> &sendVec, 

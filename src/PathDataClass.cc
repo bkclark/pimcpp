@@ -310,19 +310,17 @@ void PathDataClass::Read (IOSectionClass &in)
   // Setup Inter- and IntraComms
   assert ((N % procsPerClone) == 0);
   NumClones = N / procsPerClone;
-  cout << "N : " << N << ", procPerClone : " << procsPerClone << " " << endl;
+  //cout << "N : " << N << ", procPerClone : " << procsPerClone << " " << endl;
   MyCloneNum = WorldComm.MyProc()/procsPerClone;
   // Create IntraComm
-  ////cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
+  //cout << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
   WorldComm.Split(MyCloneNum, IntraComm);
-  ////cerr << "  initialized IntraComm" << endl;  
-//cerr << "  skipped IntraComm" << endl;  
   Array<int,1> ranks (NumClones);
   for (int clone=0; clone<NumClones; clone++)
     ranks(clone) = clone*procsPerClone;
-  ////cerr << "  ranks is " << ranks << "; going to creat Intercomm." << endl;
+  //cout << "  ranks is " << ranks << "; going to create Intercomm." << endl;
   WorldComm.Subset (ranks, InterComm);
-  ///cerr << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
+  //cout << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
   
   int seed;
   bool haveSeed = in.ReadVar ("Seed", seed);
@@ -347,12 +345,19 @@ void PathDataClass::Read (IOSectionClass &in)
   //cerr << WorldComm.MyProc() << " clone " << Path.MyClone << " " << Seed << endl;
   //BAD BUG!  Path.MyClone=IntraComm.MyProc()/procsPerClone;
   Path.MyClone=WorldComm.MyProc()/procsPerClone;
+  Path.NumClones = NumClones;
 
   // Clone String
   stringstream tempCloneStr;
   tempCloneStr << Path.MyClone << " " << Path.Communicator.MyProc();
   Path.CloneStr = tempCloneStr.str();
 
+  cout  << " N: " << N
+        << ", procsPerClone: " << procsPerClone
+        << ", NumClones: " << NumClones
+        << ", MyCloneNum: " << MyCloneNum
+        << ", MyProc: " << Path.Communicator.MyProc()
+        << ", MyHost: " << Path.Communicator.MyHost() << endl;
 
 #endif
 

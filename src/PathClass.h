@@ -269,7 +269,6 @@ public:
   void PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &initialPoints,
 				double sigmaFactor);
 
-  void SetupClones();
   inline PathClass(CommunicatorClass &communicator,
 		   RandomClass &random,
 		   ActionsClass &actions);
@@ -389,7 +388,7 @@ public:
   ////////////////////////
   MirroredClass<double> ExistsCoupling;
   //CODE FOR SCALING BOX
-  int MyClone;
+  int MyClone, NumClones;
   string CloneStr;
   double ScaleBox;
   //END CODE FOR SCALING BOX
