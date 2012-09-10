@@ -66,14 +66,16 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
   //cout << "Local Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
   if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
     if (toAccept) {
-      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
+      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50) {
         cerr << PathData.Path.CloneStr <<" Broken Local Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
+        toAccept = 0;
+        assert(1==2);
+      } else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50) {
         cerr << PathData.Path.CloneStr << " Broken Local Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " <<  oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      else
-         cerr << PathData.Path.CloneStr <<" Broken Local Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      toAccept = 0;
-      assert(1==2);
+      } else {
+        cerr << PathData.Path.CloneStr <<" Broken Local Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+        toAccept = 0;
+      }
     }
   }
   if (toAccept){
@@ -110,14 +112,16 @@ bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activePa
   //cout << "Common Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
   if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
     if (toAccept) {
-      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50)
+      if (abs(newAction) > 1e50 && abs(oldAction) < 1e50) {
         cerr << PathData.Path.CloneStr <<" Broken Common Staging (new): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50)
+        toAccept = 0;
+        assert(1==2);
+      } else if (abs(oldAction) > 1e50 && abs(newAction) < 1e50) {
         cerr << PathData.Path.CloneStr <<" Broken Common Staging (old): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      else
+      } else {
         cerr << PathData.Path.CloneStr <<" Broken Common Staging (both): " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
-      toAccept = 0;
-      assert(1==2);
+        toAccept = 0;
+      }
     }
   }
 
@@ -138,7 +142,8 @@ double StageClass::StageAction (int startSlice, int endSlice, const Array<int,1>
   while (actionIter != Actions.end()) {
     double TempAction = ((*actionIter) -> Action(startSlice, endSlice, changedParticles, BisectionLevel));
     TotalAction += TempAction;
-    //cerr << (*actionIter) -> GetName() << " " << TempAction << " " << startSlice << " " << endSlice << " " << BisectionLevel << endl;
+    if (GetMode()==OLDMODE && (abs(TempAction) > 1e50))
+      cerr << PathData.Path.CloneStr << " WARNING: " << (*actionIter) -> GetName() << " " << TempAction << " " << startSlice << " " << endSlice << " " << BisectionLevel << endl;
     actionIter++;
   }
   //cerr << "Local Stage Action " << TotalAction << endl;

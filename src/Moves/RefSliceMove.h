@@ -64,6 +64,10 @@ public:
 
   /// Override base class MakeMove to do a block of moves
   void MakeMove();
+  inline double AcceptanceRatio() 
+  {
+    return (double)NodeAccept/(double)(NodeAccept+NodeReject);
+  }
 
   RefSliceMoveClass(PathDataClass &pathData, IOSectionClass &out) : 
     MultiStageClass(pathData, out)

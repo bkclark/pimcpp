@@ -19,8 +19,7 @@
 
 void RefSliceMoveClass::WriteRatio()
 {
-  double ratio = (double)NodeAccept/(double)(NodeAccept+NodeReject);
-  RatioVar.Write(ratio);
+  MultiStageClass::WriteRatio();
 }
 
 void RefSliceMoveClass::Read(IOSectionClass &in)
@@ -104,9 +103,13 @@ bool RefSliceMoveClass::NodeCheck()
 
     // Check if Broken
     if ((abs(newLocalNode) > 1e50 || abs(oldLocalNode) > 1e50) && toAccept) {
-      cout << Path.CloneStr << " Broken NodeCheck!!! " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
-      toAccept = 0;
-      assert(1==2);
+      cerr << Path.CloneStr << " Broken NodeCheck!!! " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
+      if (abs(newLocalNode > 1e50)) {
+        toAccept = 0;
+        assert(1==2);
+      } else {
+        toAccept = 1;
+      }
     }
     //else {
     //  cout << Path.CloneStr << " NodeCheck " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
@@ -188,6 +191,7 @@ void RefSliceMoveClass::MakeMoveMaster()
   }
   // Otherwise, reject the whole move
   else {
+    NodeReject++;
     Reject();
     Path.RefPath.RejectCopy();
     if (Path.UseNodeDist)
@@ -255,6 +259,7 @@ void RefSliceMoveClass::MakeMoveSlave()
       //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   } else {
+    NodeReject++;
     //Reject();
     Path.RefPath.RejectCopy();
     if (Path.UseNodeDist)
