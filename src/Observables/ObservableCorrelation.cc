@@ -65,6 +65,11 @@ void PairCorrelationClass::Read(IOSectionClass& in)
   TotalCounts=0;
   Histogram.resize(numGridPoints-1);
   Histogram=0;
+
+  // Sign Tracking
+  if(!in.ReadVar("TrackSign", TrackSign))
+    TrackSign = 0;
+
   in.CloseSection();
 
   /// Now write the one-time output variables
@@ -164,6 +169,14 @@ void PairCorrelationClass::Accumulate()
   SpeciesClass &species2=PathData.Path.Species(Species2);
 
   TotalCounts++;
+
+  double FullWeight;
+  if (TrackSign) {
+    double currWeight = PathData.Path.Weight;
+    PathData.Path.Communicator.GatherProd(currWeight, FullWeight, 0);
+  } else
+    FullWeight = 1;
+
   if (Species1==Species2) {
     /// Note:  we make sure we don't count that last times slice
     /// we have.  This prevents double counting "shared" slices.
@@ -176,7 +189,10 @@ void PairCorrelationClass::Accumulate()
           PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
           if (dist<grid.End) {
             int index=grid.ReverseMap(dist);
-            Histogram(index)++;
+            if (FullWeight > 0)
+              Histogram(index)++;
+            else
+              Histogram(index)--;
           }
         }
   } else {
@@ -191,7 +207,10 @@ void PairCorrelationClass::Accumulate()
           PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
           if (dist<grid.End) {
             int index=grid.ReverseMap(dist);
-            Histogram(index)++;
+            if (FullWeight > 0)
+              Histogram(index)++;
+            else
+              Histogram(index)--;
           }
         }
   }
