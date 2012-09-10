@@ -40,6 +40,8 @@ class ObservableClass : public EventClass
   void SetupPermSectors(int n, int MaxNSectors=0);
   void GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &PermNumber);
 
+  bool TrackSign;
+
   struct CompareVectors
   {
     inline bool operator() (const vector<int> &a, const vector<int> &b) {
@@ -100,7 +102,7 @@ public:
   /// any ObservableVar classes, we should do with our local IOSection
   /// variable, NOT the reference passed to derived classes.
   ObservableClass(PathDataClass &pathData,IOSectionClass &out) 
-    : EventClass (pathData, out), FirstTime(true), Prefactor(1.0)
+    : EventClass (pathData, out), FirstTime(true), Prefactor(1.0), TrackSign(false)
   {
   }
 
