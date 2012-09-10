@@ -101,8 +101,7 @@ void EnergyClass::WriteBlock()
     for (int i = 0; i < PathData.Actions.PairArray.size(); i++)
       vtail(i) = ((DavidPAClass *) (PathData.Actions.PairArray(i)))->Vimage;
     if (PathData.Path.DavidLongRange) {
-      //      DavidLongRangeClassYk *lr = (DavidLongRangeClassYk*)(PathData.Actions.GetAction("DavidLongRange"));
-      DavidLongRangeClassYk2 *lr = (DavidLongRangeClassYk2 *) (&(PathData.Actions.DavidLongRange));
+      DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
       //longrange_vtail = 0.5 * lr->yk_zero(0) * PathData.Path.NumParticles() / Path.GetVol();
       longrange_vtail = 0.5 * lr->yk_zero(0) * PathData.Path.NumParticles();
     }
@@ -136,6 +135,8 @@ void EnergyClass::WriteBlock()
     EnergyValsVar.Write(EnergyVals);
     for (int i = 0; i < PermEnergy.size(); i++) {
       PermEnergy(i) = Prefactor * PathData.Path.Communicator.Sum(PermEnergy(i) / ((double)nslices*(double)PermHist(i)));
+      if (isnan(PermEnergy(i)))
+        PermEnergy(i) = 0.0;
       PermHist(i) = Prefactor * PathData.Path.Communicator.Sum(PermHist(i) / (double)NumSamples);
     }
     PermEnergyVar.Write(PermEnergy);

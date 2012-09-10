@@ -46,6 +46,7 @@
 // #include "GroundStateNodalActionClass.h"
 
 #include "DavidLongRangeClassYk.h"
+//#include "DavidLongRangeClassYk.h"
 #include "DavidLongRangeClass.h"
 #include "QMCSamplingClass.h"
 #include "OpenLoopImportance.h"
@@ -150,14 +151,21 @@ void ActionsClass::Read(IOSectionClass &in)
   if (!in.ReadVar ("UseRPA", UseRPA))
     UseRPA = false;
   if (UseRPA)
-    verr << "Using RPA for long range action.\n";
+    cout << "Using RPA for long range action.\n";
   else
-    verr << "Not using RPA for long range action.\n";
+    cout << "Not using RPA for long range action.\n";
+
+  if (!in.ReadVar ("UseDavidRPA", UseDavidRPA))
+    UseDavidRPA = false;
+  if (UseDavidRPA)
+    cout << "Using RPA for long range action.\n";
+  else
+    cout << "Not using RPA for long range action.\n";
 
   ///Reading in information for David long range action
   if (PathData.Path.DavidLongRange) {
     DavidLongRange.ReadYk();
-    DavidLongRangeClassYk2 *lr = (DavidLongRangeClassYk2 *) (&(PathData.Actions.DavidLongRange));
+    DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
     ActionList.push_back(lr);
     ActionLabels.push_back("DavidLongRange");
   }

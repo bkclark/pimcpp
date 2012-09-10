@@ -42,7 +42,6 @@
 
 #include "DavidLongRangeClass.h"
 #include "DavidLongRangeClassYk.h"
-#include "DavidLongRangeClassYk2.h"
 //#include "QMCSamplingClass.h"
 //#include "QBoxAction.h"
 #include "OpenLoopImportance.h"
@@ -126,7 +125,7 @@ public:
   LongRangeRPAClass LongRangeRPA;
 
   ///David's Long Range Class
-  DavidLongRangeClassYk2 DavidLongRange;
+  DavidLongRangeClassYk DavidLongRange;
 
 //  // Water-related stuff
 //  MoleculeInteractionsClass MoleculeInteractions;
@@ -162,6 +161,7 @@ public:
   /// Stores whether we use Random Phase Approximation corrections to
   /// the long range action.
   bool UseRPA;
+  bool UseDavidRPA;
 
   /// Stores number of images to sum over for kinetic action and energy.
   int NumImages;
@@ -231,7 +231,7 @@ public:
     DiagonalAction(pathData,PairMatrix),
     LongRange(pathData,PairMatrix,PairArray), 
     //LongRangeCoulomb(pathData,PairMatrix,PairArray), 
-      DavidLongRange(pathData,PairMatrix,PairArray,PairIndex),
+    DavidLongRange(pathData,PairMatrix,PairArray,PairIndex),
     LongRangeRPA(pathData, PairMatrix, PairArray),
     LongRangePot(pathData, PairMatrix),
     OpenLoopImportance(pathData),

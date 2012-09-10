@@ -14,10 +14,11 @@
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
 
-#ifndef DAVID_LONG_RANGE_CLASS_YK_H
-#define DAVID_LONG_RANGE_CLASS_YK_H
+#ifndef DAVID_LONG_RANGE_CLASS_YK2_H
+#define DAVID_LONG_RANGE_CLASS_YK2_H
 
 #include "ActionBase.h"
+
 #include "../PairAction/PAFit.h"
 
 
@@ -33,9 +34,21 @@ class DavidLongRangeClassYk : public ActionBaseClass
 protected:
   Array<PairActionFitClass*,2> &PairMatrix;
   Array<PairActionFitClass*,1> &PairArray;
+  Array<int,2> &PairIndex;
+  Array<double,2> Spec2Index;
  //  LinearGrid LongGrid;
 
 
+  inline double mag2 (const complex<double> &z)
+  {
+    return (z.real()*z.real() + z.imag()*z.imag());
+  }
+
+
+  inline double mag2 (const complex<double> &z1, const complex<double> &z2)
+  {
+    return (z1.real()*z2.real() + z1.imag()*z2.imag());
+  }
   /// This calculates the quantity 
   /// \f$ X_k \equiv -\frac{4\pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
   //  double CalcXk (int paIndex, int level, double k, double rc, JobType type);
@@ -57,17 +70,21 @@ public:
   Array<double,1> yk_zero;
   void Read (IOSectionClass &in);
   void ReadYk();
-  void BuildRPA_SingleType();
+  void BuildRPA_SingleSpecies();
   void Build_MultipleSpecies();
+  void BuildRPA_MultipleSpecies();
   double V(int slice1,int slice2,int level);
 
   double SingleAction (int slice1, int slice2, 
 		       const Array<int,1> &activeParticles, int level);
   double d_dBeta (int slice1, int slice2,  int level);
   string GetName();
+  bool fequals(double a,double b, double tol);
+  bool vecEquals(dVec &a, dVec &b,double tol);
   DavidLongRangeClassYk(PathDataClass &pathData,
 			Array<PairActionFitClass* ,2> &pairMatrix,
-			Array<PairActionFitClass*, 1> &pairArray);
+			 Array<PairActionFitClass*, 1> &pairArray,
+			 Array<int,2> &pairIndex);
 
 };
 

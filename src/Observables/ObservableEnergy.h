@@ -48,7 +48,6 @@ private:
   int TimesCalled;
   int Freq;
   int DumpFreq;
-  bool TrackSign;
   bool CountPerms;
 public:
   void Accumulate();
