@@ -53,25 +53,42 @@ void DisplaceStageClass::Reject()
 double DisplaceStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
 
+  // See if we have any with just identity permutation
+  int N = PathData.Path.NumParticles();
+  Array<int,1> TotalPerm(N), doDisplace(activeParticles.size());
+  PathData.Path.TotalPermutation(TotalPerm);
+  /// Only proc 0 gets TotalPerm
+  doDisplace = 0;
+  if (Path.Communicator.MyProc() == 0) {
+    for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+      int ptcl = activeParticles(ptclIndex);
+      if (TotalPerm(ptcl) == ptcl) // Only displace identity permutations
+        doDisplace(ptclIndex) = 1;
+    }
+  }
+  PathData.Path.Communicator.Broadcast(0, doDisplace);
+
   /// Now, choose a random displacement
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
-    int ptcl = activeParticles(ptclIndex);
-    dVec disp;
-    ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
+    if (doDisplace(ptclIndex)) {
+      int ptcl = activeParticles(ptclIndex);
+      dVec disp;
+      ///    PathData.Path.Random.CommonGaussianVec (Sigma, disp);
 #if NDIM==3
-    disp(0)=PathData.Path.Random.Common()-0.5;
-    disp(1)=PathData.Path.Random.Common()-0.5;
-    disp(2)=PathData.Path.Random.Common()-0.5;
+      disp(0)=PathData.Path.Random.Common()-0.5;
+      disp(1)=PathData.Path.Random.Common()-0.5;
+      disp(2)=PathData.Path.Random.Common()-0.5;
 #endif
 #if NDIM==2
-    disp(0)=PathData.Path.Random.Common()-0.5;
-    disp(1)=PathData.Path.Random.Common()-0.5;
+      disp(0)=PathData.Path.Random.Common()-0.5;
+      disp(1)=PathData.Path.Random.Common()-0.5;
 #endif
-    disp=disp*Sigma;
-    // Actually displace the path
-    SetMode(NEWMODE);
-    for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
-      PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
+      disp=disp*Sigma;
+      // Actually displace the path
+      SetMode(NEWMODE);
+      for (int slice=0; slice<PathData.Path.NumTimeSlices(); slice++)
+        PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) + disp;
+    }
   }
 
   // Broadcast the new reference path to all the other processors
