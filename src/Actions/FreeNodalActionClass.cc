@@ -740,13 +740,13 @@ double FreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const A
     if (!sliceIsRef&&!abort) {
       int i = (slice - startSlice)/skip;
       if (((GetMode()==NEWMODE)||FirstDetTime)||!PathData.Path.UseNodeDet)
-        deter[i] = Det (slice);
+        deter[i] = Det(slice);
       else
         deter[i] = PathData.Path.NodeDet(slice,SpeciesNum);
       if (deter[i] <= 0.0) {
         #pragma omp critical
         {
-          abort = 1;
+            abort = 1;
         }
       }
       //std::cout<<slice<<" "<<deter<<endl;
@@ -839,11 +839,7 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
       double dist1 = dist[i];
       double dist2 = dist[i+1];
-      if (((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.UseNodeDist) {
-        PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
-        PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
-        FirstDistTime = 0;
-      }
+
       if (!slice1IsRef && (dist1<0.0))
         abort = 1;
       else if (!slice2IsRef && (dist2<0.0))
@@ -854,6 +850,11 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
         uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
       else
         uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
+      if (!abort && ((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.UseNodeDist) {
+        PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+        PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+        FirstDistTime = 0;
+      }
     }
   }
 
@@ -910,14 +911,14 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
         if (dist[i] < 0.0) {
           #pragma omp critical
           {
-            cerr << "ERROR: dist = " << dist[i] << " skip = " << skip << " slice2 = " << slice+skip << " refSlice = " << refSlice << " species = " << species.Name << endl;
-            abort = 1;
+            cerr << PathData.Path.CloneStr << " ERROR: dist = " << dist[i] << " skip = " << skip << " slice2 = " << slice+skip << " refSlice = " << refSlice << " species = " << species.Name << endl;
+            dist[i] = 0.0;
           }
         }
       }
     }
   }
-  #pragma omp barrier
+  //#pragma omp barrier
 
   double uNode = 0.0;
   int i = 0;
@@ -928,7 +929,7 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
     bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
     double dist1 = dist[i];
     double dist2 = dist[i+1];
-    if ((level==0 || FirstDistTime) && PathData.Path.UseNodeDist) {
+    if (FirstDistTime && PathData.Path.UseNodeDist) {
       PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
       PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
       FirstDistTime = 0;
@@ -949,7 +950,7 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
           if ((!isnan(prod_llt)) && (exp_m1 != 0.0))
             uNode += prod_llt / (levelTau*exp_m1);
     if (isnan(uNode))
-      cerr << "uNode broken again!\n";
+      cerr << "ERROR: uNode broken again!\n";
     i += 1;
   }
 
