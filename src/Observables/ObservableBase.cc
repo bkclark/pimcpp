@@ -26,18 +26,23 @@
 // }
 
 
-void 
-ObservableClass::WriteInfo()
+void ObservableClass::WriteInfo()
 {
   if (PathData.Path.Communicator.MyProc()==0)
     IOSection.WriteVar("Description",Description);
 }
 
-void 
-ObservableClass::Read(IOSectionClass &in)
+
+void ObservableClass::Read(IOSectionClass &in)
 {
   in.ReadVar("Prefactor", Prefactor);
-  assert(in.ReadVar("Frequency",Frequency));
+  if (in.ReadVar("TemporalFrequency",TemporalFrequency)) {
+    gettimeofday(&starttime, &tzone);
+    Frequency = -1; // Probably a better way
+  } else {
+    assert(in.ReadVar("Frequency",Frequency));
+    TemporalFrequency = -1;
+  }
   assert(in.ReadVar("Name",Name));
   if(!(in.ReadVar("Description",Description))){
     Description="No description available";
@@ -45,17 +50,20 @@ ObservableClass::Read(IOSectionClass &in)
 }
 
 
-void 
-ObservableClass::DoEvent()
+void ObservableClass::DoEvent()
 {
   TimesCalled++;
-  if ((TimesCalled % Frequency) == 0)
+  struct timeval endtime;
+  gettimeofday(&endtime, &tzone);
+  double TimeDiff = (double)(endtime.tv_sec-starttime.tv_sec) + 1.0e-6*(double)(endtime.tv_usec-starttime.tv_usec);
+  if ((Frequency > 0 && (TimesCalled % Frequency) == 0) || (TemporalFrequency > 0 && TimeDiff > TemporalFrequency)) {
     Accumulate();
+    gettimeofday(&starttime,&tzone);
+  }
 }
 
+
 // Permutation Counting Things
-
-
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
 {
