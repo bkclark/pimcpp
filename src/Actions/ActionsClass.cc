@@ -433,6 +433,16 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
       PathData.Path.NodeDet.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
     cout << PathData.Path.CloneStr << " UseNodeDet: " << PathData.Path.UseNodeDet << endl;
 
+    // Whether or not to use nodal importance sampling
+    if (!in.ReadVar ("UseNodeImportance",PathData.Path.UseNodeImportance))
+      PathData.Path.UseNodeImportance = 0;
+    if (PathData.Path.UseNodeImportance)
+      if(!in.ReadVar ("epsilon",PathData.Path.NodeImpEps)) {
+        cerr << PathData.Path.CloneStr << "WARNING: epsilon unspecified for node importance sampling, setting to 0.0" << endl;
+        PathData.Path.NodeImpEps = 0.0;
+      }
+    cout << PathData.Path.CloneStr << " UseNodeImportance: " << PathData.Path.UseNodeImportance << endl;
+
     ActionLabels.push_back(type);
     in.CloseSection();
   }
@@ -508,6 +518,15 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
   //Energies["vLong"] = vLong;
 }
 
+
+void ActionsClass::GetNodalActions(double &node)
+{
+  int M = PathData.Path.NumTimeSlices()-1;
+  node = 0.0;
+  for (int species=0; species<PathData.Path.NumSpecies(); species++)
+    if (NodalActions(species) != NULL)
+      node += NodalActions(species)->d_dBeta(0, M, 0);
+}
 
 
 void

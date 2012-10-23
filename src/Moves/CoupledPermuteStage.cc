@@ -71,7 +71,7 @@ bool CoupledPermuteStageClass::Attempt (int &slice1, int &slice2,
   if (activeParticles(0)==-1){
     Array<int,1> coupledWeight(1);
     Array<int,1> coupledWeightSend(1);
-    coupledWeightSend(0)=PathData.Path.Weight;
+    coupledWeightSend(0)=PathData.Path.SignWeight;
     int myProc=PathData.InterComm.MyProc();
     int numProcs=PathData.InterComm.NumProcs();
     int sendProc=(myProc+1) % numProcs;
@@ -127,7 +127,7 @@ bool CoupledPermuteStageClass::Attempt (int &slice1, int &slice2,
     double Tratio = forwT/revT;
     int len=Forw->CurrentCycle.Length;
     if (len % 2 ==0){
-      PathData.Path.Weight=PathData.Path.Weight*-1;
+      PathData.Path.SignWeight=PathData.Path.SignWeight*-1;
     }
     double actionChange = -log(Forw->CurrentCycle.P/Forw->Gamma[len-1]);
     double psi = PathData.Path.Random.Local();

@@ -151,10 +151,12 @@ void PathClass::Read (IOSectionClass &inSection)
   Equilibrate=1;
   CenterOfMass=0.0;
   SetMode(OLDMODE);
+  SignWeight=1;
   Sign=1;
   NowOpen=false;
   HeadSlice=0;
   SetMode (NEWMODE);
+  SignWeight=1;
   Sign=1;
   NowOpen=false;
   HeadSlice=0;
@@ -162,7 +164,6 @@ void PathClass::Read (IOSectionClass &inSection)
     FunnyCoupling=false;
   }
 
-  Weight=1;
   double tempExistsCoupling;
   if (!inSection.ReadVar("ExistsCoupling",tempExistsCoupling)){
     ExistsCoupling=-1.0;
@@ -315,6 +316,7 @@ void PathClass::Read (IOSectionClass &inSection)
   // Default to false
   UseNodeDist = false;
   UseNodeDet = false;
+  UseNodeImportance = false;
 
 }
 
@@ -844,7 +846,7 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
   cm2=0.0;
   static int numAccepts=0;
   ExistsCoupling.AcceptCopy();
-  Weight.AcceptCopy();
+  SignWeight.AcceptCopy();
   NowOpen.AcceptCopy();
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
@@ -919,7 +921,7 @@ void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &act
 {
   Sign.RejectCopy();
   ExistsCoupling.RejectCopy();
-  Weight.RejectCopy();
+  SignWeight.RejectCopy();
   NowOpen.RejectCopy();
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);

@@ -293,9 +293,8 @@ bool TablePermuteStageClass::Attempt (int &slice1, int &slice2,
     double revT = Rev->CalcReverseProb(*Forw);
 
     int len=Forw->CurrentCycle.Length;
-    if (len % 2 ==0){
-      PathData.Path.Weight=PathData.Path.Weight*-1;
-    }
+    if (len % 2 ==0)
+      PathData.Path.SignWeight = PathData.Path.SignWeight*-1;
 
     double actionChange = -log(Forw->CurrentCycle.P/Forw->Gamma[len-1]);
     Array<int,1> currentParticles=Forw->CurrentParticles();  

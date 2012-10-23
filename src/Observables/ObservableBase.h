@@ -87,7 +87,6 @@ class ObservableClass : public EventClass
   /// This a convenience function that allows one to specify a unit
   /// conversion if desired.  Set to 1.0 by default.
   double Prefactor;
-public:
   /// Note: This is not a reference.  If it were, it could change
   /// behind our backs
   string Description;
@@ -100,6 +99,9 @@ public:
 
   /// This will just call Accumulate() every Frequency time it is called.
   void DoEvent();
+
+  /// Calculate weight for sign tracking and/or importance sampling
+  double CalcFullWeight();
 
   /// The constructor.  Sets PathData references and calls initialize.
   /// Note: the ioSection is passed by value, NOT by reference.  This

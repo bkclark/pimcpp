@@ -33,12 +33,10 @@ void EnergyClass::Accumulate()
   TimesCalled++;
   //Move the join to the end so we don't have to worry about permutations
   PathData.MoveJoin(PathData.NumTimeSlices() - 1);
-  double FullWeight;
-  if (TrackSign) {
-    double currWeight = PathData.Path.Weight;
-    PathData.Path.Communicator.GatherProd(currWeight, FullWeight, 0);
-  } else
-    FullWeight = 1;
+
+  // Get the Full Weight from sign and importance sampling
+  double FullWeight = CalcFullWeight();
+
   NumSamples++;
 
   double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal, residual;

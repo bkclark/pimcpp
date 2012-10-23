@@ -344,10 +344,14 @@ void DavidPAClass::calcUsqz(double s,double q,double z,int level,
   // This is the endpoint action 
   
   
-  if (rprime < rmin)
+  if (rprime < rmin) {
+    //cerr << "rprime < rmin" << endl;
     rprime = rmin;
-  if(r < rmin)
+  }
+  if(r < rmin) {
+    //cerr << "r < rmin" << endl;
     r = rmin;
+  }
   //if ((rprime < rmin) || (r < rmin)){
   //  //    cerr<<"I'm less then the min. Maybe this is messing me up\n";
   //  U = 5000.0; dU = 0.0;
@@ -485,7 +489,7 @@ void DavidPAClass::calcUsqzFast(double s,double q,double z,int level,
     //    cerr<<"I'm less then the min. Maybe this is messing me up\n";
     //U = 5000.0;
     U = ukj(level)(1,rmin);
-    // cerr << "DavidPAClass: rprime < rmin; assigning U_0 = " << U << endl;
+    //cerr << "DavidPAClass: rprime < rmin; assigning U_0 = " << U << endl;
     return;
   }
   U+= 0.5*(ukj(level)(1,r)+ukj(level)(1,rprime));
@@ -538,9 +542,8 @@ DavidPAClass::Udiag (double q, int level)
 {
   level=level+TauPos;
   // This is the endpoint action   
-  if (q < UdiagSpline(level).Start()) 
-    //return 5000.0;
-    q = UdiagSpline(level).Start();
+  if (q < UdiagSpline(level).Start())
+    return UdiagSpline(level)(UdiagSpline(level).Start());
   else if (q > UdiagSpline(level).End())
     return UdiagSpline(level)(UdiagSpline(level).End());
   else
@@ -553,7 +556,7 @@ DavidPAClass::dUdiag_fast (double q, int level)
   level=level+TauPos;
   // This is the endpoint action   
   if (q < dUdiagSpline(level).Start()) 
-    return 5000.0;
+    return dUdiagSpline(level)(dUdiagSpline(level).Start());
   else if (q > dUdiagSpline(level).End())
     return dUdiagSpline(level)(dUdiagSpline(level).End());
   else
@@ -723,6 +726,9 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       else {
 	cerr << "Unrecognized grid type in ReadDavidSquarerFile (text).\n";
 	cerr << "GridType = \"" << GridType << "\"\n";
+	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+	//cerr << "delta = " << delta << endl;
+	theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
 	  
       
@@ -817,6 +823,9 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       else {
 	cerr << "Unrecognized grid type in ReadDavidSquarerFile.\n";
 	cerr << "GridType = \"" << GridType << "\"\n";
+	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+	//cerr << "delta = " << delta << endl;
+	theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
 	  
       
@@ -1004,6 +1013,9 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
       else {
 	      cerr << "Unrecognized grid type in ReadDavidSquarerFile. (u hdf5)\n";
 	      cerr << "GridType = \"" << GridType << "\"\n";
+	      double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+	      //cerr << "delta = " << delta << endl;
+	      theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
       //string TauGridString = SkipTo(infile,"GRID   3"); //We hope this is a log grid
       //GetNextWord(TauGridString);
@@ -1104,6 +1116,9 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     else {
 	    cerr << "Unrecognized grid type in ReadDavidSquarerFile (du hdf5).\n";
 	    cerr << "GridType = \"" << GridType << "\"\n";
+	    double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+	    //cerr << "delta = " << delta << endl;
+	    theGrid = new LogGrid(startGrid,delta,NumGridPoints);
     }
     //cerr<<"Reading taus"<<endl;
     in.ReadVar("Taus",Taus);
@@ -1224,6 +1239,24 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   else
     HasLongRange=false;
   //cerr << "Leaving DavidSquarer HDF5 read" << endl;
+  //
+
+  //double x = 0.0;
+  //double dx = 0.001;
+  //while (x<=0.01-dx) {
+  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
+  //  x += dx;
+  //}
+  //dx = 0.01;
+  //while (x<=0.1-dx) {
+  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
+  //  x += dx;
+  //}
+  //dx = 0.1;
+  //while (x<=3.0) {
+  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
+  //  x += dx;
+  //}
 
 }
 

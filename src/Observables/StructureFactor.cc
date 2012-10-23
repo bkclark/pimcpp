@@ -213,12 +213,7 @@ void StructureFactorClass::Accumulate()
 
   TotalCounts++;
 
-  double FullWeight;
-  if (TrackSign) {
-    double currWeight = PathData.Path.Weight;
-    PathData.Path.Communicator.GatherProd(currWeight, FullWeight, 0);
-  } else
-    FullWeight = 1;
+  double FullWeight = CalcFullWeight();
 
   if (!PathData.Path.LongRange) {
     for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)

@@ -63,6 +63,24 @@ void ObservableClass::DoEvent()
 }
 
 
+// Calculates weight from sign and importance sampling
+double ObservableClass::CalcFullWeight()
+{
+  double FullSign = 1.0;
+  if (TrackSign) {
+    double currSign = PathData.Path.SignWeight;
+    PathData.Path.Communicator.GatherProd(currSign, FullSign, 0);
+  }
+
+  double NodeWeight = 1.0;
+  if (PathData.Path.UseNodeImportance)
+    PathData.Actions.GetNodalActions(NodeWeight);
+
+  double FullWeight = exp(NodeWeight)*FullSign;
+  return 1.0/FullWeight;
+}
+
+
 // Permutation Counting Things
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)

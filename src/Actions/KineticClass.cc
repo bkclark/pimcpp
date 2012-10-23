@@ -73,7 +73,7 @@ KineticClass::SingleAction (int slice1, int slice2,
 	////////////////////////////////	  TotalK -= log(GaussProd);   
 	if (PathData.Path.WormOn){
 	  if (PathData.Path.ParticleExist(slice,ptcl)*PathData.Path.ParticleExist(slice+skip,ptcl)!=0.0)
-	TotalK -= log(GaussProd);
+	    TotalK -= log(GaussProd);
 	}
 	else {
 	  TotalK -= log(GaussProd);
@@ -276,8 +276,8 @@ double KineticClass::d_dBeta (int slice1, int slice2,
 //     cerr<<"My kinetic link "<<counter<<" is "<<KineticVal(counter)<<endl;
 //   }
   if (isnan(spring)){
-    cerr<<"NAN!"<<endl;
-    PathData.Path.PrintRealSlices();
+    cerr<<PathData.Path.CloneStr << " NAN in Kinetic "<<endl;
+    //PathData.Path.PrintRealSlices();
   }
 
   gettimeofday(&end, &tz);

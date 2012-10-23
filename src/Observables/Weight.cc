@@ -26,7 +26,7 @@ void WeightClass::Accumulate()
   //  cerr<<"Attempting the coupled permute stage "<<PathData.InterComm.MyProc()<<endl;
   Array<int,1> coupledWeight(1);
   Array<int,1> coupledWeightSend(1);
-  coupledWeightSend(0)=PathData.Path.Weight;
+  coupledWeightSend(0)=PathData.Path.SignWeight;
   int sendProc;
   int recvProc;
   int numProcs=PathData.InterComm.NumProcs();

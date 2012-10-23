@@ -1015,7 +1015,7 @@ PathClass::InitPaths (IOSectionClass &in)
   Rho_k.AcceptCopy();
   BroadcastRefPath();
   RefPath.AcceptCopy();
-  Weight.AcceptCopy();
+  SignWeight.AcceptCopy();
   ExistsCoupling.AcceptCopy();
   NodeDist.AcceptCopy();
   NodeDet.AcceptCopy();

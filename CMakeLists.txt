@@ -293,6 +293,7 @@ src/Observables/TimeLindenman.cc
 src/Moves/AVBMove.cc
 src/Moves/BisectionBlock.cc
 src/Observables/Weight.cc
+src/Observables/ImportanceWeight.cc
 src/Moves/BisectionJosephsonStage.cc
 src/Observables/WindingNumber.cc
 src/Moves/BisectionSphereBlock.cc

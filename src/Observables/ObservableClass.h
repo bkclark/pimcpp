@@ -27,6 +27,7 @@
 #include "Forces.h"
 #include "Hexatic.h"
 #include "HBond.h"
+#include "ImportanceWeight.h"
 #include "JosephsonPathDump.h"
 #include "ObservableCorrelation.h"
 #include "ObservableRefCorrelation.h"

@@ -334,7 +334,8 @@ public:
   //////////////////////////
   inline bool HasFermions(const Array<int,1>& activeParticles);
   Mirrored2DClass<double> NodeDist, NodeDet;
-  bool UseNodeDist, UseNodeDet;
+  bool UseNodeDist, UseNodeDet, UseNodeImportance;
+  double NodeImpEps;
   void ShiftNodeDist(int sliceToShift);
   void ShiftNodeDet(int sliceToShift);
 
@@ -355,7 +356,7 @@ public:
   void SetHead(const dVec &r,int join);
   void SetTail(const dVec &r);
 
-  MirroredClass<int> Weight;
+  MirroredClass<int> SignWeight;
   MirroredClass<int> HeadSlice;
   MirroredClass<int> HeadParticle;
 
@@ -542,7 +543,7 @@ PathClass::PathClass (CommunicatorClass &communicator,
   //  OpenPaths=true;
   OpenPaths=false; //turns off open loops (Should be read at some poitn)
   WormOn=false; //assume the worm is not on 
-  Weight=1;
+  SignWeight=1;
 
   // molecule stuff: OBSOLETE
 	//MoleculeName.resize(0);

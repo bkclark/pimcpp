@@ -13,42 +13,33 @@
 // For more information, please see the PIMC++ Home Page:  //
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
-#include "../Communication/Communication.h"
-#include "Sign.h"
+
+#include "ImportanceWeight.h"
 
 
 // Fix to include final link between link M and 0
-void SignClass::Accumulate()
+void ImportanceWeightClass::Accumulate()
 {
-
   NumSamples++;
-  double FullSign;
-  double currSign=PathData.Path.SignWeight;
-  PathData.Path.Communicator.GatherProd(currSign,FullSign,0);
-  Sign=Sign+FullSign;
-
+  Weight += CalcFullWeight();
 }
 
-void SignClass::ShiftData (int NumTimeSlices)
+void ImportanceWeightClass::ShiftData (int NumTimeSlices)
 {
   // Do nothing
 }
 
-void SignClass::WriteBlock()
+void ImportanceWeightClass::WriteBlock()
 {
-  Sign=Sign/(double)NumSamples;
-  Tot.Write(Sign);
+  Weight = Weight/(double)NumSamples;
+  Tot.Write(Weight);
   if (PathData.Path.Communicator.MyProc()==0)
     IOSection.FlushFile();
-  Sign = 0.0;
+  Weight = 0.0;
   NumSamples = 0;
 }
 
-void SignClass::Read(IOSectionClass &in)
+void ImportanceWeightClass::Read(IOSectionClass &in)
 {
   ObservableClass::Read(in);
-  if (PathData.Path.Communicator.MyProc()==0){
-    WriteInfo();
-    IOSection.WriteVar("Type","CorrelationFunction");
-  }
 }
