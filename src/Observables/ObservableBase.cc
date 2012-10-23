@@ -76,7 +76,7 @@ double ObservableClass::CalcFullWeight()
   if (PathData.Path.UseNodeImportance)
     PathData.Actions.GetNodalActions(NodeWeight);
 
-  double FullWeight = exp(NodeWeight)*FullSign;
+  double FullWeight = exp(-NodeWeight)*FullSign;
   return 1.0/FullWeight;
 }
 
