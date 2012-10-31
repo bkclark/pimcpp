@@ -25,6 +25,8 @@
 #include "../IO/IO.h"
 #include <algorithm>
 #include <numeric>
+#include "ctime"
+#include "sys/time.h"
 
 using namespace IO;
 
@@ -78,10 +80,13 @@ class ObservableClass : public EventClass
   /// Frequency is 3, Accumulate will actually accumulate every third
   /// time it is encountered the the algorithm.
   int Frequency;
+  /// Same as Frequency, only getting track of time
+  int TemporalFrequency;
+  struct timeval starttime;
+  struct timezone tzone;
   /// This a convenience function that allows one to specify a unit
   /// conversion if desired.  Set to 1.0 by default.
   double Prefactor;
-public:
   /// Note: This is not a reference.  If it were, it could change
   /// behind our backs
   string Description;
@@ -94,6 +99,9 @@ public:
 
   /// This will just call Accumulate() every Frequency time it is called.
   void DoEvent();
+
+  /// Calculate weight for sign tracking and/or importance sampling
+  double CalcFullWeight();
 
   /// The constructor.  Sets PathData references and calls initialize.
   /// Note: the ioSection is passed by value, NOT by reference.  This

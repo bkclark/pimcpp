@@ -264,9 +264,12 @@ void PermuteTableClass::ConstructCycleTable(int speciesNum, int slice1, int slic
 {
   /// HACK HACK HACK HACK
    if (PathData.Path.Species(SpeciesNum).GetParticleType()==FERMION)
-     ConstructFermionCycleTable(speciesNum,slice1,slice2);
+     if (PathData.Path.UseNodeImportance)
+       ConstructBosonCycleTable(speciesNum,slice1,slice2,excludeParticle);
+     else
+       ConstructFermionCycleTable(speciesNum,slice1,slice2);
    else
-    ConstructBosonCycleTable(speciesNum,slice1,slice2,excludeParticle);
+     ConstructBosonCycleTable(speciesNum,slice1,slice2,excludeParticle);
 }
 
 ///the Gamma's must all be greater then 1 or this won't do the correct

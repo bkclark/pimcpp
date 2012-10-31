@@ -170,12 +170,7 @@ void PairCorrelationClass::Accumulate()
 
   TotalCounts++;
 
-  double FullWeight;
-  if (TrackSign) {
-    double currWeight = PathData.Path.Weight;
-    PathData.Path.Communicator.GatherProd(currWeight, FullWeight, 0);
-  } else
-    FullWeight = 1;
+  double FullWeight = CalcFullWeight();
 
   if (Species1==Species2) {
     /// Note:  we make sure we don't count that last times slice

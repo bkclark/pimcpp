@@ -13,43 +13,37 @@
 // For more information, please see the PIMC++ Home Page:  //
 //           http://pathintegrals.info                     //
 /////////////////////////////////////////////////////////////
-#include "../Communication/Communication.h"
-#include "Sign.h"
+
+#ifndef IMPORTANCEWEIGHT_H
+#define IMPORTANCEWEIGHT_H
+
+#include "ObservableBase.h"
 
 
-// Fix to include final link between link M and 0
-void SignClass::Accumulate()
+class ImportanceWeightClass : public ObservableClass
 {
 
-  NumSamples++;
-  double FullSign;
-  double currSign=PathData.Path.SignWeight;
-  PathData.Path.Communicator.GatherProd(currSign,FullSign,0);
-  //cout << " Full Sign: " << FullSign;
-  Sign=Sign+FullSign;
+private:
+  double Weight;
 
-}
-
-void SignClass::ShiftData (int NumTimeSlices)
-{
-  // Do nothing
-}
-
-void SignClass::WriteBlock()
-{
-  Sign=Sign/(double)NumSamples;
-  Tot.Write(Sign);
-  if (PathData.Path.Communicator.MyProc()==0)
-    IOSection.FlushFile();
-  Sign = 0.0;
-  NumSamples = 0;
-}
-
-void SignClass::Read(IOSectionClass &in)
-{
-  ObservableClass::Read(in);
-  if (PathData.Path.Communicator.MyProc()==0){
-    WriteInfo();
-    IOSection.WriteVar("Type","CorrelationFunction");
+  int NumSamples;
+  int TimesCalled;
+  int Freq;
+  int DumpFreq;
+  ObservableDouble Tot;
+public:
+  void Accumulate();
+  void WriteBlock();
+  void ShiftData(int numTimeSlices);
+  void Read(IOSectionClass& in);
+  ImportanceWeightClass(PathDataClass &myPathData, IOSectionClass &ioSection)
+    : ObservableClass(myPathData, ioSection), Tot("Total",IOSection,PathData.Path.Communicator)
+  {
+    Weight = 0.0;
+    NumSamples = 0;
+    TimesCalled = 0;
   }
-}
+};
+
+
+#endif

@@ -28,7 +28,7 @@ class SignClass : public ObservableClass
 {
 
 private:
-  double Weight;
+  double Sign;
 
   int NumSamples;
   int TimesCalled;
@@ -45,7 +45,7 @@ public:
       Tot("Total",IOSection,PathData.Path.Communicator)
   {
 
-    Weight = 0.0;
+    Sign = 0.0;
     NumSamples = 0;
     TimesCalled=0;
   }

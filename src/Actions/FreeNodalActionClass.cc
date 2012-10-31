@@ -255,7 +255,7 @@ void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &g
 
   // Compute determinant
   det = Determinant (detMatrix);
-  if (det < 0.0) {
+  if (det < 0.0 && !PathData.Path.UseNodeImportance) {
     return;
   }
 
@@ -328,7 +328,7 @@ void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &g
 
   // Compute determinant
   det = Determinant (DetMatrix2);
-  if (det < 0.0) {
+  if (det < 0.0 && !PathData.Path.UseNodeImportance) {
     return;
   }
 
@@ -485,7 +485,7 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
   Array<dVec,1> GradVec2(N);
   GradientDet (slice, det, GradVec2);
 
-  if (det < 0.0)
+  if (det < 0.0 && !PathData.Path.UseNodeImportance)
     return -1.0;
 
   double grad2 = 0.0;
@@ -494,9 +494,9 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
 
   double gradDist = det/sqrt(grad2);
 
-  if (((NumGradDists+NumLineDists)%1000000) == 999999) {
-    cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
-  }
+  //if (((NumGradDists+NumLineDists)%1000000) == 999999) {
+  //  cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
+  //}
 
   // gradDist will almost always be a lower bound to the real
   // distance.  Therefore, if says we are far from the nodes, we
@@ -562,7 +562,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   }
 
   GradientDet (slice, det0, gradVec, tempPath);
-  if (det0 < 0.0)
+  if (det0 < 0.0 && !PathData.Path.UseNodeImportance)
     return -1.0;
 
   double grad2=0.0;
@@ -573,7 +573,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   for (int i=0; i<N; i++)
     gradVec(i) = (1.0/gradMag)*gradVec(i);
 
-  double dist = det0/gradMag;
+  double dist = abs(det0/gradMag);
 
   double minFactor, maxFactor, tryFactor, newDet;
   minFactor = 0.0;
@@ -698,7 +698,6 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
 
 void FreeNodalActionClass::Read (IOSectionClass &in)
 {
-  // Do nothing for now
   TimeSpent = 0.0;
   SetupFreeActions();
 }
@@ -708,6 +707,8 @@ double FreeNodalActionClass::SingleAction (int startSlice, int endSlice, const A
 {
   if (PathData.Path.Equilibrate)
     return SimpleAction(startSlice,endSlice,changePtcls,level);
+  else if (PathData.Path.UseNodeImportance)
+    return NodeImportanceAction(startSlice,endSlice,changePtcls,level);
   else
     return PreciseAction(startSlice,endSlice,changePtcls,level);
 }
@@ -772,6 +773,78 @@ double FreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const A
   TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
   //std::cout << "-----------------" << level << " " << uNode << " " << deter << " " << brokenSlice << endl;
+  return uNode;
+}
+
+
+double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+{
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
+  double uNode = 0.0;
+
+  SpeciesClass &species = Path.Species(SpeciesNum);
+  double lambda = species.lambda;
+  int skip = 1<<level;
+  double levelTau = PathData.Path.tau * (double)skip;
+
+  int myStart, myEnd;
+  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  int refSlice = Path.GetRefSlice() - myStart;
+
+  int totalSlices = Path.TotalNumSlices;
+  int numSlices = (endSlice - startSlice)/skip + 1;
+  if (numSlices < 2)
+    cerr << "ERROR: numSlices < 2 in FreeNodalAction" << endl;
+  double dist[numSlices];
+
+  for (int i=0; i<numSlices; i++)
+    dist[i] = 0.0;
+  #pragma omp parallel for
+  for (int slice=startSlice; slice <= endSlice; slice+=skip) {
+    bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    if (!sliceIsRef) {
+      int i = (slice - startSlice)/skip;
+      if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
+        dist[i] = HybridDist (slice, lambda*levelTau);
+      else
+        dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+      //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
+    }
+  }
+  #pragma omp barrier
+
+  for (int slice = startSlice; slice < endSlice; slice+=skip) {
+    int i = (slice - startSlice)/skip;
+
+    bool slice1IsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
+    double dist1 = abs(dist[i]);
+    double dist2 = abs(dist[i+1]);
+
+    if (slice1IsRef || (dist1==0.0))
+      uNode -= log1p(-exp(-dist2*dist2/(lambda*levelTau)));
+    else if (slice2IsRef || (dist2==0.0))
+      uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
+    else
+      uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
+    if (((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.UseNodeDist) {
+      PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+      PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+      FirstDistTime = 0;
+    }
+  }
+
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) +
+    1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
+  double eps = PathData.Path.NodeImpEps;
+  if (eps != 0.0)
+    uNode = log(eps) + log1p(exp(uNode)/eps);
+
   return uNode;
 }
 

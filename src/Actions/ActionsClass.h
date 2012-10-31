@@ -171,7 +171,7 @@ public:
   /// the path.  Must do global sum to get total action.
   void GetActions (double& kinetic, double &duShort, double &duLong, 
 		   double &node);
-
+  void GetNodalActions (double &node);
   /// This function adds to F the current forces calculated from the
   /// gradient of the action.  Note that you must do an AllSum over
   /// the clone processors to get the total.

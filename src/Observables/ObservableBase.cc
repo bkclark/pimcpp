@@ -26,18 +26,23 @@
 // }
 
 
-void 
-ObservableClass::WriteInfo()
+void ObservableClass::WriteInfo()
 {
   if (PathData.Path.Communicator.MyProc()==0)
     IOSection.WriteVar("Description",Description);
 }
 
-void 
-ObservableClass::Read(IOSectionClass &in)
+
+void ObservableClass::Read(IOSectionClass &in)
 {
   in.ReadVar("Prefactor", Prefactor);
-  assert(in.ReadVar("Frequency",Frequency));
+  if (in.ReadVar("TemporalFrequency",TemporalFrequency)) {
+    gettimeofday(&starttime, &tzone);
+    Frequency = -1; // Probably a better way
+  } else {
+    assert(in.ReadVar("Frequency",Frequency));
+    TemporalFrequency = -1;
+  }
   assert(in.ReadVar("Name",Name));
   if(!(in.ReadVar("Description",Description))){
     Description="No description available";
@@ -45,17 +50,41 @@ ObservableClass::Read(IOSectionClass &in)
 }
 
 
-void 
-ObservableClass::DoEvent()
+void ObservableClass::DoEvent()
 {
   TimesCalled++;
-  if ((TimesCalled % Frequency) == 0)
+  struct timeval endtime;
+  gettimeofday(&endtime, &tzone);
+  double TimeDiff = (double)(endtime.tv_sec-starttime.tv_sec) + 1.0e-6*(double)(endtime.tv_usec-starttime.tv_usec);
+  if ((Frequency > 0 && (TimesCalled % Frequency) == 0) || (TemporalFrequency > 0 && TimeDiff > TemporalFrequency)) {
     Accumulate();
+    gettimeofday(&starttime,&tzone);
+  }
 }
 
+
+// Calculates weight from sign and importance sampling
+double ObservableClass::CalcFullWeight()
+{
+  double TempSign;
+  double currSign = PathData.Path.SignWeight;
+  PathData.Path.Communicator.GatherProd(currSign, TempSign, 0);
+  //  FullSign = 1.0;
+  double FullSign = TempSign;
+  //if (!TrackSign)
+  //  FullSign = 1.0;
+
+  double NodeWeight = 0.0;
+  if (PathData.Path.UseNodeImportance)
+    PathData.Actions.GetNodalActions(NodeWeight);
+
+  double FullWeight = exp(-NodeWeight)*FullSign;
+  //cout << " FW : " << FullWeight << " " << NodeWeight << " " << FullSign << endl;
+  return 1.0/FullWeight;
+}
+
+
 // Permutation Counting Things
-
-
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
 {
