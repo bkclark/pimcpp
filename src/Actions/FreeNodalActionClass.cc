@@ -904,7 +904,10 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
       if (!sliceIsRef&&!abort) {
         int i = (slice - slice1)/skip;
         if (FirstDistTime||!PathData.Path.UseNodeDist)
-          dist[i] = HybridDist (slice,lambda*levelTau);
+          if (PathData.Path.Equilibrate)
+            dist[i] = NodalDist (slice);
+          else
+            dist[i] = HybridDist (slice,lambda*levelTau);
         else
           dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
         //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;

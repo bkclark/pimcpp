@@ -6,19 +6,19 @@ cmake_minimum_required (VERSION 2.6)
 # Compilers
 #-------------------------------------------------------------------
 SET(CMAKE_CXX_COMPILER,"CC")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -ffast-math -DUSE_MPI -fopenmp")
 #SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -Wno-write-strings -w")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
 SET(CMAKE_C_COMPILER,"cc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -ffast-math -DUSE_MPI -fopenmp")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
 SET(CMAKE_Fortran_COMPILER,"ftn")
 SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3")
 SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 
-set(QMC_BUILD_STATIC FALSE)
+set(QMC_BUILD_STATIC TRUE)
 IF(QMC_BUILD_STATIC)
   set(BUILD_SHARED_LIBS FALSE)
   set(CMAKE_EXE_LINKER_FLAGS '-static')
