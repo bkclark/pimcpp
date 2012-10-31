@@ -36,7 +36,6 @@ void EnergyClass::Accumulate()
 
   // Get the Full Weight from sign and importance sampling
   double FullWeight = CalcFullWeight();
-
   NumSamples++;
 
   double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal, residual;

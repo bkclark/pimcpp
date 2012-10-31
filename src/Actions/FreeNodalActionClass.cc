@@ -494,9 +494,9 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
 
   double gradDist = det/sqrt(grad2);
 
-  if (((NumGradDists+NumLineDists)%1000000) == 999999) {
-    cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
-  }
+  //if (((NumGradDists+NumLineDists)%1000000) == 999999) {
+  //  cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
+  //}
 
   // gradDist will almost always be a lower bound to the real
   // distance.  Therefore, if says we are far from the nodes, we
@@ -573,7 +573,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   for (int i=0; i<N; i++)
     gradVec(i) = (1.0/gradMag)*gradVec(i);
 
-  double dist = det0/gradMag;
+  double dist = abs(det0/gradMag);
 
   double minFactor, maxFactor, tryFactor, newDet;
   minFactor = 0.0;

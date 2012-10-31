@@ -25,6 +25,7 @@ void SignClass::Accumulate()
   double FullSign;
   double currSign=PathData.Path.SignWeight;
   PathData.Path.Communicator.GatherProd(currSign,FullSign,0);
+  //cout << " Full Sign: " << FullSign;
   Sign=Sign+FullSign;
 
 }

@@ -21,6 +21,8 @@
 void ImportanceWeightClass::Accumulate()
 {
   NumSamples++;
+  double sign = CalcFullWeight();
+  //cout << " IW " << sign;
   Weight += CalcFullWeight();
 }
 
