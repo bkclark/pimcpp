@@ -695,11 +695,40 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
 }
 
 
-
 void FreeNodalActionClass::Read (IOSectionClass &in)
 {
   TimeSpent = 0.0;
   SetupFreeActions();
+
+  // Decide which nodal distance function to use
+  if (!in.ReadVar ("UseHybridDist",UseHybridDist))
+    UseHybridDist = 0;
+  if (!in.ReadVar ("UseNewtonRaphsonDist",UseNewtonRaphsonDist))
+    UseNewtonRaphsonDist = 0;
+  if (!in.ReadVar ("UseLineSearchDist",UseLineSearchDist))
+    UseLineSearchDist = 0;
+  if (!in.ReadVar ("UseMaxDist",UseMaxDist))
+    UseMaxDist = 0;
+
+  cout << "Nodal Distance Functions: " << UseHybridDist << " " << UseNewtonRaphsonDist << " " << UseLineSearchDist << " " << UseMaxDist << endl;
+}
+
+
+double FreeNodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, int SpeciesNum)
+{
+  if ((GetMode()==NEWMODE||FirstDistTime)||!PathData.Path.UseNodeDist)
+    if (UseHybridDist)
+      return HybridDist(slice,lambda*levelTau); // Single Newton-Raphson, then Line Search
+    else if (UseNewtonRaphsonDist)
+      return NewtonRaphsonDist(slice); // Iterative Newton-Raphson
+    else if (UseLineSearchDist)
+      return LineSearchDist(slice); // Bisective Line Search
+    else if (UseMaxDist)
+      return MaxDist(slice); // Maximum Distance
+    else
+      return NodalDist(slice); // Single Newton-Raphson
+  else
+    return PathData.Path.NodeDist(slice,SpeciesNum);
 }
 
 
@@ -807,10 +836,11 @@ double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice,
     bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
     if (!sliceIsRef) {
       int i = (slice - startSlice)/skip;
-      if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
-        dist[i] = HybridDist (slice, lambda*levelTau);
-      else
-        dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+      dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+      //if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
+      //  dist[i] = HybridDist (slice, lambda*levelTau);
+      //else
+      //  dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
       //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
     }
   }
@@ -886,10 +916,11 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - startSlice)/skip;
-        if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
-          dist[i] = HybridDist (slice, lambda*levelTau);
-        else
-          dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+        dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+        //if (((GetMode()==NEWMODE)||FirstDistTime)||!PathData.Path.UseNodeDist)
+        //  dist[i] = HybridDist (slice, lambda*levelTau);
+        //else
+        //  dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
         //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
         if (dist[i] < 0.0) {
           #pragma omp critical
@@ -976,13 +1007,14 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
       bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
       if (!sliceIsRef&&!abort) {
         int i = (slice - slice1)/skip;
-        if (FirstDistTime||!PathData.Path.UseNodeDist)
-          if (PathData.Path.Equilibrate)
-            dist[i] = NodalDist (slice);
-          else
-            dist[i] = HybridDist (slice,lambda*levelTau);
-        else
-          dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
+        dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+        //if (FirstDistTime||!PathData.Path.UseNodeDist)
+        //  if (PathData.Path.Equilibrate)
+        //    dist[i] = NodalDist (slice);
+        //  else
+        //    dist[i] = HybridDist (slice,lambda*levelTau);
+        //else
+        //  dist[i] = PathData.Path.NodeDist(slice,SpeciesNum);
         //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
         if (dist[i] < 0.0) {
           #pragma omp critical
