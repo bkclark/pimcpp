@@ -942,7 +942,7 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
 
 double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
 {
-  if (PathData.Path.Equilibrate)
+  if (PathData.Path.Equilibrate||PathData.Path.UseNodeImportance)
     return 0.0;
 
   Array<int,1> changedPtcls(1);
