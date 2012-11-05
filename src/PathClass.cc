@@ -314,8 +314,8 @@ void PathClass::Read (IOSectionClass &inSection)
   }
 
   // Default to false
-  UseNodeDist = false;
-  UseNodeDet = false;
+  StoreNodeDist = false;
+  StoreNodeDet = false;
   UseNodeImportance = false;
 
 }
@@ -879,11 +879,11 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
   Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
-  if (UseNodeDist)
+  if (StoreNodeDist)
     for (int species=0; species<NumSpecies(); species++)
       NodeDist[OLDMODE](Range(startSlice,endSlice), species) =
         NodeDist[NEWMODE](Range(startSlice,endSlice), species);
-  if (UseNodeDet)
+  if (StoreNodeDet)
     for (int species=0; species<NumSpecies(); species++)
       NodeDet[OLDMODE](Range(startSlice,endSlice), species) =
         NodeDet[NEWMODE](Range(startSlice,endSlice), species);
@@ -938,11 +938,11 @@ void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &act
   Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
-  if (UseNodeDist)
+  if (StoreNodeDist)
     for (int species=0; species<NumSpecies(); species++)
       NodeDist[NEWMODE](Range(startSlice,endSlice), species) =
         NodeDist[OLDMODE](Range(startSlice,endSlice), species);
-  if (UseNodeDet)
+  if (StoreNodeDet)
     for (int species=0; species<NumSpecies(); species++)
       NodeDet[NEWMODE](Range(startSlice,endSlice), species) =
         NodeDet[OLDMODE](Range(startSlice,endSlice), species);
@@ -970,9 +970,9 @@ void PathClass::ShiftData(int slicesToShift)
   if (WormOn)
     ShiftParticleExist(slicesToShift);
   ShiftPathData(slicesToShift);
-  if (UseNodeDist)
+  if (StoreNodeDist)
     ShiftNodeDist(slicesToShift);
-  if (UseNodeDet)
+  if (StoreNodeDet)
     ShiftNodeDet(slicesToShift);
   if (LongRange)
     // ShiftRho_kData(slicesToShift);

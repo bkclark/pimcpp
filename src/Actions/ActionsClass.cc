@@ -420,18 +420,18 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     }
 
     // Whether or not to track the nodal distance to save time
-    if(!in.ReadVar ("UseNodeDist", PathData.Path.UseNodeDist))
-      PathData.Path.UseNodeDist = false;
-    if (PathData.Path.UseNodeDist)
+    if(!in.ReadVar ("StoreNodeDist", PathData.Path.StoreNodeDist))
+      PathData.Path.StoreNodeDist = false;
+    if (PathData.Path.StoreNodeDist)
       PathData.Path.NodeDist.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
-    cout << PathData.Path.CloneStr << " UseNodeDist: " << PathData.Path.UseNodeDist << endl;
+    cout << PathData.Path.CloneStr << " StoreNodeDist: " << PathData.Path.StoreNodeDist << endl;
 
     // Whether or not to track the nodal determinants to save time
-    if(!in.ReadVar ("UseNodeDet", PathData.Path.UseNodeDet))
-      PathData.Path.UseNodeDet = false;
-    if (PathData.Path.UseNodeDet)
+    if(!in.ReadVar ("StoreNodeDet", PathData.Path.StoreNodeDet))
+      PathData.Path.StoreNodeDet = false;
+    if (PathData.Path.StoreNodeDet)
       PathData.Path.NodeDet.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
-    cout << PathData.Path.CloneStr << " UseNodeDet: " << PathData.Path.UseNodeDet << endl;
+    cout << PathData.Path.CloneStr << " StoreNodeDet: " << PathData.Path.StoreNodeDet << endl;
 
     // Whether or not to use nodal importance sampling
     if (!in.ReadVar ("UseNodeImportance",PathData.Path.UseNodeImportance))
@@ -522,16 +522,17 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
 void ActionsClass::GetNodalActions(double &node)
 {
   int M = PathData.Path.NumTimeSlices()-1;
+  Array<int,1> activePtcls(PathData.Path.NumParticles());
+  for (int i=0; i<PathData.Path.NumParticles(); i++)
+    activePtcls(i) = i;
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
     if (NodalActions(species) != NULL)
-      node += NodalActions(species)->d_dBeta(0, M, 0);
+      node += NodalActions(species)->Action(0, M, activePtcls, 0);
 }
 
 
-void
-ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, 
-                          double &node)
+void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &node)
 {
   bool doLongRange = HaveLongRange() && UseLongRange;
   Array<int,1> activePtcls(PathData.Path.NumParticles());
