@@ -352,9 +352,8 @@ double GJInverse (Array<double,2> &A)
 	    }
 	  }
 	  else if (ipiv[k] > 0) {
-	    cerr << "GJInverse: Singular matrix!\n";
-	    cerr << "A = " << A << endl;
-	    abort();
+	    cerr << "ERROR: GJInverse: Singular matrix!\n";
+	    return 0;
 	  }
 	}
     ++(ipiv[icol]); 
@@ -366,9 +365,8 @@ double GJInverse (Array<double,2> &A)
     rowIndex[i] = irow;
     colIndex[i] = icol;
     if (A(icol,icol) == 0.0) { 
-      cerr << "GJInverse: Singular matrix!\n";
-      cerr << "A = " << A << endl;
-      abort();
+      cerr << "ERROR: GJInverse: Singular matrix!\n";
+      return 0;
     }
     det *= A(icol,icol);
     pivInv = 1.0/A(icol,icol);

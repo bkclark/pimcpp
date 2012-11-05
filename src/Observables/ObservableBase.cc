@@ -69,10 +69,7 @@ double ObservableClass::CalcFullWeight()
   double TempSign;
   double currSign = PathData.Path.SignWeight;
   PathData.Path.Communicator.GatherProd(currSign, TempSign, 0);
-  //  FullSign = 1.0;
   double FullSign = TempSign;
-  //if (!TrackSign)
-  //  FullSign = 1.0;
 
   double NodeWeight = 0.0;
   if (PathData.Path.UseNodeImportance)

@@ -63,7 +63,7 @@ private:
 public:
   void Init();
   double GetNodeDist (int slice, double lambda, double levelTau, int SpeciesNum);
-  bool UseHybridDist, UseNewtonRaphsonDist, UseLineSearchDist, UseMaxDist;
+  bool UseHybridDist, UseNewtonRaphsonDist, UseLineSearchDist, UseMaxDist, UseNoDist;
   double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double SimpleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double PreciseAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);

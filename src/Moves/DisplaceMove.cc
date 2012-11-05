@@ -34,9 +34,9 @@ void DisplaceStageClass::Accept()
 {
   CommonStageClass::Accept();
   Path.RefPath.AcceptCopy();
-  if (Path.UseNodeDist)
+  if (Path.StoreNodeDist)
     Path.NodeDist.AcceptCopy();
-  if (Path.UseNodeDet)
+  if (Path.StoreNodeDet)
     Path.NodeDet.AcceptCopy();
 }
 
@@ -44,9 +44,9 @@ void DisplaceStageClass::Reject()
 {
   CommonStageClass::Reject();
   Path.RefPath.RejectCopy();
-  if (Path.UseNodeDist)
+  if (Path.StoreNodeDist)
     Path.NodeDist.RejectCopy();
-  if (Path.UseNodeDet)
+  if (Path.StoreNodeDet)
     Path.NodeDet.RejectCopy();
 }
 
