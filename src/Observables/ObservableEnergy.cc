@@ -52,15 +52,20 @@ void EnergyClass::Accumulate()
   dUNonlocalSum += dUNonlocal * FullWeight;
   Residual += residual;
 
+  // Energy Histogram
+  double completeSum = PathData.Path.Communicator.Sum(localSum) /
+                       (double) PathData.Path.TotalNumSlices;
+  EnergyHistogram.add(completeSum, 1.0);
+
   // Permutation Counting
   if(CountPerms) {
     int PermSector, PermNumber;
     vector<int> ThisPerm;
     GetPermInfo(ThisPerm,PermSector,PermNumber);
     if (Path.Communicator.MyProc() == 0) {
-      PermEnergy(PermSector) += localSum;
+      PermEnergy(PermSector) += completeSum;
       PermHist(PermSector) += 1;
-      EnergyVals(PermNumber) += localSum;
+      EnergyVals(PermNumber) += completeSum;
     }
   }
 
@@ -74,11 +79,6 @@ void EnergyClass::Accumulate()
     TotalSum += otherE;
   }
 
-  // Energy Histogram
-  double completeSum = PathData.Path.Communicator.Sum(localSum) /
-                       (double) PathData.Path.TotalNumSlices;
-  EnergyHistogram.add(PathData.Path.Communicator.Sum(localSum) /
-                      (double) PathData.Path.TotalNumSlices, 1.0);
 }
 
 
@@ -127,14 +127,14 @@ void EnergyClass::WriteBlock()
   }
 
   // Permutation Counting
-  if (CountPerms) {
+  if (CountPerms && PathData.Path.Communicator.MyProc() == 0) {
     EnergyVals = Prefactor * EnergyVals * norm;
     EnergyValsVar.Write(EnergyVals);
     for (int i = 0; i < PermEnergy.size(); i++) {
-      PermEnergy(i) = Prefactor * PathData.Path.Communicator.Sum(PermEnergy(i) / ((double)nslices*(double)PermHist(i)));
+      PermEnergy(i) = Prefactor * PermEnergy(i) / ((double)PermHist(i) * (double)NumSamples);
       if (isnan(PermEnergy(i)))
         PermEnergy(i) = 0.0;
-      PermHist(i) = Prefactor * PathData.Path.Communicator.Sum(PermHist(i) / (double)NumSamples);
+      PermHist(i) = Prefactor * PermHist(i) / (double)NumSamples;
     }
     PermEnergyVar.Write(PermEnergy);
     //PermHistVar.Write(PermHist); May want to do this later

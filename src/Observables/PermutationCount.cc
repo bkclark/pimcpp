@@ -24,12 +24,12 @@ void PermutationCountClass::WriteBlock()
 
   double norm = 1.0 / ((double) NumSamples);
   for (int i = 0; i < SectorCount.size(); i++)
-    SectorCount(i) = Prefactor * PathData.Path.Communicator.Sum(SectorCount(i)) * norm;
+    SectorCount(i) = Prefactor * SectorCount(i) * norm;
   SectorCountVar.Write(SectorCount);
   SectorCountVar.Flush();
   SectorCount = 0.0;
   for (int i = 0; i < CycleCount.size(); i++)
-    CycleCount(i) = Prefactor * PathData.Path.Communicator.Sum(CycleCount(i)) * norm / PathData.Path.NumParticles();
+    CycleCount(i) = Prefactor * CycleCount(i) * norm;
   CycleCountVar.Write(CycleCount);
   CycleCountVar.Flush();
   CycleCount = 0.0;
@@ -87,9 +87,10 @@ void PermutationCountClass::Accumulate()
   int PermSector, PermNumber;
   vector<int> ThisPerm;
   GetPermInfo(ThisPerm,PermSector,PermNumber);
-  SectorCount(PermSector) += 1;
-  for (vector<int>::size_type j=0; j != ThisPerm.size(); j++) {
-    CycleCount(ThisPerm[j]-1)++;
+  if (PathData.Path.Communicator.MyProc() == 0) {
+    SectorCount(PermSector) += 1;
+    for (vector<int>::size_type j=0; j != ThisPerm.size(); j++)
+      CycleCount(ThisPerm[j]-1)++;
   }
 }
 

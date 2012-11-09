@@ -22,10 +22,9 @@ void SignClass::Accumulate()
 {
 
   NumSamples++;
-  double FullSign;
+  double FullSign = 0.0;
   double currSign=PathData.Path.SignWeight;
   PathData.Path.Communicator.GatherProd(currSign,FullSign,0);
-  //cout << " Full Sign: " << FullSign;
   Sign=Sign+FullSign;
 
 }
@@ -50,6 +49,6 @@ void SignClass::Read(IOSectionClass &in)
   ObservableClass::Read(in);
   if (PathData.Path.Communicator.MyProc()==0){
     WriteInfo();
-    IOSection.WriteVar("Type","CorrelationFunction");
+    IOSection.WriteVar("Type","Scalar");
   }
 }

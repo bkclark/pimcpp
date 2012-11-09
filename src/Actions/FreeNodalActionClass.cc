@@ -449,10 +449,14 @@ double FreeNodalActionClass::NodalDist (int slice)
   int N = last-first+1;
   Array<dVec,1> gradVec(N);
   GradientDet (slice, det, gradVec);
+
+  if (det < 0 && !PathData.Path.UseNodeImportance)
+    return -1;
+
   double grad2 = 0.0;
   for (int i=0; i<N; i++)
     grad2 += dot(gradVec(i), gradVec(i));
-  double dist = det/sqrt(grad2);
+  double dist = abs(det)/sqrt(grad2);
   return (dist);
 }
 
@@ -468,11 +472,16 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
   //}
 
   double gradDist = NodalDist(slice);
-  double maxDist = MaxDist(slice);
+
+  if (gradDist < 0 && !PathData.Path.UseNodeImportance)
+    return -1;
+
   // gradDist will almost always be a lower bound to the real
   // distance.  Therefore, if says we are far from the nodes, we
   // probably are and we can just use its value.
   if (gradDist > sqrt(4.0*lambdaTau)) {
+    // MaxDist is the distance to the nearest particle
+    double maxDist = MaxDist(slice);
     if (gradDist < maxDist) {
       NumGradDists++;
       return (gradDist);
@@ -529,7 +538,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
 
   GradientDet (slice, det0, gradVec, tempPath);
   if (det0 < 0.0 && !PathData.Path.UseNodeImportance)
-    return -1.0;
+    return -1;
 
   double grad2=0.0;
   for (int i=0; i<N; i++)
@@ -548,7 +557,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
   bool done = false;
   // First, find first sign change
   det = det0;
-  double maxDist=sqrt(dot(PathData.Path.GetBox(),PathData.Path.GetBox()));
+  double maxDist = MaxDist(slice);
   while ((det*det0 > 0.0) && ((maxFactor*dist)<maxDist)) {
     maxFactor *= 2.0;
     for (int i=0; i<N; i++)
@@ -561,7 +570,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
     retVal = maxDist;
   else {
     // Now, do a bisection search for the sign change.
-    while (((maxFactor-minFactor)*dist > epsilon) && (minFactor*dist < maxDist)) {
+    while (((maxFactor-minFactor)*abs(dist) > epsilon) && (minFactor*abs(dist) < maxDist)) {
       tryFactor = 0.5*(maxFactor+minFactor);
       for (int i=0; i<N; i++)
         tempPath(i) = savePath(i) - tryFactor*dist*gradVec(i);
@@ -571,10 +580,10 @@ double FreeNodalActionClass::LineSearchDist (int slice)
       else
         maxFactor = tryFactor;
     }
-    if (minFactor*dist >= maxDist)
+    if (minFactor*abs(dist) >= maxDist)
       retVal = maxDist;
     else
-      retVal = dist * tryFactor;
+      retVal = abs(dist) * tryFactor;
   }
 
   return retVal;
@@ -798,6 +807,9 @@ double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice,
     if (!sliceIsRef) {
       int i = (slice - startSlice)/skip;
       dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+      /// Method 4, minimum distance
+      if (dist[i] < PathData.Path.NodeImpEps)
+        dist[i] = PathData.Path.NodeImpEps;
     }
   }
   //#pragma omp barrier
@@ -827,10 +839,23 @@ double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice,
   TimeSpent += (double)(end.tv_sec-start.tv_sec) +
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
-  /// Node Importance part
-  double eps = PathData.Path.NodeImpEps;
-  if (eps != 0.0)
-    uNode = -log(eps) - log1p(exp(-uNode)/eps);
+  ///// Node Importance part
+  //double eps = PathData.Path.NodeImpEps;
+  ////// Method 1, constant shift
+  //if (eps != 0.0)
+  //  uNode = -log(eps) - log1p(exp(-uNode)/eps);
+  ///// Method 2, max value
+  //if (exp(-uNode) < eps)
+  //  uNode = -log(eps);
+  ///// Method 3, calculate uNode from mean interparticle spacing
+  //double uNodeTmp = 0.0;
+  //for (int slice = startSlice; slice < endSlice; slice+=skip) {
+  //  double dist1 = PathData.Path.NodeImpEps;
+  //  double dist2 = PathData.Path.NodeImpEps;
+  //  uNodeTmp -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
+  //}
+  //if (uNode > uNodeTmp)
+  //  return uNodeTmp;
 
   return uNode;
 }
@@ -872,9 +897,9 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
       //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
       if (dist[i] < 0.0) {
         //#pragma omp critical
-        {
+        //{
           abort = 1;
-        }
+        //}
       }
     }
   }
@@ -922,7 +947,7 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
 
 double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
 {
-  if (PathData.Path.Equilibrate||PathData.Path.UseNodeImportance||UseNoDist)
+  if (PathData.Path.Equilibrate||UseNoDist)
     return 0.0;
 
   Array<int,1> changedPtcls(1);

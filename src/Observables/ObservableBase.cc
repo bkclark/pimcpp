@@ -69,14 +69,21 @@ double ObservableClass::CalcFullWeight()
   double TempSign;
   double currSign = PathData.Path.SignWeight;
   PathData.Path.Communicator.GatherProd(currSign, TempSign, 0);
+  PathData.Path.Communicator.Broadcast(0, TempSign);
   double FullSign = TempSign;
 
-  double NodeWeight = 0.0;
-  if (PathData.Path.UseNodeImportance)
+  double FullNodeWeight = 0.0;
+  if (PathData.Path.UseNodeImportance) {
+    double TempNodeWeight;
+    double NodeWeight = 0.0;
     PathData.Actions.GetNodalActions(NodeWeight);
+    PathData.Path.Communicator.GatherProd(NodeWeight, TempNodeWeight, 0);
+    PathData.Path.Communicator.Broadcast(0, TempNodeWeight);
+    FullNodeWeight = TempNodeWeight;
+  }
 
-  double FullWeight = exp(-NodeWeight)*FullSign;
-  //cout << " FW : " << FullWeight << " " << NodeWeight << " " << FullSign << endl;
+  double FullWeight = exp(-FullNodeWeight)*FullSign;
+  //cout << PathData.Path.CloneStr << " FW : " << FullWeight << " " << NodeWeight << " " << FullSign << endl;
   return 1.0/FullWeight;
 }
 
