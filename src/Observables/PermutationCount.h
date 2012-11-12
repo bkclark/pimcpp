@@ -22,9 +22,11 @@
 class PermutationCountClass : public ObservableClass
 {
  private:
-  ObservableVecDouble1 SectorCountVar, CycleCountVar;
+  ObservableVecDouble1 SectorCountVar;
+  ObservableVecDouble1 CycleCountVar;
   ObservableVecInt2 PossPermsVar;
-  Array<double,1> SectorCount, CycleCount;
+  vector<int> SectorCount;
+  Array<double,1> CycleCount;
   int NumSamples;
   int Species;
 public:
@@ -38,7 +40,7 @@ public:
     SectorCountVar("SectorCount",IOSection,myPathData.Path.Communicator)
   {
     NumSamples = 0;
-    SectorCount = 0.0;
+    //SectorCount = 0.0;
     CycleCount = 0.0;
   }
 

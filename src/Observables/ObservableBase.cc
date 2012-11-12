@@ -92,6 +92,7 @@ double ObservableClass::CalcFullWeight()
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
 {
+  cout << PathData.Path.CloneStr << " Setting up Permutation Sectors" << endl;
   vector<int> a;
   a.resize(n);
   for (int i=0; i<n; i++) {
@@ -130,7 +131,7 @@ void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
     sort(PossPerms[j].begin(),PossPerms[j].end());
   }
 
-  sort(PossPerms.begin(),PossPerms.end(),CompareVectors());
+  //sort(PossPerms.begin(),PossPerms.end(),CompareVectors());
 
 }
 

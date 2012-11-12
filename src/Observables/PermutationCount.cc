@@ -22,12 +22,30 @@ void PermutationCountClass::WriteBlock()
   //  Array<double,1> CorSum(Correlation.size());
   //  Path.Communicator.Sum(Correlation, CorSum);
 
+  /// SectorCount
+  // Map out the SectorCount vector
+  map<int,double> SectorMap;
   double norm = 1.0 / ((double) NumSamples);
-  for (int i = 0; i < SectorCount.size(); i++)
-    SectorCount(i) = Prefactor * SectorCount(i) * norm;
-  SectorCountVar.Write(SectorCount);
-  SectorCountVar.Flush();
-  SectorCount = 0.0;
+  for (int i = 0; i < NumSamples; i++) {
+    int perm = SectorCount.back();
+    if (SectorMap.find(perm) == SectorMap.end())
+      SectorMap.insert(pair<int,double>(perm,norm));
+    else
+      SectorMap[perm] += norm;
+    SectorCount.pop_back();
+  }
+
+  // Put the map into an array and write
+  map<int,double>::iterator it;
+  for(it = SectorMap.begin(); it != SectorMap.end(); it++) {
+    Array<double,1> tmpSectorCount(2);
+    tmpSectorCount(0) = (*it).first;
+    tmpSectorCount(1) = (*it).second;
+    SectorCountVar.Write(tmpSectorCount);
+    SectorCountVar.Flush();
+  }
+
+  /// CycleCount
   for (int i = 0; i < CycleCount.size(); i++)
     CycleCount(i) = Prefactor * CycleCount(i) * norm;
   CycleCountVar.Write(CycleCount);
@@ -49,8 +67,8 @@ void PermutationCountClass::Read(IOSectionClass &in)
   // Setup Permutation Sectors
   SetupPermSectors(PathData.Path.NumParticles(),MaxNSectors);
 
-  SectorCount.resize(PossPerms.size());
-  SectorCount = 0.0;
+  //SectorCount.resize(PossPerms.size());
+  //SectorCount = 0.0;
   CycleCount.resize(PathData.Path.NumParticles());
   CycleCount = 0.0;
   NumSamples = 0;
@@ -88,7 +106,8 @@ void PermutationCountClass::Accumulate()
   vector<int> ThisPerm;
   GetPermInfo(ThisPerm,PermSector,PermNumber);
   if (PathData.Path.Communicator.MyProc() == 0) {
-    SectorCount(PermSector) += 1;
+    //SectorCount(PermSector) += 1;
+    SectorCount.push_back(PermSector);
     for (vector<int>::size_type j=0; j != ThisPerm.size(); j++)
       CycleCount(ThisPerm[j]-1)++;
   }

@@ -32,10 +32,13 @@ private:
     VShortVar, VLongVar, dUNonlocalVar, ResidualVar, VTailLRVar, HistStart,
     HistEnd, NumPoints;
 
-  ObservableVecDouble1 PermEnergyVar, PermHistVar, VTailSRVar, EnergyHistogramVar,
-    EnergyValsVar;
+  //ObservableVecDouble1 PermEnergyVar, PermHistVar, VTailSRVar, EnergyHistogramVar;
+  ObservableVecDouble1 VTailSRVar, EnergyHistogramVar;
+  ObservableVecDouble1 PermEnergyVar;
 
-  Array<double,1> EnergyVals, PermEnergy, PermHist, EnergyHistogramSum;
+  vector<double> PermEnergy, SectorCount;
+  Array<double,1> EnergyHistogramSum;
+  //Array<double,1> PermEnergy, PermHist, EnergyHistogramSum;
 
   vector<ActionBaseClass*> OtherActions;
   vector<ObservableDouble*> OtherVars;
@@ -66,10 +69,10 @@ public:
       VLongVar     ("VLong",IOSection,myPathData.Path.Communicator),
       dUNonlocalVar("dUNonlocal", IOSection,myPathData.Path.Communicator),
       PermEnergyVar("PermEnergy",IOSection,myPathData.Path.Communicator),
-      PermHistVar("PermHist",IOSection,myPathData.Path.Communicator),
+      //PermHistVar("PermHist",IOSection,myPathData.Path.Communicator),
       VTailSRVar("VTail Short Range",IOSection,myPathData.Path.Communicator),
       VTailLRVar("VTail Long Range",IOSection,myPathData.Path.Communicator),
-      EnergyValsVar("Energy Vals",IOSection,myPathData.Path.Communicator),
+      //EnergyValsVar("Energy Vals",IOSection,myPathData.Path.Communicator),
       ResidualVar("Residual Energy",IOSection,myPathData.Path.Communicator),
       EnergyHistogramVar("Energy Histogram",IOSection,myPathData.Path.Communicator),
       HistStart("HistStart",IOSection,myPathData.Path.Communicator),
@@ -83,8 +86,8 @@ public:
     NodeSum = 0.0;
     VShortSum = 0.0;
     VLongSum = 0.0;
-    PermEnergy = 0.0;
-    PermHist = 0.0;
+    //PermEnergy = 0.0;
+    //PermHist = 0.0;
     NumSamples = 0.0;
     TimesCalled = 0.0;
     dUNonlocalSum = 0.0;

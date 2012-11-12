@@ -63,9 +63,10 @@ void EnergyClass::Accumulate()
     vector<int> ThisPerm;
     GetPermInfo(ThisPerm,PermSector,PermNumber);
     if (Path.Communicator.MyProc() == 0) {
-      PermEnergy(PermSector) += completeSum;
-      PermHist(PermSector) += 1;
-      EnergyVals(PermNumber) += completeSum;
+      PermEnergy.push_back(completeSum);
+      SectorCount.push_back(PermSector);
+      //PermEnergy(PermSector) += completeSum;
+      //PermHist(PermSector) += 1;
     }
   }
 
@@ -128,18 +129,52 @@ void EnergyClass::WriteBlock()
 
   // Permutation Counting
   if (CountPerms && PathData.Path.Communicator.MyProc() == 0) {
-    EnergyVals = Prefactor * EnergyVals * norm;
-    EnergyValsVar.Write(EnergyVals);
-    for (int i = 0; i < PermEnergy.size(); i++) {
-      PermEnergy(i) = Prefactor * PermEnergy(i) / ((double)PermHist(i) * (double)NumSamples);
-      if (isnan(PermEnergy(i)))
-        PermEnergy(i) = 0.0;
-      PermHist(i) = Prefactor * PermHist(i) / (double)NumSamples;
+    //Array<double,2> tmpPermEnergy(NumSamples,2);
+    //for (int i = 0; i < NumSamples; i++) {
+    //  tmpPermEnergy(i,0) = SectorCount.back();
+    //  SectorCount.pop_back();
+    //  tmpPermEnergy(i,1) = Prefactor * PermEnergy.back();
+    //  PermEnergy.pop_back();
+    //  //PermEnergy(i) = Prefactor * PermEnergy(i) / ((double)PermHist(i) * (double)NumSamples);
+    //  //if (isnan(PermEnergy(i)))
+    //  //  PermEnergy(i) = 0.0;
+    //  //PermHist(i) = Prefactor * PermHist(i) / (double)NumSamples;
+    //}
+    //PermEnergyVar.Write(tmpPermEnergy);
+    ////PermHistVar.Write(PermHist); May want to do this later
+    ////PermEnergy = 0.0;
+    ////PermHist = 0;
+
+    // Map out the PermEnergy vector
+    map<int,double> PermEnergyMap;
+    map<int,int> SectorMap;
+    double norm = Prefactor; // /((double) NumSamples);
+    for (int i = 0; i < NumSamples; i++) {
+      double energy = PermEnergy.back();
+      int perm = SectorCount.back();
+      if (PermEnergyMap.find(perm) == PermEnergyMap.end()) {
+        PermEnergyMap.insert(pair<int,double>(perm,energy*norm));
+        SectorMap.insert(pair<int,int>(perm,1));
+      } else {
+        PermEnergyMap[perm] += energy*norm;
+        SectorMap[perm] += 1;
+      }
+      PermEnergy.pop_back();
+      SectorCount.pop_back();
     }
-    PermEnergyVar.Write(PermEnergy);
-    //PermHistVar.Write(PermHist); May want to do this later
-    PermEnergy = 0.0;
-    PermHist = 0;
+
+    // Put the map into an array and write
+    map<int,double>::iterator it;
+    for(it = PermEnergyMap.begin(); it != PermEnergyMap.end(); it++) {
+      Array<double,1> tmpPermEnergy(2);
+      int perm = (*it).first;
+      double energy = (*it).second;
+      tmpPermEnergy(0) = perm;
+      tmpPermEnergy(1) = energy/SectorMap[perm];
+      PermEnergyVar.Write(tmpPermEnergy);
+      PermEnergyVar.Flush();
+    }
+
   }
 
   // Energy Histogram
@@ -160,7 +195,7 @@ void EnergyClass::WriteBlock()
   VLongSum = 0.0;
   dUNonlocalSum = 0.0;
   Residual = 0.0;
-  EnergyVals = 0.0;
+  //EnergyVals = 0.0;
   NumSamples = 0;
   EnergyHistogram.Clear();
 }
@@ -190,12 +225,10 @@ void EnergyClass::Read(IOSectionClass & in)
     if(!in.ReadVar("MaxNSectors", MaxNSectors))
       MaxNSectors = 0; // 0 -> Track all sectors
     SetupPermSectors(N,MaxNSectors);
-    PermEnergy.resize(PossPerms.size());
-    PermEnergy = 0.0;
-    PermHist.resize(PossPerms.size());
-    PermHist = 0;
-    EnergyVals.resize(N*2);
-    EnergyVals = 0.0;
+    //PermEnergy.resize(PossPerms.size());
+    //PermEnergy = 0.0;
+    //PermHist.resize(PossPerms.size());
+    //PermHist = 0;
     int PermSector, PermNumber;
     vector<int> ThisPerm;
     GetPermInfo(ThisPerm,PermSector,PermNumber);
