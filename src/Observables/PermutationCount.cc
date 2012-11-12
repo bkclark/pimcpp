@@ -23,35 +23,37 @@ void PermutationCountClass::WriteBlock()
   //  Path.Communicator.Sum(Correlation, CorSum);
 
   /// SectorCount
-  // Map out the SectorCount vector
-  map<int,double> SectorMap;
-  double norm = 1.0 / ((double) NumSamples);
-  for (int i = 0; i < NumSamples; i++) {
-    int perm = SectorCount.back();
-    if (SectorMap.find(perm) == SectorMap.end())
-      SectorMap.insert(pair<int,double>(perm,norm));
-    else
-      SectorMap[perm] += norm;
-    SectorCount.pop_back();
-  }
+  if (PathData.Path.Communicator.MyProc() == 0) {
+    // Map out the SectorCount vector
+    map<int,double> SectorMap;
+    double norm = 1.0 / ((double) NumSamples);
+    for (int i = 0; i < NumSamples; i++) {
+      int perm = SectorCount.back();
+      if (SectorMap.find(perm) == SectorMap.end())
+        SectorMap.insert(pair<int,double>(perm,norm));
+      else
+        SectorMap[perm] += norm;
+      SectorCount.pop_back();
+    }
 
-  // Put the map into an array and write
-  map<int,double>::iterator it;
-  for(it = SectorMap.begin(); it != SectorMap.end(); it++) {
-    Array<double,1> tmpSectorCount(2);
-    tmpSectorCount(0) = (*it).first;
-    tmpSectorCount(1) = (*it).second;
-    SectorCountVar.Write(tmpSectorCount);
-    SectorCountVar.Flush();
-  }
+    // Put the map into an array and write
+    map<int,double>::iterator it;
+    for(it = SectorMap.begin(); it != SectorMap.end(); it++) {
+      Array<double,1> tmpSectorCount(2);
+      tmpSectorCount(0) = (*it).first;
+      tmpSectorCount(1) = (*it).second;
+      SectorCountVar.Write(tmpSectorCount);
+      SectorCountVar.Flush();
+    }
 
-  /// CycleCount
-  for (int i = 0; i < CycleCount.size(); i++)
-    CycleCount(i) = Prefactor * CycleCount(i) * norm;
-  CycleCountVar.Write(CycleCount);
-  CycleCountVar.Flush();
-  CycleCount = 0.0;
-  NumSamples = 0;
+    /// CycleCount
+    for (int i = 0; i < CycleCount.size(); i++)
+      CycleCount(i) = Prefactor * CycleCount(i) * norm;
+    CycleCountVar.Write(CycleCount);
+    CycleCountVar.Flush();
+    CycleCount = 0.0;
+    NumSamples = 0;
+  }
 }
 
 
@@ -89,8 +91,8 @@ void PermutationCountClass::Read(IOSectionClass &in)
   /// Now write the one-time output variables
   if (PathData.Path.Communicator.MyProc()==0) {
     WriteInfo();
-    PossPermsVar.Write(tmpPossPerms);
-    PossPermsVar.Flush();
+    //PossPermsVar.Write(tmpPossPerms);
+    //PossPermsVar.Flush();
   }
 
 }
