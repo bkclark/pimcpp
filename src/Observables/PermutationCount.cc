@@ -68,25 +68,22 @@ void PermutationCountClass::Read(IOSectionClass &in)
 
   // Setup Permutation Sectors
   SetupPermSectors(PathData.Path.NumParticles(),MaxNSectors);
-
-  //SectorCount.resize(PossPerms.size());
-  //SectorCount = 0.0;
   CycleCount.resize(PathData.Path.NumParticles());
   CycleCount = 0.0;
   NumSamples = 0;
 
   // Group Permutation Sectors
-  Array<int,2> tmpPossPerms;
-  tmpPossPerms.resize(PossPerms.size(),CycleCount.size());
-  for (int i=0; i<PossPerms.size(); i++) {
-    CycleCount = 0.0;
-    for (int j=0; j<PossPerms[i].size(); j++) {
-      CycleCount(PossPerms[i][j]-1)++;
-    }
-    for (int j=0; j<CycleCount.size(); j++) {
-      tmpPossPerms(i,j) = CycleCount(j);
-    }
-  }
+  //Array<int,2> tmpPossPerms;
+  //tmpPossPerms.resize(PossPerms.size(),CycleCount.size());
+  //for (int i=0; i<PossPerms.size(); i++) {
+  //  CycleCount = 0.0;
+  //  for (int j=0; j<PossPerms[i].size(); j++) {
+  //    CycleCount(PossPerms[i][j]-1)++;
+  //  }
+  //  for (int j=0; j<CycleCount.size(); j++) {
+  //    tmpPossPerms(i,j) = CycleCount(j);
+  //  }
+  //}
 
   /// Now write the one-time output variables
   if (PathData.Path.Communicator.MyProc()==0) {

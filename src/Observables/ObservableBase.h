@@ -27,6 +27,7 @@
 #include <numeric>
 #include "ctime"
 #include "sys/time.h"
+#include <tr1/unordered_map>
 
 using namespace IO;
 
@@ -36,13 +37,45 @@ using namespace IO;
 class ObservableClass : public EventClass
 {
  protected:
-  vector< vector<int> > PossPerms;
+
+  template <typename Container> // we can make this generic for any container [1]
+  struct container_hash {
+    std::size_t operator()(Container const& c) const {
+      double tot = 0;
+      double sqtot = 0;
+      for (int i = 0; i < c.size(); i++) {
+        tot += c[i];
+        sqtot += c[i]*c[i];
+      }
+      double value = sqtot/tot;
+      return (size_t)*(const unsigned int *)&value;
+    }
+  };
+
+  class CompareVecInt
+  {
+    public:
+      bool operator() (const vector<int> &a, const vector<int> &b) {
+        for (int i = 0; i<a.size(); i++)
+          if (a[i] != b[i])
+            return (a[i] > b[i]);
+        return (a[0]>b[0]);
+      }
+  };
+
+  //vector< vector<int> > PossPerms;
+  //std::tr1::unordered_map<vector<int>,int,container_hash< vector<int> > > PossPerms;
+  //std::tr1::unordered_map<vector<int>,int,container_hash< vector<int> > >::const_iterator PossPermsIterator;
+  std::map<vector<int>,int,CompareVecInt> PossPerms;
+  std::map<vector<int>,int,CompareVecInt>::const_iterator PossPermsIterator;
   Array<bool,1> CountedAlready;
   Array<int,1> TotalPerm;
   void SetupPermSectors(int n, int MaxNSectors=0);
   void GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &PermNumber);
 
   bool TrackSign;
+
+
 
   struct CompareVectors
   {

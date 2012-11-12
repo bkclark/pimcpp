@@ -92,43 +92,49 @@ double ObservableClass::CalcFullWeight()
 
 void ObservableClass::SetupPermSectors(int n, int MaxNSectors)
 {
-  cout << PathData.Path.CloneStr << " Setting up Permutation Sectors" << endl;
-  vector<int> a;
-  a.resize(n);
-  for (int i=0; i<n; i++) {
-    a[i] = 0;
-  }
-  int k = 1;
-  int y = n-1;
-  while (k != 0 && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
-    int x = a[k-1] + 1;
-    k -= 1;
-    while (2*x <= y) {
-      a[k] = x;
-      y -= x;
-      k += 1;
+  if (PathData.Path.Communicator.MyProc() == 0) {
+    cout << PathData.Path.CloneStr << " Setting up Permutation Sectors" << endl;
+    vector<int> a;
+    a.resize(n);
+    for (int i=0; i<n; i++) {
+      a[i] = 0;
     }
-    int l = k+1;
-    while (x <= y && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
-      a[k] = x;
-      a[l] = y;
-      vector<int> b;
-      for (vector<int>::size_type j=0; j!=k+2; j++)
-        b.push_back(a[j]);
-      PossPerms.push_back(b);
-      x += 1;
-      y -= 1;
+    int k = 1;
+    int y = n-1;
+    vector< vector<int> > tmpPossPerms;
+    while (k != 0 && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
+      int x = a[k-1] + 1;
+      k -= 1;
+      while (2*x <= y) {
+        a[k] = x;
+        y -= x;
+        k += 1;
+      }
+      int l = k+1;
+      while (x <= y && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
+        a[k] = x;
+        a[l] = y;
+        vector<int> b;
+        for (vector<int>::size_type j=0; j!=k+2; j++)
+          b.push_back(a[j]);
+        tmpPossPerms.push_back(b);
+        x += 1;
+        y -= 1;
+      }
+      a[k] = x+y;
+      y = x+y-1;
+      vector<int> c;
+      for (vector<int>::size_type j=0; j!=k+1; j++)
+        c.push_back(a[j]);
+      tmpPossPerms.push_back(c);
     }
-    a[k] = x+y;
-    y = x+y-1;
-    vector<int> c;
-    for (vector<int>::size_type j=0; j!=k+1; j++)
-      c.push_back(a[j]);
-    PossPerms.push_back(c);
-  }
 
-  for (vector<int>::size_type j=0; j != PossPerms.size(); j++) {
-    sort(PossPerms[j].begin(),PossPerms[j].end());
+
+    cout << PathData.Path.CloneStr << " Putting sectors in map" << endl;
+    for (vector<int>::size_type j=0; j != tmpPossPerms.size(); j++) {
+      sort(tmpPossPerms[j].begin(),tmpPossPerms[j].end());
+      PossPerms[tmpPossPerms[j]] = j;
+    }
   }
 
   //sort(PossPerms.begin(),PossPerms.end(),CompareVectors());
@@ -170,18 +176,15 @@ void ObservableClass::GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &P
     return;
 
   sort(ThisPerm.begin(),ThisPerm.end());
-  for (vector<int>::size_type i=0; i != PossPerms.size(); i++)
-    if (ThisPerm == PossPerms[i]) {
-      PermSector = i;
-      return;
-    }
-
-  // Broken Permutation!
-  cerr << "Broken Permutation: " << endl;
-  for (vector<int>::size_type i=0; i != ThisPerm.size(); i++)
-    cerr << ThisPerm[i] << " ";
-  cerr << endl;
-
-  exit(1);
-  return;
+  PossPermsIterator = PossPerms.find(ThisPerm);
+  if (PossPermsIterator == PossPerms.end()) {
+    cerr << "Broken Permutation: " << endl;
+    for (vector<int>::size_type i=0; i != ThisPerm.size(); i++)
+      cerr << ThisPerm[i] << " ";
+    cerr << endl;
+    exit(1);
+  } else {
+    PermSector = PossPermsIterator->second;
+    return;
+  }
 }

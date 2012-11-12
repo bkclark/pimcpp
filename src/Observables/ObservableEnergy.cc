@@ -65,8 +65,6 @@ void EnergyClass::Accumulate()
     if (Path.Communicator.MyProc() == 0) {
       PermEnergy.push_back(completeSum);
       SectorCount.push_back(PermSector);
-      //PermEnergy(PermSector) += completeSum;
-      //PermHist(PermSector) += 1;
     }
   }
 
@@ -129,21 +127,6 @@ void EnergyClass::WriteBlock()
 
   // Permutation Counting
   if (CountPerms && PathData.Path.Communicator.MyProc() == 0) {
-    //Array<double,2> tmpPermEnergy(NumSamples,2);
-    //for (int i = 0; i < NumSamples; i++) {
-    //  tmpPermEnergy(i,0) = SectorCount.back();
-    //  SectorCount.pop_back();
-    //  tmpPermEnergy(i,1) = Prefactor * PermEnergy.back();
-    //  PermEnergy.pop_back();
-    //  //PermEnergy(i) = Prefactor * PermEnergy(i) / ((double)PermHist(i) * (double)NumSamples);
-    //  //if (isnan(PermEnergy(i)))
-    //  //  PermEnergy(i) = 0.0;
-    //  //PermHist(i) = Prefactor * PermHist(i) / (double)NumSamples;
-    //}
-    //PermEnergyVar.Write(tmpPermEnergy);
-    ////PermHistVar.Write(PermHist); May want to do this later
-    ////PermEnergy = 0.0;
-    ////PermHist = 0;
 
     // Map out the PermEnergy vector
     map<int,double> PermEnergyMap;
@@ -225,10 +208,6 @@ void EnergyClass::Read(IOSectionClass & in)
     if(!in.ReadVar("MaxNSectors", MaxNSectors))
       MaxNSectors = 0; // 0 -> Track all sectors
     SetupPermSectors(N,MaxNSectors);
-    //PermEnergy.resize(PossPerms.size());
-    //PermEnergy = 0.0;
-    //PermHist.resize(PossPerms.size());
-    //PermHist = 0;
     int PermSector, PermNumber;
     vector<int> ThisPerm;
     GetPermInfo(ThisPerm,PermSector,PermNumber);
