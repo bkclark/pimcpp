@@ -26,13 +26,12 @@ void PermutationCountClass::WriteBlock()
   if (PathData.Path.Communicator.MyProc() == 0) {
     // Map out the SectorCount vector
     map<int,double> SectorMap;
-    double norm = 1.0 / ((double) NumSamples);
     for (int i = 0; i < NumSamples; i++) {
       int perm = SectorCount.back();
       if (SectorMap.find(perm) == SectorMap.end())
-        SectorMap.insert(pair<int,double>(perm,norm));
+        SectorMap.insert(pair<int,double>(perm,1));
       else
-        SectorMap[perm] += norm;
+        SectorMap[perm] += 1;
       SectorCount.pop_back();
     }
 
@@ -47,6 +46,7 @@ void PermutationCountClass::WriteBlock()
     }
 
     /// CycleCount
+    double norm = 1.0 / ((double) NumSamples);
     for (int i = 0; i < CycleCount.size(); i++)
       CycleCount(i) = Prefactor * CycleCount(i) * norm;
     CycleCountVar.Write(CycleCount);
