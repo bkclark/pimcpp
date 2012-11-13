@@ -54,7 +54,7 @@ void PathDumpClass::Read(IOSectionClass &in)
   }
   else
     NodeSlice = 0;
-  
+
   DumpRho = in.OpenSection("RhoDump");
   if (DumpRho) {
     int nx, ny, nz;
@@ -64,12 +64,12 @@ void PathDumpClass::Read(IOSectionClass &in)
     Rho.resize(nx, ny, nz);
     in.CloseSection (); // "RhoDump"
   }
-  
+
 }
 
 void PathDumpClass::Accumulate()
 {
-  std::cout << "Dumping Paths" << endl;
+  std::cout << PathData.Path.CloneStr << " Dumping Paths" << endl;
   if (!AllClones && (PathData.GetCloneNum() != 0))
     return;
 
@@ -84,22 +84,19 @@ void PathDumpClass::Accumulate()
   if (DumpNodes)
     FindWorstBead(NodeSlice, NodePtcl);
 
-  if (DumpRho) 
-    if (PathData.Actions.NodalActions(0) != NULL)
-      //      if (PathData.Actions.NodalActions(0)->Type() == GROUND_STATE_FP) {
-      //	FixedPhaseActionClass &FP = 
-      //	  *((FixedPhaseActionClass*)PathData.Actions.NodalActions(0));
-      //	FP.CalcDensity(Rho);
-      //	RhoVar.Write(Rho);
-      //      }
+  //if (DumpRho)
+  //  if (PathData.Actions.NodalActions(0) != NULL)
+  //    if (PathData.Actions.NodalActions(0)->Type() == GROUND_STATE_FP) {
+  //      FixedPhaseActionClass &FP = *((FixedPhaseActionClass*)PathData.Actions.NodalActions(0));
+  //      FP.CalcDensity(Rho);
+  //      RhoVar.Write(Rho);
+  //    }
 
   if (PathData.Path.OpenPaths){
     Array<double,1> tailLoc(NDIM);
     OpenLinkVar.Write((int)PathData.Path.OpenLink);
-    for (int dim=0;dim<NDIM;dim++){
-      tailLoc(dim)=PathData.Path(PathData.Path.OpenLink,
-				 PathData.Path.NumParticles())[dim];
-    }
+    for (int dim=0;dim<NDIM;dim++)
+      tailLoc(dim) = PathData.Path(PathData.Path.OpenLink,PathData.Path.NumParticles())[dim];
     TailLocVar.Write(tailLoc);
     RefLinkVar.Write(PathData.Path.RefSlice);
     OpenLinkPtclVar.Write(PathData.Path.OpenPtcl);
@@ -158,7 +155,7 @@ void PathDumpClass::Accumulate()
     for (int spIndex=0;spIndex<PathData.NumSpecies();spIndex++){
       SpeciesClass &species = PathData.Path.Species(spIndex);
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++)
-	speciesNames(ptcl)=species.Name;
+        speciesNames(ptcl)=species.Name;
     }
     IOSection.WriteVar("SpeciesNames", speciesNames);
     IOSection.WriteVar("Type","Path");

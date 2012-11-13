@@ -56,6 +56,7 @@ void ObservableClass::DoEvent()
   struct timeval endtime;
   gettimeofday(&endtime, &tzone);
   double TimeDiff = (double)(endtime.tv_sec-starttime.tv_sec) + 1.0e-6*(double)(endtime.tv_usec-starttime.tv_usec);
+  PathData.Path.Communicator.Broadcast(0, TimeDiff);
   if ((Frequency > 0 && (TimesCalled % Frequency) == 0) || (TemporalFrequency > 0 && TimeDiff > TemporalFrequency)) {
     Accumulate();
     gettimeofday(&starttime,&tzone);
