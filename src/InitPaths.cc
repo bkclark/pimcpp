@@ -19,215 +19,155 @@
 #include "IO/FileExpand.h"
 
 
-void 
-PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
-                   SpeciesClass &species)
+void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, SpeciesClass &species)
 {
-// This was modified on Jan 19 2005 to read in a set of classical (P=1) configs and duplicate them to produce a set of PIMC (P>1) configs.  -jg
-
   int myProc=Communicator.MyProc();
-  IOSectionClass inFile;
-  stringstream oss;
+
+  /// Decide whether to restart from several clones or just one (the 0th clone).
   bool parallelFileRead;
-  if (!in.ReadVar("ParallelFileRead",parallelFileRead)){
-    parallelFileRead=true;
-  }
-  if (parallelFileRead){
-    /// If NumClones > MaxClones, reuse earlier .h5 files to restart
+  IOSectionClass inFile;
+  if (!in.ReadVar("ParallelFileRead",parallelFileRead))
+    parallelFileRead = true;
+
+  /// Get previous clone filename
+  stringstream oss;
+  if (parallelFileRead) {
+    /// Restart from several clones
     int tmpMyClone = MyClone;
+    /// If NumClones > MaxClones, reuse earlier .h5 files to restart
     int MaxClones;
-    if (in.ReadVar("MaxClones",MaxClones))
+    if (in.ReadVar("MaxClones",MaxClones)) {
       if (MyClone > MaxClones-1)
         tmpMyClone = MyClone % MaxClones;
-    cout << CloneStr << " " << MaxClones << " " << MyClone << " " << tmpMyClone << endl;
+    }
     stringstream tempStream;
-    int counter=0;
+    int counter = 0;
     tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
-    while (fileExists(tempStream.str())){
+    while (fileExists(tempStream.str())) {
       counter++;
       tempStream.str("");
       tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
     }
     counter--;
-    ///broadcast so everyone agrees on the answer.
-    Communicator.Broadcast(0,counter);
-
-    if (counter==-1){
-      bool doBCC;
-      assert(in.ReadVar("DoBCC",doBCC));
-      if (doBCC){
-        assert(NDIM==2);
-        int num = species.NumParticles;
-        bool isCubic = (Box[0]==Box[1]);
-        if (!isCubic) {
-          perr << "A cubic box is typically preferred for cubic initilization\n";
-          //      abort();
-        }
-        int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/2.0)-1.0e-6);
-        double delta = Box[0] / (double)numPerDim;
-        for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-          int ip = (ptcl-species.FirstPtcl)/2;
-          int ix, iy;
-          ix = ip/(numPerDim);
-          iy = (ip-(ix*numPerDim));
-        dVec r;
-        r[0] = ix*delta-0.5*Box[0];
-        r[1] = iy*delta-0.5*Box[1];
-        if (ptcl % 2) 
-          r += 0.5*delta;
-        for (int slice=0; slice<NumTimeSlices(); slice++) 
-          Path(slice,ptcl) = r;
-        cerr<<"INIT PATH: "<<Path(0,ptcl)[0]<<" "
-            <<Path(0,ptcl)[1]
-            <<endl;
-        
-
-        }
-      }
-      else {
-        Array<double,2> Positions;
-        assert (in.ReadVar ("Positions", Positions));
-        assert (Positions.rows() == species.NumParticles);
-        assert (Positions.cols() == species.NumDim);
-        for (int ptcl=species.FirstPtcl; 
-             ptcl<=species.LastPtcl; ptcl++){
-          for (int slice=0; slice<NumTimeSlices(); slice++) {
-            dVec pos;
-            pos = 0.0;
-            for (int dim=0; dim<species.NumDim; dim++)
-              pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
-            Path(slice,ptcl) = pos;
-          }      
-        }
-      }
-      return;
+    if (counter < 0) {
+      cerr << CloneStr << " Previous clones for " << fileName << " don't exist! Aborting. " << endl;
+      abort();
     }
-    ////done broadcasting
+
+    /// Broadcast so everyone agrees on the answer.
+    Communicator.Broadcast(0,counter);
     oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
-    cout<<CloneStr<<" Using "<<oss.str()<<endl;
-    //    oss<<fileName<<"."<<tmpMyClone<<".h5";
-  }
-  else{
+    if (myProc == 0)
+      cout<<CloneStr<<" Using "<<oss.str()<<endl;
+  } else {
+    /// Use only first clone
     oss<<fileName<<"."<<0<<".h5";
   }
-  string fullFileName=oss.str();
 
+  /// Open the previous clones and start reading things
+  string fullFileName=oss.str();
   assert (inFile.OpenFile(fullFileName.c_str()));
-  //  assert (inFile.OpenFile(fileName.c_str()));
   inFile.OpenSection("System");
   Array<double,1> oldBox;
   inFile.ReadVar("Box",oldBox);
   inFile.CloseSection();
-  //cerr<<"Read the box "<<myProc<<endl;
   inFile.OpenSection("Observables");
   inFile.OpenSection("PathDump");
-  Array<double,3> oldPaths; //(58,2560,2,3);
+
+  /// Get Permutations
+  /// Only read in on processor 0 and then broadcast
   Array<int,1> oldPermutation;
-  //only read in ther permutations on processor 0 and then broadcast
   int extent0; int extent1; int extent2;
-  if (myProc==0){ 
-    IOVarBase *permutationVar=inFile.GetVarPtr("Permutation");
-    int numDumps=permutationVar->GetExtent(0);
+  if (myProc==0) {
+    IOVarBase *permutationVar = inFile.GetVarPtr("Permutation");
+    /// Check if returning NULL pointer
+    if (!permutationVar) {
+      cerr << CloneStr << " Path Dump not found! Aborting " << endl;
+      abort();
+    }
+    int numDumps = permutationVar->GetExtent(0);
     permutationVar->Read(oldPermutation,numDumps-1,Range::all());
-    extent0=oldPermutation.extent(0);
+    extent0 = oldPermutation.extent(0);
   }
   Communicator.Broadcast(0,extent0);
-  if (Communicator.MyProc()!=0){
+  int numPerms = extent0;
+  if (myProc != 0) {
     oldPermutation.resize(extent0);
   }
   Communicator.Broadcast(0,oldPermutation);
-  //  assert(inFile.ReadVar("Permutation",oldPermutation));
-  //cerr<<"Read init permutations "<<myProc<<endl;
+  /// Put permutation on proper last slice and accept
   SetMode(NEWMODE);
-  //  int myProc=Communicator.MyProc();
-  if (myProc==Communicator.NumProcs()-1){
+  if (myProc == Communicator.NumProcs()-1){
     for (int ptcl=0;ptcl<NumParticles();ptcl++)
       Permutation(ptcl) = oldPermutation(ptcl);
     Permutation.AcceptCopy();
   }
-  //cerr<<"About to read paths "<<myProc<<endl;
-  IOVarBase *pathVar = inFile.GetVarPtr("Path");
-  int numDumps=pathVar->GetExtent(0);
-  cout<<CloneStr<<" path dumps: "<<numDumps<<" permutations: "<<oldPermutation.extent(0)<<endl;
 
-  if (Communicator.MyProc()==0){
-    pathVar->Read(oldPaths,numDumps-1,Range::all(),Range::all(),Range::all());  
-    extent0=oldPaths.extent(0); 
-    extent1=oldPaths.extent(1);
-    extent2=oldPaths.extent(2);
+  /// Get Paths
+  /// Only read in on processor 0 and then broadcast
+  Array<double,3> oldPaths;
+  IOVarBase *pathVar = inFile.GetVarPtr("Path");
+  /// Check if returning NULL pointer
+  if (!pathVar) {
+    cerr << CloneStr << " Path Dump not found! Aborting " << endl;
+    abort();
+  }
+  int numDumps=pathVar->GetExtent(0);
+  if (myProc == 0){
+    pathVar->Read(oldPaths,numDumps-1,Range::all(),Range::all(),Range::all());
+    extent0 = oldPaths.extent(0);
+    extent1 = oldPaths.extent(1);
+    extent2 = oldPaths.extent(2);
   }
   Communicator.Broadcast(0,extent0);
   Communicator.Broadcast(0,extent1);
   Communicator.Broadcast(0,extent2);
-  if (Communicator.MyProc()!=0){
+  if (myProc != 0){
     oldPaths.resize(extent0,extent1,extent2);
   }
   Communicator.Broadcast(0,oldPaths);
+  if (myProc == 0)
+    cout<<CloneStr<<" Path Dumps: "<<numDumps<<" Permutations: "<<numPerms<<endl;
 
+  /// Assign positions to beads
   int myFirstSlice,myLastSlice;
   SliceRange (myProc, myFirstSlice, myLastSlice);
-  //  int lastSlice=min(TotalNumSlices-1,myLastSlice);
-
-  //  Array<double,2> firstSlice;
-  //  pathVar->Read(firstSlice,numDumps-1,Range::all(),0,Range::all());
-  
-
-  //  assert(inFile.ReadVar("Path",oldPaths));
-  ///  cerr << "My paths are of size"  << oldPaths.extent(0) << " "
-  ///       << oldPaths.extent(1)<<" " << oldPaths.extent(2) << endl;
-  
-
-  
   for (int ptcl=0;ptcl<NumParticles();ptcl++){
     int endSlice=min(myLastSlice,TotalNumSlices-1);
     for (int slice=0; slice<TotalNumSlices; slice++) {
-    //    for (int slice=myFirstSlice; slice<=endSlice; slice++) {
-
-      //      int sliceOwner = SliceOwner(slice);
       int relSlice = slice-myFirstSlice;
-      ///      if (myProc==sliceOwner){
       if (myFirstSlice<=slice && slice<=myLastSlice){
         dVec pos;
         pos = 0.0;
         for (int dim=0; dim<NDIM; dim++)
-          if (replicate){
+          if (replicate) {
             pos(dim) = oldPaths(ptcl,0,dim)*(Box[dim]/oldBox(dim));
-          }
-          else if (slice>=oldPaths.extent(1)){
-            pos(dim)=oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
-          }
-          else{
+          } else if (slice>=oldPaths.extent(1)) {
+            pos(dim) = oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
+          } else {
             pos(dim) = oldPaths(ptcl,slice,dim)*(Box[dim]/oldBox(dim));
           }
         Path(relSlice,ptcl) = pos;
       }
-      
-      }
-    //    cerr<<"All but last processor done "<<Communicator.MyProc()<<endl;
-    ///If you are the last processors you must make sure the last
-    ///slice is the same as the first slice on the first
-    ///processors. The  join should be at the
-    if (myProc==Communicator.NumProcs()-1){
+    }
+    /// If you are the last processors you must make sure the last
+    /// slice is the same as the first slice on the first processors.
+    /// You want to end up on the bead you permute onto.
+    if (myProc==Communicator.NumProcs()-1) {
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-     if (replicate){//not sure this works for replicate
-       //       pos(dim) = oldPaths(oldPaths.extent(0)-1,Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-       pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-     }
-     else{//you want to end up on the person you permute onto
-       //       pos(dim) = oldPaths(oldPaths.extent(0)-1,Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-       pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
-     }
-    
+        pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
   }
+  if (myProc==Communicator.NumProcs()-1)
+    MoveJoin(NumTimeSlices()-1,1);
+
+  /// Close things
   inFile.CloseSection();
   inFile.CloseSection();
   inFile.CloseFile();
-  if (myProc==Communicator.NumProcs()-1)
-    MoveJoin(NumTimeSlices()-1,1);
 
 //   ofstream outfile;
 //   outfile.open("positions.dat");
@@ -235,13 +175,10 @@ PathClass::Restart(IOSectionClass &in,string fileName,bool replicate,
 //     for (int ptcl=0;ptcl<NumParticles();ptcl++)
 //       outfile<<slice<<" "<<ptcl<<"  "<<Path(slice,ptcl)[0]<<" "<<Path(slice,ptcl)[1]<<endl;
 //   outfile.close();
-
-
 }
 
 
-void 
-PathClass::ReadSqueeze(IOSectionClass &in,string fileName,bool replicate)
+void PathClass::ReadSqueeze(IOSectionClass &in,string fileName,bool replicate)
 {
 // This was modified on Jan 19 2005 to read in a set of classical (P=1) configs and duplicate them to produce a set of PIMC (P>1) configs.  -jg
 
@@ -887,7 +824,9 @@ PathClass::InitPaths (IOSectionClass &in)
     else if (InitPaths=="RESTART"){
       string pathFile;
       assert(in.ReadVar("File",pathFile));
-      cout<<CloneStr<<" Restarting from "<<pathFile<<endl;
+      int myProc = Communicator.MyProc();
+      if (myProc == 0)
+        cout<<CloneStr<<" Restarting from "<<pathFile<<endl;
       Restart(in,pathFile,false,species);
       //cerr<<"Done with initpaths restart"<<endl;
     }

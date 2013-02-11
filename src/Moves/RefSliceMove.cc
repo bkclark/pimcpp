@@ -24,6 +24,7 @@ void RefSliceMoveClass::WriteRatio()
 
 void RefSliceMoveClass::Read(IOSectionClass &in)
 {
+  int myProc = PathData.Path.Communicator.MyProc();
   string moveName = "RefSliceMove";
   string permuteType, speciesName;
 
@@ -52,27 +53,33 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
     newStage -> TotalLevels = NumLevels;
     newStage -> BisectionLevel = level;
     newStage -> UseCorrelatedSampling=false;
-    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
+    if (myProc == 0)
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
     newStage -> Actions.push_back(&PathData.Actions.Kinetic);
     if (level == 0) {
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding ShortRange Action"<<endl;
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding ShortRange Action"<<endl;
       newStage -> Actions.push_back(&PathData.Actions.ShortRange);
       if (PathData.Path.LongRange) {
         if (PathData.Actions.UseRPA){
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
           newStage -> Actions.push_back(&PathData.Actions.LongRangeRPA);
         } else if (PathData.Path.DavidLongRange) {
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
           newStage -> Actions.push_back(&PathData.Actions.DavidLongRange);
         } else {
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeAction"<<endl;
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeAction"<<endl;
           newStage -> Actions.push_back(&PathData.Actions.LongRange);
         }
       }
       /// No need to calculate this twice!
       //
       //if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
-      //  cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
+      //  if (myProc == 0)
+      //    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
       //  newStage -> Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
       //}
     }

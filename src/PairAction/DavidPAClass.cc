@@ -713,11 +713,11 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       GridType=GetNextWord(RGridString);
       double startGrid = GetNextDouble(RGridString);
       double endGrid = GetNextDouble(RGridString);
-    
-      if (GridType=="LINEAR"){
+      GridType.resize(3);
+      if (GridType=="LIN"){
 	theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
       }
-      else if (GridType=="LOG"){
+      else if (GridType == "LOG"){
 	//cout<<"We're really in log grid here\n";
 	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
 	//cerr << "delta = " << delta << endl;
@@ -726,9 +726,7 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       else {
 	cerr << "Unrecognized grid type in ReadDavidSquarerFile (text).\n";
 	cerr << "GridType = \"" << GridType << "\"\n";
-	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	//cerr << "delta = " << delta << endl;
-	theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+        abort();
       }
 	  
       
@@ -810,11 +808,11 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       GridType=GetNextWord(RGridString);
       double startGrid = GetNextDouble(RGridString);
       double endGrid = GetNextDouble(RGridString);
-    
-      if (GridType=="LINEAR"){
+      GridType.resize(3);
+      if (GridType=="LIN"){
 	theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
       }
-      else if (GridType=="LOG"){
+      else if (GridType == "LOG"){
 	//cout<<"We're really in log grid here\n";
 	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
 	//cerr << "delta = " << delta << endl;
@@ -823,9 +821,7 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
       else {
 	cerr << "Unrecognized grid type in ReadDavidSquarerFile.\n";
 	cerr << "GridType = \"" << GridType << "\"\n";
-	double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	//cerr << "delta = " << delta << endl;
-	theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+        abort();
       }
 	  
       
@@ -948,8 +944,10 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   double tau; //used to be in the base clase
   double smallestTau;
   IOSectionClass in;
-  assert(in.OpenFile(DMFile.c_str()));
-  cout << "Using " << DMFile << endl;
+  if(!in.OpenFile(DMFile.c_str())) {
+    cerr << "ERROR: Could not find pair action file " << DMFile << ". Aborting..." << endl;
+    abort();
+  }
   int numOfFits;
   assert(in.OpenSection("Squarer"));
   assert(in.ReadVar("NumFits", numOfFits));
@@ -960,32 +958,24 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   n = numOfFits;
 
   // Read in  the potential
-  //cerr << "reading potential" << endl;
   Array<double,1> potential;
   assert(in.OpenSection("Potential"));
   assert(in.ReadVar("Data", potential));
   in.CloseSection();
 
   // Get the U's
-  //cerr << "reading Us" << endl;
   Grid *theGrid;
-  //int checkNumU = in.CountSections("Ukj");
-  //assert(checkNumU == (numOfFits+1));
   Array<double,1> Taus;
   for (int counter=0;counter<=numOfFits;counter++) {
-    //cerr << "  " << counter << " of " << numOfFits << endl;
     ostringstream stream;
     stream << "Ukj" << counter;
     string SectionTitle(stream.str());
-    //cerr << "Opening section " << SectionTitle << "||" << endl;
     assert(in.OpenSection(SectionTitle));
 
     int theRank;
-    //cerr<<"Reading rank"<<endl;
     in.ReadVar("Rank",theRank);
-    //cerr<<"rank read"<<endl;
     if (theRank!=3){
-      //cerr<<"ERROR! ERROR! Rank was not 3" << endl;
+      cerr<<"ERROR! ERROR! Rank was not 3" << endl;
       counter--;
     }
     else {
@@ -1001,48 +991,34 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
       in.ReadVar("Start",startGrid);
       in.ReadVar("End",endGrid);
       in.CloseSection();
-      if (GridType=="LINEAR"){
-	      theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
+      GridType.resize(3);
+      if (GridType=="LIN") {
+        theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
       }
-      else if (GridType=="LOG"){
-	      //cout<<"We're really in log grid here\n";
-	      double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	      //cerr << "delta = " << delta << endl;
-	      theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+      else if (GridType == "LOG") {
+        double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+        theGrid = new LogGrid(startGrid,delta,NumGridPoints);
       }
       else {
-	      cerr << "Unrecognized grid type in ReadDavidSquarerFile. (u hdf5)\n";
-	      cerr << "GridType = \"" << GridType << "\"\n";
-	      double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	      //cerr << "delta = " << delta << endl;
-	      theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+        cerr << "Unrecognized grid type in ReadDavidSquarerFile. (u hdf5)\n";
+        cerr << "GridType = \"" << GridType << "\"\n";
+        abort();
       }
-      //string TauGridString = SkipTo(infile,"GRID   3"); //We hope this is a log grid
-      //GetNextWord(TauGridString);
-      //GetNextWord(TauGridString); /// takes out the Grid  3
-      //string shouldBeLog;
-      //if  ((shouldBeLog=GetNextWord(TauGridString))!="LOG"){
-	    //cerr <<"ERROR!!! ERROR!!! The tau grid is not a LOG Grid\n";
-	    //cerr <<shouldBeLog<<endl;
-      //}
-      //cerr<<"Reading taus"<<endl;
-      //Array<double,1> Taus;
+
       in.ReadVar("Taus",Taus);
-      //cerr<<"taus read"<<endl;
       smallestTau=Taus(0);
       double largestTau=Taus(Taus.size()-1);
       int numTauCalc=(int)floor(log(largestTau/smallestTau)/log(2.0)+0.5+1.0); ///I think this -1 is correct but who knows
-      if (NumTau!=numTauCalc){
-	
-	cerr<<"ERROR!!! ERROR!!! num tau inconsistency \n";
-	cerr<<NumTau<< " "<<numTauCalc<<"  "<<log(largestTau/smallestTau)/log(2.0) + 1.0<< endl;
+      if (NumTau!=numTauCalc) {
+        cerr<<"ERROR!!! ERROR!!! num tau inconsistency \n";
+        cerr<<NumTau<< " "<<numTauCalc<<"  "<<log(largestTau/smallestTau)/log(2.0) + 1.0<< endl;
       }
       int NMax;
       in.ReadVar("NMax",NMax);
       int derv;
       in.ReadVar("Derv",derv);
       if (derv!=1){ //i.e. if it's not U
-	      cerr<<"ERROR!!! ERROR!!! We got the beta derivative and not U\n";
+        cerr<<"ERROR!!! ERROR!!! We got the beta derivative and not U\n";
       }
       Array<double,3> tempUkj(NumGridPoints,NumUKJ,NumTau);
       ukj.resize(NumTau);
@@ -1050,32 +1026,31 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
       dUdiagSpline.resize(NumTau);
       in.ReadVar("Data",tempUkj);
       Array<double,3> tempUkj2(NumGridPoints,NumUKJ+1,NumTau);
-      for(int i=0; i<NumTau; i++){
-	      tempUkj2(Range::all(),0,i) = potential;
+      for(int i=0; i<NumTau; i++) {
+        tempUkj2(Range::all(),0,i) = potential;
       }
       tempUkj2(Range::all(),Range(1,NumUKJ),Range::all()) = tempUkj;
       tempUkj2(NumGridPoints-1,Range::all(),Range::all())=0.0;
-      Array<double,1> startDeriv(NumUKJ+1); //I think this is the right number of grid poins
+      Array<double,1> startDeriv(NumUKJ+1); //I think this is the right number of grid points
       startDeriv=5.0e30;
       Array<double,1> endDeriv(NumUKJ+1);
       endDeriv=0.0;
 
       tau=smallestTau;
       for (int levelCounter=0;levelCounter<NumTau;levelCounter++){//the -3 here is a HACK!
-	if (NMax==2){ //MORE HACK!
-	  //ukj(levelCounter).-Init(theGrid,tempUkj2(Range::all(),Range::all(),levelCounter),startDeriv,endDeriv);
-	  ukj(levelCounter).Init(theGrid,tempUkj2(Range::all(),Range::all(),levelCounter),startDeriv,endDeriv);
-	}
-	tau=tau*2; //HACK!
+        if (NMax==2) { //MORE HACK!
+          ukj(levelCounter).Init(theGrid,tempUkj2(Range::all(),Range::all(),levelCounter),startDeriv,endDeriv);
+        }
+        tau=tau*2; //HACK!
       }
       //      tau=smallestTau; HACK REMOVAL!
       n=NMax;
-      
+
     }
     in.CloseSection();
   }
 
- //Get the beta derivative of U's 
+  //Get the beta derivative of U's
   //cerr << "Reading du" << endl;
   //int checkNumdU = in.CountSections("dUkj_dBeta");
   //assert(checkNumdU == (numOfFits+1));
@@ -1104,21 +1079,18 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     in.ReadVar("Start",startGrid);
     in.ReadVar("End",endGrid);
     in.CloseSection();
-    if (GridType=="LINEAR"){
-	    theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
+    GridType.resize(3);
+    if (GridType=="LIN"){
+      theGrid=new LinearGrid(startGrid,endGrid,NumGridPoints);
     }
-    else if (GridType=="LOG"){
-	    //cout<<"We're really in log grid here\n";
-	    double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	    //cerr << "delta = " << delta << endl;
-	    theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+    else if (GridType == "LOG"){
+      double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
+      theGrid = new LogGrid(startGrid,delta,NumGridPoints);
     }
     else {
-	    cerr << "Unrecognized grid type in ReadDavidSquarerFile (du hdf5).\n";
-	    cerr << "GridType = \"" << GridType << "\"\n";
-	    double delta=pow((endGrid/startGrid),1.0/(NumGridPoints-1.0));
-	    //cerr << "delta = " << delta << endl;
-	    theGrid = new LogGrid(startGrid,delta,NumGridPoints);
+      cerr << "Unrecognized grid type in ReadDavidSquarerFile (du hdf5).\n";
+      cerr << "GridType = \"" << GridType << "\"\n";
+      abort();
     }
     //cerr<<"Reading taus"<<endl;
     in.ReadVar("Taus",Taus);
@@ -1127,71 +1099,47 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     double largestTau=Taus(Taus.size()-1);
     int numTauCalc=(int)floor(log(largestTau/smallestTau)/log(2.0)+0.5+1.0); ///I think this -1 is correct but who knows
     if (NumTau!=numTauCalc){
-	
-	    cerr <<"ERROR!!! ERROR!!! num tau inconsistency \n";
-	    cerr <<NumTau<< " "<<numTauCalc<<"  "<<log(largestTau/smallestTau)/log(2.0) + 1.0<< endl;
+      cerr <<"ERROR!!! ERROR!!! num tau inconsistency \n";
+      cerr <<NumTau<< " "<<numTauCalc<<"  "<<log(largestTau/smallestTau)/log(2.0) + 1.0<< endl;
     }
     int NMax;
     in.ReadVar("NMax",NMax);
     int derv;
     in.ReadVar("Derv",derv);
     if (derv!=2){ //i.e. if it's not U
-	    cerr<<"ERROR!!! ERROR!!! We got the beta derivative and not U\n";
+      cerr<<"ERROR!!! ERROR!!! We got the beta derivative and not U\n";
     }
     Array<double,3> tempdUkj(NumGridPoints,NumUKJ,NumTau);
     Array<double,3> tempdUkj2(NumGridPoints,NumUKJ+1,NumTau);
     if (NMax==2){
-	    TempukjArray.resize(NumUKJ+1);      
-	    TempdukjArray.resize(NumUKJ+1);      
+      TempukjArray.resize(NumUKJ+1);
+      TempdukjArray.resize(NumUKJ+1);
     }
     dukj.resize(NumTau);
-    ///???dukj.resize(NumUKJ+1);
     Array<double,1> startDeriv(NumUKJ+1); //I think this is the right number of grid poins
     startDeriv=5.0e30;
     Array<double,1> endDeriv(NumUKJ+1);
     endDeriv=0.0;
-    //cerr<<"Reading data"<<endl;
     in.ReadVar("Data",tempdUkj);
-    /////      tau=largestTau; //HACK
 
-      tau=smallestTau;
-      for(int i=0; i<NumTau; i++){ //HACK!
-	tempdUkj2(Range::all(),0,i) = potential;
-	///	cerr<<"Current tau is "<<tau<<" "<<i<<endl;
-	//cerr<<"Tau diffs: "<<tau<<" "<<DesiredTau<<" "<<tau-DesiredTau<<endl;
-	if (fabs(tau-DesiredTau)<1e-6){
-
-	  ///	  cerr<<"The tau I've chosen is "<<tau;
-	  TauPos=i;
-	}
-	tau=tau*2; //HACK!
-// =======
-//     tau=smallestTau;
-//     for(int i=0; i<NumTau; i++){ //HACK!
-//       tempdUkj2(Range::all(),0,i) = potential;
-//       ///	cerr<<"Current tau is "<<tau<<" "<<i<<endl;
-//       if (fabs(tau-DesiredTau)<1e-4){
-//         ///	  cerr<<"The tau I've chosen is "<<tau;
-//         TauPos=i;
-// >>>>>>> .r1260
-//      }
-//      tau=tau*2; //HACK!
+    tau=smallestTau;
+    for(int i=0; i<NumTau; i++){ //HACK!
+      tempdUkj2(Range::all(),0,i) = potential;
+      if (fabs(tau-DesiredTau)<1e-6){
+        TauPos=i;
+      }
+      tau=tau*2; //HACK!
     }
-    ///      cerr<<"I'm about ot actually initialize dukj now!"<<endl;
     tempdUkj2(Range::all(),Range(1,NumUKJ),Range::all()) = tempdUkj;
     tempdUkj2(NumGridPoints-1,Range::all(),Range::all())=0.0; ///NOT SURE ABOUT THIS!!!
     const int numDiagPoints = 20000;
     for (int levelCounter=0;levelCounter<NumTau;levelCounter++){
-	
-	if(NMax==2){ //NMax again
-	  dukj(levelCounter).Init(theGrid,tempdUkj2(Range::all(),Range::all(),levelCounter),startDeriv,endDeriv);
-	}
+      if(NMax==2){ //NMax again
+        dukj(levelCounter).Init(theGrid,tempdUkj2(Range::all(),Range::all(),levelCounter),startDeriv,endDeriv);
+      }
     }
-    //      tau=smallestTau; HACK REMOVAL!
-    ////      cerr<<"My tau is "<<tau<<endl;
     n=NMax;
     in.CloseSection();
-    //cerr<<"Bottom of lop"<<endl;
   }
 
   Potential.resize(potential.size());
@@ -1241,23 +1189,17 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   //cerr << "Leaving DavidSquarer HDF5 read" << endl;
   //
 
-  //double x = 0.0;
-  //double dx = 0.001;
-  //while (x<=0.01-dx) {
-  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
-  //  x += dx;
-  //}
-  //dx = 0.01;
-  //while (x<=0.1-dx) {
-  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
-  //  x += dx;
-  //}
-  //dx = 0.1;
-  //while (x<=3.0) {
-  //  cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
-  //  x += dx;
-  //}
+  /// Print out some action values
+  // PrintVals(0.0,3.0,0.1)
+}
 
+void DavidPAClass::PrintVals(double begin, double end, double dx)
+{
+  double x = begin;
+  while (x<=end) {
+    cout << x << " " << Udiag(x,0) << " " << dUdiag(x,0) << " " << dU(x,0.0,0.0,0) << endl;
+    x += dx;
+  }
 }
 
 // double DavidPAClass::Udiag(double q, int level)

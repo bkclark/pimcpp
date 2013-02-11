@@ -68,6 +68,7 @@
 
 void ActionsClass::Read(IOSectionClass &in)
 {
+  int myProc = PathData.Path.Communicator.MyProc();
   //cerr<<"Reading Action."<<endl;
   //verr<<"Starting Actions Read"<<endl;
   PathClass &Path = PathData.Path;
@@ -151,16 +152,20 @@ void ActionsClass::Read(IOSectionClass &in)
   if (!in.ReadVar ("UseRPA", UseRPA))
     UseRPA = false;
   if (UseRPA)
-    cout << "Using RPA for long range action.\n";
+    if (myProc == 0)
+      cout << "Using RPA for long range action.\n";
   else
-    cout << "Not using RPA for long range action.\n";
+    if (myProc == 0)
+      cout << "Not using RPA for long range action.\n";
 
   if (!in.ReadVar ("UseDavidRPA", UseDavidRPA))
     UseDavidRPA = false;
   if (UseDavidRPA)
-    cout << "Using RPA for long range action.\n";
+    if (myProc == 0)
+      cout << "Using RPA for long range action.\n";
   else
-    cout << "Not using RPA for long range action.\n";
+    if (myProc == 0)
+      cout << "Not using RPA for long range action.\n";
 
   ///Reading in information for David long range action
   if (PathData.Path.DavidLongRange) {
@@ -170,8 +175,8 @@ void ActionsClass::Read(IOSectionClass &in)
     ActionLabels.push_back("DavidLongRange");
   }
 
-  if (PathData.Path.OpenPaths)
-    OpenLoopImportance.Read(in);
+  //if (PathData.Path.OpenPaths)
+  //  OpenLoopImportance.Read(in);
 
   // new read section
   assert(in.ReadVar("MaxLevels",MaxLevels));
@@ -238,7 +243,8 @@ void ActionsClass::Read(IOSectionClass &in)
       exit(0);
     }
 
-    cout << PathData.Path.CloneStr << " Added action of type " << type << endl;
+    if (PathData.Path.Communicator.MyProc() == 0)
+      cout << PathData.Path.CloneStr << " Added action of type " << type << endl;
     newAction->Read(in);
     //cerr << " with address " << newAction << endl;
     ActionList.push_back(newAction);
@@ -296,14 +302,13 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
             ((Path.Species(spec2).Type==PairArray(i)->Particle1.Name)&&
              (Path.Species(spec1).Type==PairArray(i)->Particle2.Name))) {
           if (PairMatrix(spec1,spec2) != NULL) {
-            perr << "More than one pair action for species types (" 
+            cerr << "More than one pair action for species types (" 
                  << PairArray(i)->Particle1.Name << ", "
                  << PairArray(i)->Particle2.Name << ")." << endl;
             exit(-1);
           }
-          cout << Path.CloneStr << " Found PAfile for pair (" 
-               << Path.Species(spec1).Name << ", "
-               << Path.Species(spec2).Name << ")\n";
+          if (PathData.Path.Communicator.MyProc() == 0)
+             cout << Path.CloneStr << " Found PAfile for pair (" << Path.Species(spec1).Name << ", " << Path.Species(spec2).Name << ")\n";
           PairMatrix(spec1,spec2) = PairArray(i);
           PairMatrix(spec2,spec1) = PairArray(i);
           PairIndex(spec2,spec1) = i;
@@ -359,9 +364,11 @@ ActionBaseClass* ActionsClass::GetAction(string name)
 void
 ActionsClass::ReadNodalActions(IOSectionClass &in)
 {
+  int myProc = PathData.Path.Communicator.MyProc();
   //std::cerr << "Reading Nodal Action." << endl;
   int numNodeSections=in.CountSections("NodalAction");
-  cout << PathData.Path.CloneStr << " Found " << numNodeSections << " Nodal Actions." << endl;
+  if (myProc == 0)
+    cout << PathData.Path.CloneStr << " Found " << numNodeSections << " Nodal Actions." << endl;
   NodalActions.resize (PathData.Path.NumSpecies());
   NodalActions = NULL;
   for (int nodeSection=0; nodeSection<numNodeSections; nodeSection++) {
@@ -424,14 +431,16 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
       PathData.Path.StoreNodeDist = false;
     if (PathData.Path.StoreNodeDist)
       PathData.Path.NodeDist.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
-    cout << PathData.Path.CloneStr << " StoreNodeDist: " << PathData.Path.StoreNodeDist << endl;
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr << " StoreNodeDist: " << PathData.Path.StoreNodeDist << endl;
 
     // Whether or not to track the nodal determinants to save time
     if(!in.ReadVar ("StoreNodeDet", PathData.Path.StoreNodeDet))
       PathData.Path.StoreNodeDet = false;
     if (PathData.Path.StoreNodeDet)
       PathData.Path.NodeDet.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies());
-    cout << PathData.Path.CloneStr << " StoreNodeDet: " << PathData.Path.StoreNodeDet << endl;
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr << " StoreNodeDet: " << PathData.Path.StoreNodeDet << endl;
 
     // Whether or not to use nodal importance sampling
     if (!in.ReadVar ("UseNodeImportance",PathData.Path.UseNodeImportance))
@@ -441,7 +450,8 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
         cerr << PathData.Path.CloneStr << "WARNING: epsilon unspecified for node importance sampling, setting to 0.0" << endl;
         PathData.Path.NodeImpEps = 0.0;
       }
-    cout << PathData.Path.CloneStr << " UseNodeImportance: " << PathData.Path.UseNodeImportance << endl;
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr << " UseNodeImportance: " << PathData.Path.UseNodeImportance << endl;
 
     ActionLabels.push_back(type);
     in.CloseSection();

@@ -25,11 +25,11 @@
 #include <time.h>
 
 #ifndef COMMONVERSION
-#define COMMONVERSION "unknown"
+#define COMMONVERSION "1.0"
 #endif
 
 #ifndef VERSION
-#define VERSION "unknown"
+#define VERSION "0.1"
 #endif
 
 

@@ -99,6 +99,7 @@ class DavidPAClass : public PairActionFitClass
   void ReadDavidSquarerFile(string DMFile);
   void ReadDavidSquarerFileHDF5(string DMFile);
   void ReadSamplingTable(string fileName);
+  void PrintVals(double begin, double end, double dx);
   double U (double q, double z, double s2, int level);
   double dU(double q, double z, double s2, int level);
   double V(double r);
@@ -141,7 +142,6 @@ class DavidPAClass : public PairActionFitClass
 };
 
 
-
 inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
 {
   Name="DavidPAClass";
@@ -160,15 +160,11 @@ inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
   Particle2.Read(in);
   in.CloseSection();
   lambda = Particle1.lambda + Particle2.lambda;
-  
 
-  //  assert(in.ReadVar("tau",DesiredTau));
-  //  assert(in.ReadVar("MaxLevels",NumLevels));
   assert(in.ReadVar("Daviddmfile",fileName));
   int l = fileName.size();
   // slice last two characters of the filename. i.e. the extension
   string extension(fileName, l-2, 2);
-  //cerr << "Read dm file extension " << extension << endl;
   if(extension == "dm")
     ReadDavidSquarerFile(fileName.c_str());
   else if (extension == "h5")
@@ -177,18 +173,12 @@ inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
     assert(0);
   string samplingTableFile;
   SamplingTableRead=in.ReadVar("SamplingTableFile",samplingTableFile);
-  //cerr<<"My sampling table read is "<<SamplingTableRead<<endl;
-  if (SamplingTableRead){
-    //cerr<<"Reading sampling table"<<endl;
+  if (SamplingTableRead)
     ReadSamplingTable(samplingTableFile);
-  }
-  
-  //  assert(in.ReadVar("type1",type1));
-  //  assert(in.ReadVar("type2",type2));
   in.CloseSection();
   return true;
 }
-     
+
 
 inline string DavidPAClass::SkipTo(ifstream &infile,string skipToString)
 {

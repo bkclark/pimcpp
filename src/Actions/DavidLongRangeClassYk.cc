@@ -82,7 +82,8 @@ void DavidLongRangeClassYk::Build_MultipleSpecies()
 
 void DavidLongRangeClassYk::BuildRPA_MultipleSpecies()
 {
-  cout << Path.CloneStr << " Using Long Range RPA correction " << endl;
+  if (PathData.Path.Communicator.MyProc() == 0)
+    cout << Path.CloneStr << " Using Long Range RPA correction " << endl;
   for (int speciesNum = 0; speciesNum < PairArray.size(); speciesNum++) {
     for (int i=0;i<uk.extent(1);i++)
       uk(speciesNum,i)=-1;

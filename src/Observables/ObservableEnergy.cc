@@ -211,7 +211,8 @@ void EnergyClass::Read(IOSectionClass & in)
     int PermSector, PermNumber;
     vector<int> ThisPerm;
     GetPermInfo(ThisPerm,PermSector,PermNumber);
-    cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PossPerms.size()-1 << endl;
+    if (PathData.Path.Communicator.MyProc() == 0)
+      cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PossPerms.size()-1 << endl;
   }
 
   // Other Energies

@@ -100,6 +100,7 @@ double DisplaceStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activ
 
 void DisplaceMoveClass::Read (IOSectionClass &in)
 {
+  int myProc = PathData.Path.Communicator.MyProc();
   string moveName = "Displace";
   CurrentPtcl=0;
   assert(in.ReadVar ("Sigma", Sigma));
@@ -139,7 +140,8 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   Array<string,1> samplingActions;
   assert(in.ReadVar("SamplingActions",samplingActions));
   for (int i=0;i<samplingActions.size();i++) {
-    cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+    if (myProc == 0)
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
     DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
   }
   // if (PathData.Path.OrderN)
@@ -149,20 +151,24 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRange);
   if (PathData.Path.LongRange) {
     if (PathData.Actions.UseRPA) {
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRangeRPA);
     } else if (PathData.Path.DavidLongRange) {
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.DavidLongRange);
     } else {
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
       DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
     }
   }
   for (int i=0; i<activeSpecies.size(); i++) {
     int speciesNum = activeSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
       DisplaceStage.Actions.push_back(PathData.Actions.NodalActions(speciesNum));
     }
   }

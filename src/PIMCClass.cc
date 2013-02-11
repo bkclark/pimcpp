@@ -32,6 +32,8 @@ bool PIMCClass::Read(IOSectionClass &in)
   // Read the parallelization strategy
   PathData.Read (in);
 
+  int myProc = PathData.Path.Communicator.MyProc();
+
   // this is set to true in PathDataClass::Read when not built with qmcpack
   if(PathData.IAmQMCManager){
     doPIMCRun = true;
@@ -49,16 +51,16 @@ bool PIMCClass::Read(IOSectionClass &in)
     //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
     // }
 
-
-
     // Read in the action information
-    cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
     assert(in.OpenSection("Action"));
     PathData.Actions.Read(in);
     in.CloseSection();
 
     // Now actually initialize the paths
-    cout <<PathData.Path.CloneStr<<" Initializing Paths"<<endl;
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<<" Initializing Paths"<<endl;
     assert(in.OpenSection("System"));
     PathData.Path.InitPaths(in);
     in.CloseSection();
@@ -68,11 +70,13 @@ bool PIMCClass::Read(IOSectionClass &in)
       PathData.Path.SetIonConfig(0);
 
     // Init Actions caches
-    cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
     PathData.Actions.Init();
 
     // Read in the Observables
-    cout <<PathData.Path.CloneStr<< " Reading Observables"<<endl;
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<< " Reading Observables"<<endl;
     assert(in.OpenSection("Observables"));
     ReadObservables(in);
     in.CloseSection();
@@ -86,7 +90,8 @@ bool PIMCClass::Read(IOSectionClass &in)
 
     // Append Long Range Action
     if (PathData.Actions.HaveLongRange()) {
-      cout << PathData.Path.CloneStr << "Initializing Long Range" << endl;
+      if (myProc == 0)
+        cout << PathData.Path.CloneStr << "Initializing Long Range" << endl;
       assert (in.OpenSection ("Action"));
       PathData.Actions.LongRange.Init (in, OutFile);
       if (PathData.Actions.UseRPA)
@@ -99,13 +104,15 @@ bool PIMCClass::Read(IOSectionClass &in)
     }
 
     // Read in the Moves
-    cout <<PathData.Path.CloneStr<<" Reading Moves"<<endl;
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<<" Reading Moves"<<endl;
     assert(in.OpenSection("Moves"));
     ReadMoves(in);
     in.CloseSection();
 
     // Read in the Algorithm
-    cout <<PathData.Path.CloneStr<<" Reading Algorithm"<<endl;
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<<" Reading Algorithm"<<endl;
     assert(in.OpenSection("Algorithm"));
     ReadAlgorithm(in);
     in.CloseSection();
@@ -416,21 +423,17 @@ void PIMCClass::ReadAlgorithm(IOSectionClass &in)
 
 void PIMCClass::Run()
 {
-  cout <<PathData.Path.CloneStr<< " Simulation started." << endl;
+  if (PathData.Path.Communicator.MyProc() == 0)
+    cout <<PathData.Path.CloneStr<< " Simulation started." << endl;
   Algorithm.DoEvent();
-  cout <<PathData.Path.CloneStr<<" PIMC++ has completed"<<endl;
-  //  Array<MoveClass*,1> Moves;
-//   for (int counter=0;counter<Moves.size();counter++){
-//     cout<<"My name is "<<((MoveClass*)Moves(counter))->Name<<endl;
-//     cout<<"My acceptance ratio is "<<((MoveClass*)Moves(counter))->AcceptanceRatio()<<endl;
-//   }
-  
+  if (PathData.Path.Communicator.MyProc() == 0)
+    cout <<PathData.Path.CloneStr<<" PIMC++ has completed"<<endl;
 }
 
 void PIMCClass::Dummy()
 {
-	while(true)
-		QMCWrapper->QMCDummy(PathData);
+  while(true)
+    QMCWrapper->QMCDummy(PathData);
 }
 
 void PIMCClass::WriteSystemInfo()

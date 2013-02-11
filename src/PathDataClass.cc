@@ -352,12 +352,14 @@ void PathDataClass::Read (IOSectionClass &in)
   tempCloneStr << Path.MyClone << " " << Path.Communicator.MyProc();
   Path.CloneStr = tempCloneStr.str();
 
-  cout  << " N: " << N
-        << ", procsPerClone: " << procsPerClone
-        << ", NumClones: " << NumClones
-        << ", MyCloneNum: " << MyCloneNum
-        << ", MyProc: " << Path.Communicator.MyProc()
-        << ", MyHost: " << Path.Communicator.MyHost() << endl;
+  if (Path.Communicator.MyProc() == 0) {
+    cout  << "N: " << N
+          << ", procsPerClone: " << procsPerClone
+          << ", NumClones: " << NumClones
+          << ", MyCloneNum: " << MyCloneNum
+          << ", MyProc: " << Path.Communicator.MyProc()
+          << ", MyHost: " << Path.Communicator.MyHost() << endl;
+  }
 
 #endif
 

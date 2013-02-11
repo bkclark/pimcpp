@@ -98,11 +98,11 @@ void MCTimeClass::WriteBlock()
   ObservableTimeVar.Write(ObservableTime);
   ActionTimeVar.Write(ActionTime);
 
-  if (PathData.Path.Communicator.MyProc()==0)
+  if (PathData.Path.Communicator.MyProc()==0) {
     IOSection.FlushFile();
-
-  // Block Info
-  cout << PathData.Path.CloneStr << " #: " << BlockNumber << " t: " << BlockTime << " T: " << TotalTime << endl;
+    // Block Info
+    cout << PathData.Path.CloneStr << " #: " << BlockNumber << " t: " << BlockTime << " T: " << TotalTime << endl;
+  }
   BlockNumber++;
 }
 

@@ -8,3 +8,5 @@ CMakeFiles/
 *.o
 build/
 src/Scripts/*.txt
+*.tags
+*.cscope*

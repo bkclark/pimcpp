@@ -6,12 +6,12 @@ cmake_minimum_required (VERSION 2.6)
 # Compilers
 #-------------------------------------------------------------------
 SET(CMAKE_CXX_COMPILER,"CC")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -DOPEN_LOOPS=1 -DUSE_MPI -fopenmp")
 #SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -Wno-write-strings -w")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
 SET(CMAKE_C_COMPILER,"cc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -DUSE_MPI -fopenmp")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -DOPEN_LOOPS=1 -DUSE_MPI -fopenmp")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
 SET(CMAKE_Fortran_COMPILER,"ftn")
@@ -393,3 +393,7 @@ SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)
 #message(STATUS "test:${SRCS}")
 #add_executable (test ${SRCS})
 #SET_TARGET_PROPERTIES("test" PROPERTIES LINKER_LANGUAGE CXX)
+
+EXECUTE_PROCESS( WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+                 COMMAND chown -R brown281:qmc pimc++ FreeParticles ewald
+                 COMMAND chmod -R 0770 pimc++ FreeParticles ewald )

@@ -930,7 +930,6 @@ PathClass::PutInBox (dVec &v)
   
 }
 
-
 inline void 
 PathClass::SliceRange(int proc, int &start, int &end)
 {

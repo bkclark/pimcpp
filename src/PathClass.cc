@@ -148,6 +148,7 @@ void PathClass::SetIonConfig(int config)
 
 void PathClass::Read (IOSectionClass &inSection)
 {
+  int myProc = Communicator.MyProc();
   Equilibrate=1;
   CenterOfMass=0.0;
   SetMode(OLDMODE);
@@ -252,9 +253,11 @@ void PathClass::Read (IOSectionClass &inSection)
     DavidLongRange=false;
   if (LongRange) {
     if (DavidLongRange)
-      cout<<CloneStr<<" Using David Long Range."<<endl;
+      if (myProc == 0)
+        cout<<CloneStr<<" Using David Long Range."<<endl;
     else
-      cout<<CloneStr<<" Using Long Range."<<endl;
+      if (myProc == 0)
+        cout<<CloneStr<<" Using Long Range."<<endl;
   }
 
   assert(inSection.OpenSection("Particles"));
