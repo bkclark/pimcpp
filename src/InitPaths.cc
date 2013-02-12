@@ -21,70 +21,90 @@
 
 void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, SpeciesClass &species)
 {
-  int myProc=Communicator.MyProc();
+  int myProc = Communicator.MyProc();
 
   /// Decide whether to restart from several clones or just one (the 0th clone).
   bool parallelFileRead;
   IOSectionClass inFile;
   if (!in.ReadVar("ParallelFileRead",parallelFileRead))
     parallelFileRead = true;
+  int tmpMyClone;
+  if (!parallelFileRead)
+    tmpMyClone = 0;
+  else
+    tmpMyClone = MyClone;
+
+  /// If NumClones > MaxClones, reuse earlier .h5 files to restart
+  int MaxClones;
+  if (in.ReadVar("MaxClones",MaxClones)) {
+    if (tmpMyClone > MaxClones-1)
+      tmpMyClone = tmpMyClone % MaxClones;
+  }
 
   /// Get previous clone filename
   stringstream oss;
-  if (parallelFileRead) {
-    /// Restart from several clones
-    int tmpMyClone = MyClone;
-    /// If NumClones > MaxClones, reuse earlier .h5 files to restart
-    int MaxClones;
-    if (in.ReadVar("MaxClones",MaxClones)) {
-      if (MyClone > MaxClones-1)
-        tmpMyClone = MyClone % MaxClones;
-    }
-    stringstream tempStream;
-    int counter = 0;
-    tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
-    while (fileExists(tempStream.str())) {
-      counter++;
-      tempStream.str("");
-      tempStream<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
-    }
-    counter--;
-    if (counter < 0) {
-      cerr << CloneStr << " Previous clones for " << fileName << " don't exist! Aborting. " << endl;
-      abort();
-    }
-
-    /// Broadcast so everyone agrees on the answer.
-    Communicator.Broadcast(0,counter);
+  int counter = 0;
+  oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
+  while (fileExists(oss.str())) {
+    counter++;
+    oss.str("");
     oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
-    if (myProc == 0)
-      cout<<CloneStr<<" Using "<<oss.str()<<endl;
-  } else {
-    /// Use only first clone
-    oss<<fileName<<"."<<0<<".h5";
+  }
+  counter--;
+  if (counter < 0) {
+    cerr << CloneStr << " Previous clones for " << fileName << " don't exist! Aborting. " << endl;
+    abort();
   }
 
-  /// Open the previous clones and start reading things
-  string fullFileName=oss.str();
+  /// Try to find previous configuration to start from.
+  /// Start with previous clone, then work way backwards.
+  bool FoundPathDump = false;
+  while(!FoundPathDump) {
+    oss.str("");
+    oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
+
+    /// Check for Path Dump
+    string fullFileName = oss.str();
+    assert (inFile.OpenFile(fullFileName.c_str()));
+    inFile.OpenSection("Observables");
+    inFile.OpenSection("PathDump");
+    IOVarBase *tmpPermVar = inFile.GetVarPtr("Permutation");
+    /// Check if returning NULL pointer
+    if (!tmpPermVar) {
+      cerr << CloneStr << " WARNING: Path Dump not found in " << fullFileName << "! Trying previous clone..." << endl;
+      counter -= 1;
+    } else {
+      FoundPathDump = true;
+    }
+    inFile.CloseSection();
+    inFile.CloseSection();
+    inFile.CloseFile();
+  }
+  /// Broadcast so everyone agrees on the answer.
+  Communicator.Broadcast(0,counter);
+
+  /// Reopen the file
+  oss.str("");
+  oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
+  string fullFileName = oss.str();
   assert (inFile.OpenFile(fullFileName.c_str()));
+  if (myProc == 0)
+    cout << CloneStr<<" Using "<<oss.str()<<endl;
+
+  /// Get the Box
   inFile.OpenSection("System");
   Array<double,1> oldBox;
   inFile.ReadVar("Box",oldBox);
   inFile.CloseSection();
-  inFile.OpenSection("Observables");
-  inFile.OpenSection("PathDump");
 
   /// Get Permutations
   /// Only read in on processor 0 and then broadcast
+  inFile.OpenSection("Observables");
+  inFile.OpenSection("PathDump");
   Array<int,1> oldPermutation;
   int extent0; int extent1; int extent2;
-  if (myProc==0) {
+  if (myProc == 0) {
     IOVarBase *permutationVar = inFile.GetVarPtr("Permutation");
-    /// Check if returning NULL pointer
-    if (!permutationVar) {
-      cerr << CloneStr << " Path Dump not found! Aborting " << endl;
-      abort();
-    }
     int numDumps = permutationVar->GetExtent(0);
     permutationVar->Read(oldPermutation,numDumps-1,Range::all());
     extent0 = oldPermutation.extent(0);
