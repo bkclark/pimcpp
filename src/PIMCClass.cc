@@ -255,11 +255,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new PhiKClass(PathData,OutFile);
     else if (observeType=="Pressure")
       tempObs = new PressureClass(PathData,OutFile);
-    //    else if (observeType=="VacancyLocation")
-    //      tempObs = new VacancyLocClass(PathData,OutFile);
     else if (observeType=="TimeAnalysis")
-      tempObs = new MCTimeClass(PathData,OutFile,Moves,Observables,
-				PathData.Actions.ActionList);
+      tempObs = new MCTimeClass(PathData,OutFile,Moves,Observables,PathData.Actions.ActionList);
     else if (observeType=="TimeLindenman")
       tempObs= new TimeLindenmanClass(PathData,OutFile);
     else if (observeType=="TimeHexatic")
@@ -270,8 +267,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new PathDumpClass(PathData,OutFile);
     else if (observeType=="WindingNumber")
       tempObs = new WindingNumberClass(PathData,OutFile);
-    //else if (observeType=="Vacancy")
-    //  tempObs = new VacancyLocClass(PathData,OutFile);
+    else if (observeType=="Centroid")
+      tempObs = new CentroidClass(PathData,OutFile);
     else if (observeType=="CycleCount")
       tempObs = new PermutationCountClass(PathData,OutFile);
     else if (observeType=="StructureFactor")

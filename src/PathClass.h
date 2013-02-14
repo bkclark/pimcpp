@@ -193,18 +193,12 @@ public:
   /////////////////////////////////
   inline void Mag (dVec &v, double &mag);
   inline void MagSquared (dVec &v, double &mag2);
-  inline void DistDisp (int slice, int ptcl1, int ptcl2,
-			double &dist, dVec &disp);
-  inline void DistDispFast (int slice, int ptcl1, int ptcl2,
-			    double &dist, dVec &disp);
-
-  inline void DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2,
-			double &distA, double &distB,dVec &dispA, dVec &dispB);
-  void DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2,
-		     double &distA, double &distB,dVec &dispA, dVec &dispB);
-
-  void RefDistDisp (int slice, int refPtcl, int ptcl,
-		    double &dist, dVec &disp);
+  inline void DistDisp (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp);
+  inline void DistDispPos (int slice, int ptcl, dVec &pos, double &dist, dVec &disp);
+  inline void DistDispFast (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp);
+  inline void DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB);
+  void DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB);
+  void RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp);
   void RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath);
   //  inline double Distance (int slice, int ptcl1, int ptcl2);Not used?
   inline dVec Velocity (int sliceA, int sliceB, int ptcl);
@@ -226,12 +220,10 @@ public:
   inline int NumTimeSlices();
   inline int GetRefSlice() const;
 
-  void MoveJoin(int oldJoin, int newJoin);      
+  void MoveJoin(int oldJoin, int newJoin);
   void ShiftData(int sliceToShift);
-  void AcceptCopy(int startTimeSlice,int endTimeSlice, 
-		  const Array <int,1> &activeParticle);
-  void RejectCopy(int startTimeSlice,int endTimeSlice, 
-		  const Array <int,1> &activeParticle );
+  void AcceptCopy(int startTimeSlice,int endTimeSlice, const Array <int,1> &activeParticle);
+  void RejectCopy(int startTimeSlice,int endTimeSlice, const Array <int,1> &activeParticle );
 
 
   /////////////////////////////
@@ -643,6 +635,29 @@ PathClass::SetPeriodic(TinyVector<bool,NDIM> period)
   for (int i=0; i<NDIM; i++)
     IsPeriodic(i) = period(i) ? 1.0 : 0.0;
 }
+
+
+inline void PathClass::DistDispPos (int slice, int ptcl, dVec &pos, double &dist, dVec &disp)
+{
+  disp = Path(slice, ptcl) - pos;
+  dVec n;
+#if NDIM==3
+  n[0] = nearbyint(disp[0]*BoxInv[0]);
+  n[1] = nearbyint(disp[1]*BoxInv[1]);
+  n[2] = nearbyint(disp[2]*BoxInv[2]);
+  disp[0] -= n[0]*IsPeriodic[0]*Box[0];
+  disp[1] -= n[1]*IsPeriodic[1]*Box[1];
+  disp[2] -= n[2]*IsPeriodic[2]*Box[2];
+#endif
+#if NDIM==2
+  n[0] = nearbyint(disp[0]*BoxInv[0]);
+  n[1] = nearbyint(disp[1]*BoxInv[1]);
+  disp[0] -= n[0]*IsPeriodic[0]*Box[0];
+  disp[1] -= n[1]*IsPeriodic[1]*Box[1];
+#endif
+  dist = sqrt(dot(disp,disp));
+}
+
 
 inline void 
 PathClass::DistDisp (int slice, int ptcl1, int ptcl2,

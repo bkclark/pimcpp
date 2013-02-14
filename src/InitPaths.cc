@@ -661,6 +661,7 @@ PathClass::InitPaths (IOSectionClass &in)
       int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/3.0)-1.0e-6);
       double delta = Box[0] / numPerDim;
       double eps = 1.0e-2 * delta;
+      cout << eps << endl;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
         int ip = (ptcl-species.FirstPtcl)/2;
         int ix, iy, iz;
@@ -680,10 +681,15 @@ PathClass::InitPaths (IOSectionClass &in)
         for (int slice=0; slice<NumTimeSlices(); slice++) {
           double dx = eps * cos((slice/(double)NumTimeSlices())*2*M_PI);
           double dy = eps * sin((slice/(double)NumTimeSlices())*2*M_PI);
+#if NDIM==3
+          double dz = 0.0;
+#endif
           dVec dr;
           dr[0] = dx;
           dr[1] = dy;
-          dr[2] = 0.0;
+#if NDIM==3
+          dr[2] = dz;
+#endif
           Path(slice,ptcl) = r + dr;
         }
       }

@@ -21,6 +21,7 @@
 
 #include "Sign.h"
 
+#include "Centroid.h"
 #include "Coupling.h"
 #include "DistanceToHead.h"
 #include "DynamicStructureFactor.h"
