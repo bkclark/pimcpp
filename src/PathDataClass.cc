@@ -166,49 +166,48 @@ void PathDataClass::Read (IOSectionClass &in)
 {
 
 #ifdef USE_QMC
-	useDefaultStrings = true;
-	int M = MetaWorldComm.NumProcs();
-	//	cerr << MetaWorldComm.MyProc() << ": PathDataClass.cc: N is " << M << endl;
+  useDefaultStrings = true;
+  int M = MetaWorldComm.NumProcs();
+  // cerr << MetaWorldComm.MyProc() << ": PathDataClass.cc: N is " << M << endl;
   string QMCFilename;
-	int ceimcProcs = 1;
+  int ceimcProcs = 1;
   RUN_QMC = false;
   in.ReadVar("CEIMC_MODE", RUN_QMC);
   if(RUN_QMC){
     cerr << "CEIMC_MODE: Reading CEIMC Section..." << endl;
     assert (in.OpenSection ("CEIMC"));
     assert (in.ReadVar("QMCFile", QMCFilename));
-		in.ReadVar("QMCPerCEIMC", ceimcProcs);
-		assert(M%ceimcProcs == 0);
-		if(!in.ReadVar("Timestep", dt))
-			dt = 0.05;
-		if(!in.ReadVar("Walkers", walkers))
-			walkers = 10;
-		if(!in.ReadVar("Steps", steps))
-			steps = 100;
-		if(!in.ReadVar("Blocks", blocks))
-			blocks = 50;
-		if(!in.ReadVar("Chains", chains))
-			chains = 51;
-		assert(in.ReadVar("Correlated",correlated));
-		if(correlated){
-			cerr << "Using correlated samping to compute energy differences." << endl;
-			assert(in.ReadVar("QMCMethod",QMCMethod));
-			if(QMCMethod == "VMC")
-				cerr << "Using VMCMultiple driver." << endl;
-			else if(QMCMethod == "RQMC")
-				cerr << "Using RQMCMultiple driver." << endl;
-			else{
-				cerr << "Method " << QMCMethod << " not recognized.  Supported options are VMC or RQMC." << endl;
-				assert(0);
-			}
-		}
-		else{
-			cerr << "NOT using correlated sampling for energy differences." << endl;
-		}
+    in.ReadVar("QMCPerCEIMC", ceimcProcs);
+    assert(M%ceimcProcs == 0);
+    if(!in.ReadVar("Timestep", dt))
+      dt = 0.05;
+    if(!in.ReadVar("Walkers", walkers))
+      walkers = 10;
+    if(!in.ReadVar("Steps", steps))
+      steps = 100;
+    if(!in.ReadVar("Blocks", blocks))
+      blocks = 50;
+    if(!in.ReadVar("Chains", chains))
+      chains = 51;
+    assert(in.ReadVar("Correlated",correlated));
+    if(correlated){
+      cerr << "Using correlated samping to compute energy differences." << endl;
+      assert(in.ReadVar("QMCMethod",QMCMethod));
+      if(QMCMethod == "VMC")
+        cerr << "Using VMCMultiple driver." << endl;
+      else if(QMCMethod == "RQMC")
+        cerr << "Using RQMCMultiple driver." << endl;
+      else {
+        cerr << "Method " << QMCMethod << " not recognized.  Supported options are VMC or RQMC." << endl;
+        assert(0);
+      }
+    }
+    else
+      cerr << "NOT using correlated sampling for energy differences." << endl;
 
-		if(in.ReadVar("ParticleSet0", ptclSet0) && in.ReadVar("ParticleSet1", ptclSet1))
-			useDefaultStrings = false;
-		
+    if(in.ReadVar("ParticleSet0", ptclSet0) && in.ReadVar("ParticleSet1", ptclSet1))
+      useDefaultStrings = false;
+
     in.CloseSection();
     int argc = 1;
     char* argv[argc];
@@ -223,114 +222,95 @@ void PathDataClass::Read (IOSectionClass &in)
     }
   }
 
-	int managers = M/ceimcProcs;
-	IAmQMCManager = false;
-	Array<int, 1> WorldMembers(managers);
-	int mgrIndex = 0;
-	// Assemble list of managers, subset to be WorldComm
-	for(int m=0; m<M; m++){
-		if(m%ceimcProcs == 0){
-			WorldMembers(mgrIndex) = m;
-			mgrIndex++;
-			if(MetaWorldComm.MyProc() == m)
-				IAmQMCManager = true;
-		}
-	}
-	int myCEIMCNum = MetaWorldComm.MyProc()/ceimcProcs;
-	MetaWorldComm.Split(myCEIMCNum,QMCComm);
-	cerr << MetaWorldComm.MyProc() << ": # of managers is " << managers << ".  IAmQMCManager is " << IAmQMCManager << " and I belong to CEIMC family " << myCEIMCNum << " of which I am proc " << QMCComm.MyProc() << endl;
-	MetaWorldComm.Subset(WorldMembers, WorldComm);
+  int managers = M/ceimcProcs;
+  IAmQMCManager = false;
+  Array<int, 1> WorldMembers(managers);
+  int mgrIndex = 0;
+  // Assemble list of managers, subset to be WorldComm
+  for(int m=0; m<M; m++){
+    if(m%ceimcProcs == 0){
+      WorldMembers(mgrIndex) = m;
+      mgrIndex++;
+      if(MetaWorldComm.MyProc() == m)
+        IAmQMCManager = true;
+    }
+  }
+  int myCEIMCNum = MetaWorldComm.MyProc()/ceimcProcs;
+  MetaWorldComm.Split(myCEIMCNum,QMCComm);
+  cerr << MetaWorldComm.MyProc() << ": # of managers is " << managers << ".  IAmQMCManager is " << IAmQMCManager << " and I belong to CEIMC family " << myCEIMCNum << " of which I am proc " << QMCComm.MyProc() << endl;
+  MetaWorldComm.Subset(WorldMembers, WorldComm);
 
-	if(IAmQMCManager){
-  	int N = WorldComm.NumProcs();
-		cerr << WorldComm.MyProc() << ": WorldComm size is " << N << endl;
-  	int procsPerClone = 1;
-  	if (N > 1) {
-  	  assert (in.OpenSection ("Parallel"));
-  	  assert (in.ReadVar("ProcsPerClone", procsPerClone));
-  	  in.CloseSection();
-  	}
-  	
-	////  	cerr << "  Set up Inter- and Intra- " << endl;
-  	// Setup Inter- and IntraComms
-  	assert ((N % procsPerClone) == 0);
-  	NumClones = N / procsPerClone;
-  	MyCloneNum = WorldComm.MyProc()/procsPerClone;
-  	// Create IntraComm
-	////		cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
-  	WorldComm.Split(MyCloneNum, IntraComm);
-	///		cerr << "  initialized IntraComm" << endl;  
-		//cerr << "  skipped IntraComm" << endl;  
-  	Array<int,1> ranks (NumClones);
-  	for (int clone=0; clone<NumClones; clone++)
-  	  ranks(clone) = clone*procsPerClone;
-	///		cerr << "  ranks is " << ranks << "; going to creat Intercomm." << endl;
-  	WorldComm.Subset (ranks, InterComm);
-	///		cerr << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
-  	
-  	int seed;
-  	bool haveSeed = in.ReadVar ("Seed", seed);
-  	// Now, set up random number generator
-
-  	//  int seed;
-  	if (in.ReadVar("Seed",Seed)){
-  	  Random.Init (Seed, NumClones);
-  	}
-  	else {
-  	  Seed=Random.InitWithRandomSeed(NumClones);
-  	}
-  	//    Random.Init (314159, numClones);
-  	
-  	Path.MyClone=WorldComm.MyProc()/procsPerClone;
-	}
-
-#else
-	// has no function when PIMC++ is not built with qmcpack
-	// but needs to be true to continue Path.Read (see PIMCClass.cc)
-	IAmQMCManager = true;
-  ///  //MINOR HACK!
-  ////  Join=NumTimeSlices()-1;
-  ///  //END MINOR HACK!
+  if(IAmQMCManager){
   int N = WorldComm.NumProcs();
-  ////cerr << "PathDataClass.cc: N is " << N << endl;
+    cerr << WorldComm.MyProc() << ": WorldComm size is " << N << endl;
   int procsPerClone = 1;
-  //bool UsingQMC = false;
-  bool sameSeed = false;
   if (N > 1) {
     assert (in.OpenSection ("Parallel"));
     assert (in.ReadVar("ProcsPerClone", procsPerClone));
-    in.ReadVar("SameLocalSeed",sameSeed);
-    //in.ReadVar("Talk_To_QMC", UsingQMC); // flag for CEIMC, using qmcPACK
-    //if(UsingQMC && procsPerClone > 1) cerr << "ERROR: YOU HAVE Talk_To_QMC ON AND ProcsPerClone > 1: THIS IS NOT YET SUPPORTED!!!!!!!!!!!!!!!" << endl;
     in.CloseSection();
-    //if(UsingQMC) cerr << "  I am UsingQMC" << endl;
   }
-  
+
   ////  cerr << "  Set up Inter- and Intra- " << endl;
   // Setup Inter- and IntraComms
   assert ((N % procsPerClone) == 0);
   NumClones = N / procsPerClone;
-  //cout << "N : " << N << ", procPerClone : " << procsPerClone << " " << endl;
   MyCloneNum = WorldComm.MyProc()/procsPerClone;
   // Create IntraComm
-  //cout << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
+  //// cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
+  WorldComm.Split(MyCloneNum, IntraComm);
+  /// cerr << "  initialized IntraComm" << endl;  
+  // cerr << "  skipped IntraComm" << endl;  
+  Array<int,1> ranks (NumClones);
+  for (int clone=0; clone<NumClones; clone++)
+    ranks(clone) = clone*procsPerClone;
+  /// cerr << "  ranks is " << ranks << "; going to creat Intercomm." << endl;
+  WorldComm.Subset (ranks, InterComm);
+  /// cerr << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
+
+  int seed;
+  bool haveSeed = in.ReadVar ("Seed", seed);
+  // Now, set up random number generator
+
+  //  int seed;
+  if (in.ReadVar("Seed",Seed)){
+    Random.Init (Seed, NumClones);
+  }
+  else {
+    Seed=Random.InitWithRandomSeed(NumClones);
+  }
+  //    Random.Init (314159, numClones);
+
+  Path.MyClone=WorldComm.MyProc()/procsPerClone;
+  }
+
+#else
+  // Has no function when PIMC++ is not built with qmcpack
+  // but needs to be true to continue Path.Read (see PIMCClass.cc)
+  // THIS IS THE DEFAULT!
+  IAmQMCManager = true;
+  int N = WorldComm.NumProcs();
+  int procsPerClone = 1;
+  bool sameSeed = false;
+  if (N > 1) {
+    assert (in.OpenSection("Parallel"));
+    assert (in.ReadVar("ProcsPerClone",procsPerClone));
+    in.ReadVar("SameLocalSeed",sameSeed);
+    in.CloseSection();
+  }
+
+  // Setup Inter- and IntraComms
+  assert ((N % procsPerClone) == 0);
+  NumClones = N/procsPerClone;
+  MyCloneNum = WorldComm.MyProc()/procsPerClone;
   WorldComm.Split(MyCloneNum, IntraComm);
   Array<int,1> ranks (NumClones);
   for (int clone=0; clone<NumClones; clone++)
     ranks(clone) = clone*procsPerClone;
-  //cout << "  ranks is " << ranks << "; going to create Intercomm." << endl;
-  WorldComm.Subset (ranks, InterComm);
-  //cout << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
-  
+  WorldComm.Subset(ranks, InterComm);
+
+  // Now, set up random number generator
   int seed;
   bool haveSeed = in.ReadVar ("Seed", seed);
-  // Now, set up random number generator
-  //cerr<<"I have the seed: "<<haveSeed<<endl;
-  //cerr<<seed<<endl;
-
-
-
-  //  int seed;
   if (in.ReadVar("Seed",Seed)){
     cout<<"RANDOM SEED: "<<Seed<<endl;
     Random.Init (Seed, NumClones, sameSeed);
@@ -339,26 +319,18 @@ void PathDataClass::Read (IOSectionClass &in)
     Seed=Random.InitWithRandomSeed(NumClones);
   }
 
-  //    Random.Init (314159, numClones);
-  
-
-  //cerr << WorldComm.MyProc() << " clone " << Path.MyClone << " " << Seed << endl;
-  //BAD BUG!  Path.MyClone=IntraComm.MyProc()/procsPerClone;
-  Path.MyClone=WorldComm.MyProc()/procsPerClone;
+  // Assign Path clone variables
+  Path.MyClone = MyCloneNum;
   Path.NumClones = NumClones;
 
-  // Clone String
+  // Create CloneStr
   stringstream tempCloneStr;
   tempCloneStr << Path.MyClone << " " << Path.Communicator.MyProc();
   Path.CloneStr = tempCloneStr.str();
 
-  if (Path.Communicator.MyProc() == 0) {
-    cout  << "N: " << N
-          << ", procsPerClone: " << procsPerClone
-          << ", NumClones: " << NumClones
-          << ", MyCloneNum: " << MyCloneNum
-          << ", MyProc: " << Path.Communicator.MyProc()
-          << ", MyHost: " << Path.Communicator.MyHost() << endl;
+  if (WorldComm.MyProc() == 0) {
+    cout <<"# Procs: "<<N<< ", # Clones: "<<NumClones<<", Procs/Clones: "
+         <<procsPerClone<<", Root Host: "<<Path.Communicator.MyHost()<<endl;
   }
 
 #endif
@@ -370,8 +342,7 @@ void PathDataClass::Read (IOSectionClass &in)
     in.CloseSection();
   }
 
-	moveClock = 0;
-	///	cerr << "leaving read" << endl;
+  moveClock = 0;
 }
 
 #if USE_QMC

@@ -90,32 +90,17 @@ void DynamicStructureFactorClass::Read(IOSectionClass& in)
     }
     cerr<<"done"<<endl;
 #else
-	cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
+    cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
 #endif
-  }	  
-  else{
+  } else
     Additionalkvecs.resize(0);
-  }
   AdditionalRho_k.resize(PathData.Path.NumTimeSlices(),1, Additionalkvecs.size()); 
-  
 
-  ///if it's not long range you haven't set the kvecs up yet and need to
-  if (!PathData.Path.LongRange){//This is hackish..we use kcutoff
-    ///to tell if you are long range and now we have to read 
-    ///it in to get the structure factor corret.
-    assert(in.ReadVar("kCutoff",PathData.Path.kCutoff));
-  
-#if NDIM==3    
-    PathData.Path.SetupkVecs3D();
-#endif
-#if NDIM==2
-    PathData.Path.SetupkVecs2D();
-#endif
-    PathData.Path.Rho_k.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies(), PathData.Path.kVecs.size());
+  /// Setup k Vecs and RhoK
+  PathData.Path.SetupkVecs(in);
 
-  }
   Sk.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
-    Fkt.resize(PathData.Path.TotalNumSlices,PathData.Path.kVecs.size());
+  Fkt.resize(PathData.Path.TotalNumSlices,PathData.Path.kVecs.size());
   rho_k_real.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
   rho_k_imag.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
   Sk=0;

@@ -76,6 +76,7 @@ public:
   virtual void Read (IOSectionClass &in);
   virtual void ShiftData (int slices2Shift);
   virtual void MoveJoin (int oldJoinPos, int newJoinPos);
+  virtual void WriteInfo(IOSectionClass &out);
   virtual string GetName()=0;
   virtual void AcceptCopy (int slice1, int slice2);
   virtual void RejectCopy (int slice1, int slice2);

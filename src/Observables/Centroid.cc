@@ -115,6 +115,9 @@ void CentroidClass::Accumulate()
   NumSamples++;
   int N = PathData.Path.NumParticles();
 
+  //Move the join to the end so we don't have to worry about permutations
+  PathData.MoveJoin(PathData.NumTimeSlices() - 1);
+
   // Loop through particles, making sure to visit each only once
   int initSlice = 0;
   bool usedPtcl[N];
@@ -156,6 +159,10 @@ void CentroidClass::Accumulate()
   // Gather up all the position data to get the centroids
   Array<TinyVector<double,3>,1> totCentPos(N);
   PathData.Path.Communicator.AllSum(tmpCentPos,totCentPos);
+
+  //if (PathData.Path.Communicator.MyProc() == 0)
+    for (int ptcl = 0; ptcl < N; ptcl++)
+      cout << PathData.Path.CloneStr << " " << ptcl << " " << tmpCentPos(ptcl) << " " << totCentPos(ptcl) << endl;
 
   // Calculate spread from centroid
   for (int ptcl = 0; ptcl < N; ptcl++)

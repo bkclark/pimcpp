@@ -69,8 +69,6 @@
 void ActionsClass::Read(IOSectionClass &in)
 {
   int myProc = PathData.Path.Communicator.MyProc();
-  //cerr<<"Reading Action."<<endl;
-  //verr<<"Starting Actions Read"<<endl;
   PathClass &Path = PathData.Path;
 
   // Reading Pair Action Files
@@ -78,10 +76,13 @@ void ActionsClass::Read(IOSectionClass &in)
 
   assert(in.ReadVar ("MaxLevels", MaxLevels));
   assert(in.ReadVar ("NumImages", NumImages));
-  Kinetic.SetNumImages (NumImages);
-  //   KineticSphere.SetNumImages(NumImages);
+  Kinetic.SetNumImages(NumImages);
+  // KineticSphere.SetNumImages(NumImages);
   Mu.Read(in);
   UseNonlocal = false;
+
+  /// Breakup has not yet been completed
+  CompletedBreakup = false;
 
   //bool checkJosephson=false;
   //in.ReadVar("Josephson",checkJosephson);
@@ -97,6 +98,7 @@ void ActionsClass::Read(IOSectionClass &in)
   //  PairFixedPhase.Read(in);
   //}
 
+  // Specific heat
   Array<string,1> SpecificHeatPAFiles;
   bool readSpecificHeatFiles=false;
   if (in.ReadVar("SpecificHeatPAFiles",SpecificHeatPAFiles))
@@ -105,9 +107,7 @@ void ActionsClass::Read(IOSectionClass &in)
     SpecificHeatPairArray.resize(SpecificHeatPAFiles.size());
 
   // Read pair actions files
-  verr << "declaring IOSectionClass...";
   IOSectionClass PAIO;
-
 
   if (readSpecificHeatFiles){
     cerr<<"I READ SPECIFIC HEAT FILES"<<endl;
@@ -121,25 +121,6 @@ void ActionsClass::Read(IOSectionClass &in)
       PAIO.CloseFile();
     }
   }
-
-  //cerr<<"CHECKING LONG RANGE"<<endl;
-  //in.ReadVar("UseLongRange", UseLongRange);
-  //if (HaveLongRange()) {
-  //  perr << "*** Using long-range/short-range breakup. ***\n";
-  //  assert (in.ReadVar("UseBackground", LongRange.UseBackground));
-  //  LongRangePot.UseBackground = LongRange.UseBackground;
-  //  LongRangeRPA.UseBackground = LongRange.UseBackground;
-  //}
-
-//   if (longRange){
-//     LongRange.Init(in);
-//     if (UseRPA)
-//       LongRangeRPA.Init(in);
-//   }
-
-  //cerr << "About to Read Nodal Action." << endl;
-  ReadNodalActions (in);
-
   if (in.OpenSection("StructureReject")) {
     StructureReject.Read(in);
     in.CloseSection();
@@ -158,23 +139,6 @@ void ActionsClass::Read(IOSectionClass &in)
     if (myProc == 0)
       cout << "Not using RPA for long range action.\n";
 
-  if (!in.ReadVar ("UseDavidRPA", UseDavidRPA))
-    UseDavidRPA = false;
-  if (UseDavidRPA)
-    if (myProc == 0)
-      cout << "Using RPA for long range action.\n";
-  else
-    if (myProc == 0)
-      cout << "Not using RPA for long range action.\n";
-
-  ///Reading in information for David long range action
-  if (PathData.Path.DavidLongRange) {
-    DavidLongRange.ReadYk();
-    DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
-    ActionList.push_back(lr);
-    ActionLabels.push_back("DavidLongRange");
-  }
-
   //if (PathData.Path.OpenPaths)
   //  OpenLoopImportance.Read(in);
 
@@ -187,7 +151,7 @@ void ActionsClass::Read(IOSectionClass &in)
   int numActions = in.CountSections("Action");
   vector<string> L(0);
   //cerr << "Initializing " << numActions << " action objects" << endl;
-  for(int n=0; n<numActions; n++){
+  for(int n=0; n<numActions; n++) {
     in.OpenSection("Action",n);
     string type, label;
     assert(in.ReadVar("Type", type));
@@ -198,6 +162,12 @@ void ActionsClass::Read(IOSectionClass &in)
       newAction = new KineticClass(PathData);
     } else if (type == "ShortRange") {
       newAction = new ShortRangeClass(PathData, PairMatrix);
+    } else if (type == "DavidLongRange") {
+      newAction = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
+    } else if (type == "LongRange") {
+      newAction = (LongRangeClass *) (&(PathData.Actions.LongRange));
+    } else if (type == "LongRangeRPA") {
+      newAction = (LongRangeRPAClass *) (&(PathData.Actions.LongRangeRPA));
     } else if (type == "DiagonalAction") {
       newAction = new DiagonalActionClass(PathData,PairMatrix);
     } else if (type == "DiagonalActionOrderN") {
@@ -263,31 +233,32 @@ void ActionsClass::Read(IOSectionClass &in)
     ActionLabels.push_back("Kinetic");
     in.CloseSection();
   }
+
+  // Nodal Actions
+  ReadNodalActions (in);
+
 }
 
-void 
-ActionsClass::ReadPairActions(IOSectionClass &in)
+void ActionsClass::ReadPairActions(IOSectionClass &in)
 {
   PathClass &Path=PathData.Path;
-  //cerr << "Starting to read pair action files" << endl;
   Array<string,1> PAFiles;
   assert (in.ReadVar ("PairActionFiles", PAFiles));
   int numPairActions = PAFiles.size();
   PairArray.resize(numPairActions);
   PairMatrix.resize(Path.NumSpecies(),Path.NumSpecies());
   PairIndex.resize(Path.NumSpecies(),Path.NumSpecies());
-  // Initialize to a nonsense value so we can later check in the table
-  // element was filled in.
+
+  // Initialize to a nonsense value so we can later check in the table element was filled in.
   for (int i=0; i<Path.NumSpecies(); i++)
     for (int j=0; j<Path.NumSpecies(); j++)
       PairMatrix(i,j) = (PairActionFitClass*)NULL;
+
   // Read pair actions files
   IOSectionClass PAIO;
   for (int i=0; i<numPairActions; i++) {
     // Allow for tilde-expansion in these files
     string name = ExpandFileName(PAFiles(i));
-    //cerr<<"We are about to try to read the PairActon file "<<name<<endl;
-    //cerr<<"If the code aborts at this point, most likely the .PairAction or .Sampling.in or .dm file are incorrect or placed in the wrong place."<<endl;
     if (!PAIO.OpenFile(name)){
       cerr<<"We were unable to find the PairAction file "<<name<<endl;
       cerr<<"Please make sure you have specified it correctly."<<endl;
@@ -296,13 +267,13 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
     PairArray(i) = ReadPAFit (PAIO, Path.tau, MaxLevels);
     bool paUsed=false;
     for (int spec1=0;spec1<Path.NumSpecies();spec1++)
-      for (int spec2=spec1;spec2<Path.NumSpecies();spec2++) 
+      for (int spec2=spec1;spec2<Path.NumSpecies();spec2++)
         if (((Path.Species(spec1).Type==PairArray(i)->Particle1.Name)&&
              (Path.Species(spec2).Type==PairArray(i)->Particle2.Name)) ||
             ((Path.Species(spec2).Type==PairArray(i)->Particle1.Name)&&
              (Path.Species(spec1).Type==PairArray(i)->Particle2.Name))) {
           if (PairMatrix(spec1,spec2) != NULL) {
-            cerr << "More than one pair action for species types (" 
+            cerr << "More than one pair action for species types ("
                  << PairArray(i)->Particle1.Name << ", "
                  << PairArray(i)->Particle2.Name << ")." << endl;
             exit(-1);
@@ -322,18 +293,19 @@ ActionsClass::ReadPairActions(IOSectionClass &in)
     }
     PAIO.CloseFile();
   }
-  //cerr<<"Done reading PairAction files"<<endl;
-  //cerr << "READPAIRACTION PA INIT" << endl;
+
+  //// Print out some values
   //for (int pai=0; pai<PairArray.size(); pai++) {
   //  cout << PairArray(pai) << " " << PairArray(pai)->Particle1.Name << " " << PairArray(pai)->Particle2.Name << endl;
   //  for(int i=0; i<100; i++) {
   //    double r = i*2./30;
-        //    double U;
-        //    U = PairArray(pai)->U(r,0,0, 0);
+  //    double U;
+  //    U = PairArray(pai)->U(r,0,0, 0);
   //    cout << r << " " << U << endl;
   //  }
   //}
 }
+
 
 ActionBaseClass* ActionsClass::GetAction(string name)
 {
@@ -378,13 +350,11 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     if (type == "FREE") {
       assert (in.ReadVar("Species", speciesString));
       int species = PathData.Path.SpeciesNum(speciesString);
-      FreeNodalActionClass &nodeAction = 
-        *(new FreeNodalActionClass (PathData, species));
+      FreeNodalActionClass &nodeAction = *(new FreeNodalActionClass (PathData, species));
       nodeAction.Read(in);
       NodalActions(species) = &nodeAction;
       ActionList.push_back(&nodeAction);
-    }
-    else if (type == "GROUNDSTATE") {
+    } else if (type == "GROUNDSTATE") {
 //       GroundStateClass &groundState = *new GroundStateClass(PathData);
 //       groundState.Read (in);
 //       NodalActions(groundState.UpSpeciesNum) = 
@@ -396,8 +366,7 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
 //       NodalActions(groundState.IonSpeciesNum) = 
 //      new GroundStateNodalActionClass 
 //      (PathData, groundState, groundState.IonSpeciesNum);
-    }
-    else if (type == "FIXEDPHASE") {
+    } else if (type == "FIXEDPHASE") {
 //       FixedPhaseA = new FixedPhaseClass(PathData);
 //       FixedPhaseA->Read (in);
 //       if (PathData.Path.UseCorrelatedSampling()) {
@@ -413,12 +382,9 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
 //      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->DownSpeciesNum);
 //       NodalActions(FixedPhaseA->IonSpeciesNum) = new FixedPhaseActionClass 
 //      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->IonSpeciesNum);
-    }
-    else if (type == "SHO") {
-      //cerr << "SHO Nodal Action." << endl;
+    } else if (type == "SHO") {
       assert (in.ReadVar("Species", speciesString));
       int species = PathData.Path.SpeciesNum(speciesString);
-      //cerr << "Action Species: " << species << endl;
 // AGGRESSIVE COMPILING ERROR (FIX)
       SHONodalActionClass *nodeAction = (new SHONodalActionClass (PathData, species));
       nodeAction -> Read(in);
@@ -456,7 +422,6 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     ActionLabels.push_back(type);
     in.CloseSection();
   }
-  verr<<"Ending actions read"<<endl;
 }
 
 
@@ -548,7 +513,7 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
   Array<int,1> activePtcls(PathData.Path.NumParticles());
   for (int i=0; i<PathData.Path.NumParticles(); i++)
     activePtcls(i) = i;
-  
+
   int M = PathData.Path.NumTimeSlices()-1;
   kinetic = Kinetic.Action (0, M, activePtcls, 0);
   UShort = ShortRange.Action (0, M, activePtcls, 0);
@@ -568,105 +533,13 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
 }
 
 
-//   PathClass &Path = PathData.Path;
-//   for (int link=0; link<Path.NumTimeSlices()-1; link++) {    
-//     for (int ptcl1=0; ptcl1<numPtcls; ptcl1++) {
-//       int specNum1 = Path.ParticleSpeciesNum(ptcl1);
-//       SpeciesClass &spec1 = Path.Species(specNum1);
-//       if (spec1.lambda != 0.0) {
-//      // Compute kinetic energy
-//      /// Add constant part to kinetic part of energy
-//      kinetic += (NDIM*0.5)/tau;
-//      // Now do spring part
-//      double fourLambdaTauInv = 1.0/(4.0*spec1.lambda*tau);
-//      dVec vel;
-//      vel = Path.Velocity (link, link+1, ptcl1);
-//      double Z = 1.0;
-//      dVec gaussSum = 0.0;
-//      dVec numSum = 0.0;
-//      for (int dim=0; dim<NDIM; dim++) {
-//        for (int image=-NumImages; image<=NumImages; image++) {
-//          double dist = vel[dim]+(double)image*Path.GetBox()[dim];
-//          double dist2OverFLT = dist*dist*fourLambdaTauInv;
-//          double expPart = exp(-dist2OverFLT);
-//          gaussSum[dim] += expPart;
-//          numSum[dim]   += dist2OverFLT*expPart/tau;
-//        }
-//        Z *= gaussSum[dim];
-//      }
-      
-//      double scalarnumSum = 0.0;
-//      for (int dim=0;dim<NDIM;dim++){
-//        dVec numProd=1.0;
-//        for (int dim2=0;dim2<NDIM;dim2++)
-//          if (dim2!=dim)
-//            numProd[dim] *= gaussSum[dim2];
-//          else 
-//            numProd[dim] *=  numSum[dim2];
-//        scalarnumSum += numProd[dim];
-//      }
-//      kinetic += scalarnumSum/Z; 
-//       }
-    
-//       // Now do short-range part of energy
-//       for (int ptcl2=0; ptcl2<ptcl1; ptcl2++) {
-//      int specNum2 = Path.ParticleSpeciesNum(ptcl2);
-//      dVec r, rp;
-//      double rmag, rpmag;
-//      Path.DistDisp(link, link+1, ptcl1, ptcl2, rmag,rpmag,r,rp); 
-        
-//      double s2 = dot(r-rp, r-rp);
-//      double q = 0.5*(rmag+rpmag);
-//      double z = (rmag-rpmag);
-        
-//      PairActionFitClass &pa = *PairMatrix(specNum1,specNum2);
-//      duShort += pa.dU(q, z, s2, 0);
-//      // Subtract off long-range part from short-range action
-//      if (pa.IsLongRange())
-//        duShort -= 0.5*(pa.dUlong(0)(rmag)+pa.dUlong(0)(rpmag));
-//       }
-//     }
-//   }
-
-//   if (UseRPA)
-//     dULong = LongRangeRPA.d_dBeta (0, Path.NumTimeSlices()-1, 0);
-//   else
-//     dULong = LongRange.d_dBeta (0, Path.NumTimeSlices()-1, 0);
-
-
-//    // Now, calculate potential
-//    for (int slice=0; slice < Path.NumTimeSlices; slice++) {
-//      double factor = ((slice==0)||(slice==Path.NumTimesSlices()-1)) ? 0.5 : 1.0;
-//      for (int ptcl1=0; ptcl1<numPtcls; ptcl1++) {
-//        int specNum1 = Path.ParticleSpeciesNum(ptcl1);
-//        for (int ptcl2=0; ptcl2<ptcl1; ptcl2++) {
-//       int specNum2 = Path.ParticleSpeciesNum(ptcl2);
-//       double dist;
-//       dVec disp;
-//       Path.DistDisp (slice, ptcl1, ptcl2, dist, disp);
-//       PairActionFitClass &pa = *PairMatrix(specNum1,specNum2);
-//       vShort += factor * pa.V(dist);
-//       if (pa.IsLongRange())
-//         vShort -= factor * pa.Vlong(dist);
-//        }
-//      }
-//    }
-
-     
-         
-
-// }
-
-
-Potential&
-ActionsClass::GetPotential (int species1, int species2)
+Potential& ActionsClass::GetPotential (int species1, int species2)
 {
   return *(PairMatrix(species1, species2)->Pot);
 }
 
 
-void 
-ActionsClass::ShiftData (int slicesToShift)
+void ActionsClass::ShiftData (int slicesToShift)
 {
   OpenLoopImportance.ShiftData(slicesToShift);
   StructureReject.ShiftData(slicesToShift);
@@ -718,8 +591,7 @@ void ActionsClass::RejectCopy (int startSlice, int endSlice, const Array<int,1> 
   //QBoxAction.RejectCopy(startSlice, endSlice);
 }
 
-void
-ActionsClass::Init()
+void ActionsClass::Init()
 {
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i) != NULL)
@@ -735,8 +607,7 @@ bool ActionsClass::HaveLongRange()
   return (UseLongRange && longRange);
 }
 
-void 
-ActionsClass::Setk(Vec3 k)
+void ActionsClass::Setk(Vec3 k)
 {
   for (int i=0; i<PathData.Path.NumSpecies(); i++) {
     if (NodalActions(i) != NULL)
@@ -744,9 +615,12 @@ ActionsClass::Setk(Vec3 k)
   }
 }
 
-void
-ActionsClass::WriteInfo(IOSectionClass &out)
+void ActionsClass::WriteInfo(IOSectionClass &out)
 {
+  std::list<ActionBaseClass*>::iterator actionIt;
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++)
+    (*actionIt)->WriteInfo(out);
+
   /// If we have nodal actions, have them write any pertinent info to
   /// the output file.
   bool haveNodeActions = false;
@@ -760,9 +634,8 @@ ActionsClass::WriteInfo(IOSectionClass &out)
         out.NewSection ("NodeAction");
         if (NodalActions(i) == NULL) 
           out.WriteVar("Type", "NONE");
-        else 
+        else
           NodalActions(i)->WriteInfo(out);
-        
         out.CloseSection();
       }
       out.CloseSection();
@@ -771,9 +644,7 @@ ActionsClass::WriteInfo(IOSectionClass &out)
 }
 
 
-void
-ActionsClass::GetForces(const Array<int,1> &ptcls, 
-                        Array<dVec,1> &Fshort, Array<dVec,1> &Flong)
+void ActionsClass::GetForces(const Array<int,1> &ptcls, Array<dVec,1> &Fshort, Array<dVec,1> &Flong)
 {
   //Move the join to the end so we don't have to worry about
   //permutations
@@ -799,13 +670,11 @@ ActionsClass::GetForces(const Array<int,1> &ptcls,
   for (int dim=0;dim<NDIM;dim++){
     Fshort[dim]-=(1.0/beta)*FtmpShort[dim];
     Flong[dim]-=(1.0/beta)*FtmpLong[dim];
-    
   }
 }
 
 
-void
-ActionsClass::GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F)
+void ActionsClass::GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F)
 {
   const double eps = 1.0e-6;
   PathClass &Path = PathData.Path;
@@ -842,260 +711,18 @@ ActionsClass::GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F)
 }
 
 
-void
-ActionsClass::UpdateNodalActions()
+void ActionsClass::UpdateNodalActions()
 {
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i) != NULL)
       NodalActions(i)->Update();
 }
 
-void
-ActionsClass::MoveJoin (int oldJoinPos, int newJoinPos)
+void ActionsClass::MoveJoin (int oldJoinPos, int newJoinPos)
 {
   // Currently, only some nodal actions actually need their MoveJoin called.
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i) != NULL)
       NodalActions(i)->MoveJoin (oldJoinPos, newJoinPos);
 }
-
-// old deprecated read
-//void 
-//ActionsClass::Read(IOSectionClass &in)
-//{ 
-//  verr<<"Starting Actions Read"<<endl;
-//  PathClass &Path = PathData.Path;
-//
-//  assert(in.ReadVar ("MaxLevels", MaxLevels));
-//  assert(in.ReadVar ("NumImages", NumImages));
-//  Kinetic.SetNumImages (NumImages);
-//  KineticSphere.SetNumImages(NumImages);
-//  Mu.Read(in);
-//      bool doMolRead = false;
-//      in.ReadVar("InitMoleculeInteractions",doMolRead);
-//  if(doMolRead){
-//              MoleculeInteractions.Read(in);
-//              MoleculeInteractions.SetNumImages(NumImages);
-//      }
-//
-//  bool doLRCRead = false;
-//      in.ReadVar("InitLongRangeCoulomb",doLRCRead);
-//  if(doLRCRead){
-//              LongRangeCoulomb.Read(in);
-//      }
-//      bool doQBoxRead = false;
-//      in.ReadVar("InitQBoxAction",doQBoxRead);
-//  if(doQBoxRead){
-//              QBoxAction.Read(in);
-//      }
-//
-//      bool doEAMRead = false;
-//      in.ReadVar("InitEAMAction",doEAMRead);
-//  if(doEAMRead){
-//              EAM.Read(in);
-//      }
-//
-//      bool doKineticRotorRead = false;
-//      in.ReadVar("InitKineticRotorAction",doKineticRotorRead);
-//  if(doKineticRotorRead){
-//              KineticRotor.Read(in);
-//      }
-//
-//      bool doFARRead = false;
-//      in.ReadVar("InitFixedAxisRotorAction",doFARRead);
-//  if(doFARRead){
-//              FixedAxisRotor.Read(in);
-//      }
-//#ifdef ORDER_N_FERMIONS
-//  VariationalPI.Read(in);
-//  TruncatedInverse.Read(in);
-//#endif
-//  //  VariationalPI.Read(in);
-//  verr << "MaxLevels = " << MaxLevels << endl;
-//  bool checkJosephson=false;
-//  in.ReadVar("Josephson",checkJosephson);
-//  if (checkJosephson){
-//    Josephson.Read(in);
-//    Hermele.Read(in);
-//    DualHermele.Read(in);
-//  }
-//  bool usePairAction=false;
-//  in.ReadVar("Paired",usePairAction);
-//  if (usePairAction){
-//    PairFixedPhase.Read(in);
-//  }
-//  
-//  if (!in.ReadVar ("UseRPA", UseRPA))
-//    UseRPA = false;
-//  if (UseRPA) 
-//    verr << "Using RPA for long range action.\n";
-//  else      
-//    verr << "Not using RPA for long range action.\n";
-//
-//  verr << " going to read pair actions" << endl;
-//  Array<string,1> PAFiles;
-//  assert (in.ReadVar ("PairActionFiles", PAFiles));
-//  Array<string,1> SpecificHeatPAFiles;
-//  bool readSpecificHeatFiles=false;
-//  if (in.ReadVar("SpecificHeatPAFiles",SpecificHeatPAFiles))
-//    readSpecificHeatFiles=true;
-//  
-//
-//  int numPairActions = PAFiles.size();
-//  ///  cerr << "Looking for " << numPairActions << endl;
-//  PairArray.resize(numPairActions);
-//  if (readSpecificHeatFiles)
-//    SpecificHeatPairArray.resize(SpecificHeatPAFiles.size());
-//  PairMatrix.resize(Path.NumSpecies(),Path.NumSpecies());
-//  // Initialize to a nonsense value so we can later check in the table
-//  // element was filled in.
-//  for (int i=0; i<Path.NumSpecies(); i++)
-//    for (int j=0; j<Path.NumSpecies(); j++)
-//      PairMatrix(i,j) = (PairActionFitClass*)NULL;
-//  // Read pair actions files
-//  verr << "declaring IOSectionClass...";
-//  IOSectionClass PAIO;
-//  cerr << " done" << endl;
-// 
-//  UseNonlocal = false;
-//  for (int i=0; i<numPairActions; i++) {
-//    // Allow for tilde-expansion in these files
-//    string name = ExpandFileName(PAFiles(i));
-//    verr<<"We are about to try to read the PairActon file "<<name<<endl;
-//    verr<<"If the code aborts at this point, most likely the .PairAction or .Sampling.in or .dm file are incorrect or placed in the wrong place."<<endl;
-//    if (!PAIO.OpenFile(name)){
-//      cerr<<"We were unable to find the PairAction file "<<name<<endl;
-//      cerr<<"Please make sure you have specified it correctly."<<endl;
-//      abort();
-//    }
-//    verr<<"Done reading the PairAction file "<<name<<endl;
-//    //    assert(PAIO.OpenFile (name));
-//    verr << i << ": reading " << name << endl;
-//    PairArray(i) = ReadPAFit (PAIO, Path.tau, MaxLevels);
-//    if (PairArray(i)->Pot != NULL)
-//      if (PairArray(i)->Pot->IsNonlocal())
-//      UseNonlocal = true;
-//    bool paUsed=false;
-//    for (int spec1=0;spec1<Path.NumSpecies();spec1++)
-//      for (int spec2=spec1;spec2<Path.NumSpecies();spec2++) 
-//      if (((Path.Species(spec1).Type==PairArray(i)->Particle1.Name)&&
-//           (Path.Species(spec2).Type==PairArray(i)->Particle2.Name)) ||
-//          ((Path.Species(spec2).Type==PairArray(i)->Particle1.Name)&&
-//           (Path.Species(spec1).Type==PairArray(i)->Particle2.Name))) {
-//        if (PairMatrix(spec1,spec2) != NULL) {
-//          perr << "More than one pair action for species types (" 
-//               << PairArray(i)->Particle1.Name << ", "
-//               << PairArray(i)->Particle2.Name << ")." << endl;
-//          exit(-1);
-//        }
-//        verr << "Found PAfile for pair (" 
-//             << Path.Species(spec1).Name << ", "
-//             << Path.Species(spec2).Name << ")\n";
-//        PairMatrix(spec1,spec2) = PairArray(i);
-//        PairMatrix(spec2,spec1) = PairArray(i);
-//        paUsed = true;
-//      }
-//    if (!paUsed) {
-//      perr << "Warning:  Pair action for species types (" 
-//         << PairArray(i)->Particle1.Name << ", "
-//         << PairArray(i)->Particle1.Name << ") not used.\n";
-//    }
-//
-//    PAIO.CloseFile();
-//  }
-//
-//
-//  if (readSpecificHeatFiles){
-//    cerr<<"I READ SPECIFIC HEAT FILES"<<endl;
-//    assert((in.ReadVar("TauValues",TauValues)));
-//    assert(TauValues.size()==SpecificHeatPAFiles.size());
-//    for (int i=0; i<SpecificHeatPAFiles.size() ; i++) {
-//      // Allow for tilde-expansion in these files
-//      string name = ExpandFileName(SpecificHeatPAFiles(i));
-//      assert(PAIO.OpenFile (name));
-//      SpecificHeatPairArray(i) = ReadPAFit (PAIO, TauValues(i), MaxLevels);   
-//      PAIO.CloseFile();
-//    }
-//  }
-//
-//   
-//  // Now check to make sure all PairActions that we need are defined.
-//  for (int species1=0; species1<Path.NumSpecies(); species1++)
-//    for (int species2=0; species2<Path.NumSpecies(); species2++)
-//      if (PairMatrix(species1,species2) == NULL) {
-//      if ((species1 != species2) || 
-//          (Path.Species(species1).NumParticles > 1)) {
-//        perr << "We're missing a PairAction for species1 = "
-//             << Path.Species(species1).Name << " and species2 = "
-//             << Path.Species(species2).Name << endl;
-//        exit(1);
-//      }
-//      }
-//  
-//  in.ReadVar("UseLongRange", UseLongRange);
-//  if (HaveLongRange()) {
-//    perr << "*** Using long-range/short-range breakup. ***\n";
-//    assert (in.ReadVar("UseBackground", LongRange.UseBackground));
-//    LongRangePot.UseBackground = LongRange.UseBackground;
-//    LongRangeRPA.UseBackground = LongRange.UseBackground;
-//  }
-//
-////   if (longRange){
-////     LongRange.Init(in);
-////     if (UseRPA)
-////       LongRangeRPA.Init(in);
-////   }
-//
-////  Create nodal action objects
-////   NodalActions.resize(PathData.Path.NumSpecies());
-////   for (int spIndex=0; spIndex<PathData.Path.NumSpecies(); spIndex++) {
-////     SpeciesClass &species = PathData.Path.Species(spIndex);
-////     if (species.GetParticleType() == FERMION) {
-////       if (species.NodeType == "FREE") 
-////    NodalActions (spIndex) = new FreeNodalActionClass(PathData, spIndex);
-////       else {
-////    cerr << "Unrecognized node type " << species.NodeType << ".\n";
-////    exit(EXIT_FAILURE);
-////       }
-////       NodalActions(spIndex)->Read(in);
-////     }
-////     else
-////       NodalActions(spIndex) = NULL;
-////   }
-//  
-//  ReadNodalActions (in);
-//
-//  if (UseNonlocal) {
-//    if (FixedPhaseA == NULL) {
-//      cerr << "Trying to use nonlocal action with a FixedPhase defined.\n";
-//      abort();
-//    }
-//    Nonlocal.Setup(FixedPhaseA);
-//  }
-//
-////   // Now create nodal actions for Fermions
-////   NodalActions.resize(PathData.Path.NumSpecies());
-////   for (int species=0; species<PathData.Path.NumSpecies(); species++) 
-////     if (PathData.Path.Species(species).GetParticleType() == FERMION)
-////       NodalActions(species) = new FPNodalActionClass(PathData, species);
-////     else
-////       NodalActions(species) = NULL;
-//  
-//  verr << "Finished reading the action.\n"; 
-//
-//  if (in.OpenSection("StructureReject")){
-//    StructureReject.Read(in);
-//    in.CloseSection();
-//  }
-//  if (in.OpenSection("Tether")){
-//    Tether.Read(in);
-//    in.CloseSection();
-//  }
-//  ///Reading in information for David long range action
-//  if (PathData.Path.DavidLongRange){
-//    DavidLongRange.Read(in);
-//  }
-//  if (PathData.Path.OpenPaths)
-//    OpenLoopImportance.Read(in);
-//}
 

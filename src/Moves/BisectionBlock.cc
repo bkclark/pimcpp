@@ -90,21 +90,6 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
           cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
         newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
       }
-      if (PathData.Path.DavidLongRange) {
-        if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
-        newStage -> Actions.push_back(&PathData.Actions.DavidLongRange);
-      } else if (PathData.Actions.HaveLongRange()) {
-        if (PathData.Actions.UseRPA) {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRangeRPA);
-        } else {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRange Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRange);
-        }
-      }
       if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
         if (myProc == 0)
           cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;

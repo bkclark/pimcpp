@@ -19,6 +19,8 @@
 
 #include "ActionBase.h"
 #include "../PairAction/PAFit.h"
+#include "../Ewald/OptimizedBreakup.h"
+#include "../Integration/GKIntegration.h"
 
 typedef enum {JOB_U, JOB_DU, JOB_V} JobType; 
 
@@ -34,9 +36,9 @@ protected:
   Array<PairActionFitClass*,2> &PairMatrix;
   Array<PairActionFitClass*,1> &PairArray;
   LinearGrid LongGrid;
-  void OptimizedBreakup_U(int numKnots,  IOSectionClass &out);
-  void OptimizedBreakup_dU(int numKnots, IOSectionClass &out);
-  void OptimizedBreakup_V(int numKnots,  IOSectionClass &out);
+  void OptimizedBreakup_U(IOSectionClass &out);
+  void OptimizedBreakup_dU(IOSectionClass &out);
+  void OptimizedBreakup_V(IOSectionClass &out);
 
 
   /// This calculates the quantity 
@@ -46,9 +48,11 @@ protected:
 
   int Level, ki;
 public:
+  int numKnots;
   bool UseBackground;
-  void Init(IOSectionClass &in, IOSectionClass &out);
-  void Read (IOSectionClass &in);
+  void WriteInfo(IOSectionClass &out);
+  void Init(IOSectionClass &out);
+  void Read(IOSectionClass &in);
   double SingleAction (int slice1, int slice2, 
 		       const Array<int,1> &activeParticles, int level);
   double d_dBeta (int slice1, int slice2,  int level);

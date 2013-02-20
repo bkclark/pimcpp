@@ -88,3 +88,10 @@ ActionBaseClass::MoveJoin (int oldJoinPos, int newJoinPos)
 {
   // do nothing in base class.
 }
+
+
+void
+ActionBaseClass::WriteInfo (IOSectionClass &out)
+{
+  // do nothing in base class.
+}

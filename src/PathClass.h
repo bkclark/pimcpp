@@ -92,9 +92,10 @@ private:
   /// Stores the radius of the k-space sphere we sum over
   double kCutoff;
   /// Allocates and sets up the k-vectors.
-  void SetupkVecs3D();
-
+  bool kVecsSetup;
+  void SetupkVecs(IOSectionClass &in);
   void SetupkVecs2D();
+  void SetupkVecs3D();
  private:
   ///These two preceding function/array only need to be used in order to
   ///make the readings of David's file work correctly (sorry,
@@ -174,7 +175,6 @@ public:
   inline const dVec GetBoxInv();
   inline const dVec GetkBox();
   inline double GetVol();
-  inline double Getkc();
   inline void  SetPeriodic(TinyVector<bool,NDIM> period);
   inline dVec  GetPeriodic() const { return IsPeriodic; }
 
@@ -617,15 +617,6 @@ PathClass::GetVol()
     vol*=Box(i);
   }
   return vol;
-}
-
-inline double 
-PathClass::Getkc()
-{
-  if (LongRange)
-    return kCutoff;
-  else
-    return 0.0;
 }
 
 

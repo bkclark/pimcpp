@@ -149,43 +149,55 @@ void PathClass::SetIonConfig(int config)
 void PathClass::Read (IOSectionClass &inSection)
 {
   int myProc = Communicator.MyProc();
-  Equilibrate=1;
-  CenterOfMass=0.0;
+
+  /// Defaults
+  Equilibrate = 1;
+  CenterOfMass = 0.0;
+  StoreNodeDist = false;
+  StoreNodeDet = false;
+  UseNodeImportance = false;
+  kVecsSetup = false;
+  DavidLongRange = false;
+
   SetMode(OLDMODE);
-  SignWeight=1;
-  Sign=1;
-  NowOpen=false;
-  HeadSlice=0;
-  SetMode (NEWMODE);
-  SignWeight=1;
-  Sign=1;
-  NowOpen=false;
-  HeadSlice=0;
-  if (!inSection.ReadVar("FunnyCoupling",FunnyCoupling)){
+  SignWeight = 1;
+  Sign = 1;
+  NowOpen = false;
+  HeadSlice = 0;
+
+  SetMode(NEWMODE);
+  SignWeight = 1;
+  Sign = 1;
+  NowOpen = false;
+  HeadSlice = 0;
+
+  // Coupling
+  if (!inSection.ReadVar("FunnyCoupling",FunnyCoupling))
     FunnyCoupling=false;
-  }
-
   double tempExistsCoupling;
-  if (!inSection.ReadVar("ExistsCoupling",tempExistsCoupling)){
+  if (!inSection.ReadVar("ExistsCoupling",tempExistsCoupling))
     ExistsCoupling=-1.0;
-  }
-  else{
+  else
     ExistsCoupling=tempExistsCoupling;
+
+  // Order N
+  OrderN=false;
+  inSection.ReadVar("OrderN",OrderN);
+
+  // Open Loops / Worm
+  if (!inSection.ReadVar("OpenLoops",OpenPaths))
+    OpenPaths=false;
+  if (!inSection.ReadVar("WormOn",WormOn))
+    WormOn=false;
+#ifndef OPEN_LOOPS
+  if (OpenPaths) {
+    cerr << "OpenPaths are not enabled in the code!\n" << "Reconfigure with --enable-open and \n" << "  make clean; make ...\nAborting.\n";
+    abort();
   }
+#endif
 
+  // Read system information
   assert(inSection.ReadVar ("NumTimeSlices", TotalNumSlices));
-  ///HACK! HACK! HACK! HACK!
-
-  //  if ((MyClone/10)==0)
-  //    TotalNumSlices=50;
-  //  else if ((MyClone/10)==1)
-  //    TotalNumSlices=100;
-  //  else if ((MyClone/10)==2)
-  //    TotalNumSlices=200;
-  //  else if ((MyClone/10)==3)
-  //    TotalNumSlices=400;
-  //  else if ((MyClone/10)==4)
-  //    TotalNumSlices=800;
   assert(inSection.ReadVar ("tau", tau));
   Array<double,1> tempBox;
   Array<bool,1> tempPeriodic;
@@ -208,8 +220,7 @@ void PathClass::Read (IOSectionClass &inSection)
     for (int counter=0;counter<tempBox.size();counter++)
       Box(counter)=tempBox(counter);
     SetBox (Box);
-  }
-  else if (useDensity){
+  } else if (useDensity) {
     inSection.OpenSection("Particles");
     int numSpecSections=inSection.CountSections("Species");
     int totalNumParticles=0;
@@ -229,55 +240,24 @@ void PathClass::Read (IOSectionClass &inSection)
       Box(counter)=tempBox(counter)*scaleBox;
     cerr<<"The BOX I am setting is "<<Box<<endl;
     SetBox (Box);
-  }
-  else 
+  } else
     perr << "Using free boundary conditions.\n";
-  OrderN=false;
-  inSection.ReadVar("OrderN",OrderN);
 
-  if (!inSection.ReadVar("OpenLoops",OpenPaths))
-    OpenPaths=false;
-  if (!inSection.ReadVar("WormOn",WormOn))
-    WormOn=false;
-
-#ifndef OPEN_LOOPS
-  if (OpenPaths) {
-    cerr << "OpenPaths are not enabled in the code!\n" << "Reconfigure with --enable-open and \n" << "  make clean; make ...\nAborting.\n";
-    abort();
-  }
-#endif
-
-  // Read in the k-space radius.  If we don't have that, we're not long-ranged.
-  LongRange = inSection.ReadVar("kCutoff", kCutoff);
-  if (!(inSection.ReadVar("DavidLongRange",DavidLongRange)))
-    DavidLongRange=false;
-  if (LongRange) {
-    if (DavidLongRange)
-      if (myProc == 0)
-        cout<<CloneStr<<" Using David Long Range."<<endl;
-    else
-      if (myProc == 0)
-        cout<<CloneStr<<" Using Long Range."<<endl;
-  }
-
+  // Read particle information
   assert(inSection.OpenSection("Particles"));
-  int numSpecies = inSection.CountSections ("Species");
-  // First loop over species and read info about species
+  int numSpecies = inSection.CountSections("Species");
   for (int Species=0; Species < numSpecies; Species++) {
     inSection.OpenSection("Species", Species);
-    SpeciesClass *newSpecies = ReadSpecies (inSection);
+    SpeciesClass *newSpecies = ReadSpecies(inSection);
     inSection.CloseSection();
-    bool manyParticles=false;
+    bool manyParticles = false;
     inSection.ReadVar("ManyParticles",manyParticles);
-    if (manyParticles){
-      //UGLY HACK!
+    if (manyParticles) // HACK: Really ugly
       newSpecies->NumParticles=newSpecies->NumParticles-MyClone;
-      //UGLY HACK!
-    }
     AddSpecies (newSpecies);
   }
-
   inSection.CloseSection(); // Particles
+
   // Now actually allocate the path
   Allocate();
 
@@ -304,6 +284,7 @@ void PathClass::Read (IOSectionClass &inSection)
     cerr << "IonConfigs[1] = " << IonConfigs[1] << endl;
     SetIonConfig(0);
   }
+
   /// Checking rounding mode
   bool roundOkay = true;
   for (int i=0; i<1000; i++) {
@@ -315,11 +296,6 @@ void PathClass::Read (IOSectionClass &inSection)
     cerr << "Rounding mode is not set to ""round"".  Aborting!\n";
     abort();
   }
-
-  // Default to false
-  StoreNodeDist = false;
-  StoreNodeDet = false;
-  UseNodeImportance = false;
 
 }
 
@@ -344,117 +320,41 @@ void PathClass::Allocate()
   SetMode(NEWMODE);
 
   assert(TotalNumSlices>0);
-  int myProc=Communicator.MyProc();
-  int numProcs=Communicator.NumProcs();
+  int myProc = Communicator.MyProc();
+  int numProcs = Communicator.NumProcs();
   /// Everybody gets the same number of time slices if possible.
   /// Otherwise the earlier processors get the extra one slice  
   /// until we run out of extra slices. The last slice on processor i
   /// is the first slice on processor i+1.
   MyNumSlices=TotalNumSlices/numProcs+1+(myProc<(TotalNumSlices % numProcs));
 
-  // Initialize reference slice position to be 0 on processor 0.  
+  // Initialize reference slice position to be 0 on processor 0.
   RefSlice = 0;
 
-  int numParticles = 0;
-
   /// Set the particle range for the new species
-  for (int speciesNum=0;speciesNum<SpeciesArray.size();speciesNum++){
+  int numParticles = 0;
+  stringstream SysStr;
+  SysStr << "N: ";
+  for (int speciesNum=0; speciesNum<SpeciesArray.size(); speciesNum++) {
     int N = SpeciesArray(speciesNum)->NumParticles;
     int first = numParticles;
+    string name = SpeciesArray(speciesNum)->Name;
     SpeciesArray(speciesNum)->FirstPtcl = first;
     numParticles=numParticles + N;
     SpeciesArray(speciesNum)->LastPtcl = first + N-1;;
     SpeciesArray(speciesNum)->Ptcls.resize(N);
 
-// this molecule stuff is OBSOLETE
-//    int foundAt;
-//    int prevIndex;
-//    if(doMol){
-//      string newMol = SpeciesArray(speciesNum)->molecule;
-//      cerr << "		Looking for string " << newMol << endl;
-//      bool foundMol = false;
-//      for(int m=0; m<MoleculeName.size(); m++){
-//	if(newMol == MoleculeName[m]){
-//	  foundMol = true;
-//	  assert(N/SpeciesArray(speciesNum)->formula == MoleculeNumber[m]);
-//	  foundAt = m;
-//	  cerr << "		Found at " << foundAt 
-//	       << " of " << MoleculeName.size() << endl;
-//	}
-//      }
-//      if(!foundMol){
-//	MoleculeName.push_back(newMol);
-//	MoleculeNumber.push_back(N/SpeciesArray(speciesNum)->formula);
-//	int sum = 0;
-//	for(int s=0; s<(MoleculeNumber.size()-1); s++)
-//	  sum += MoleculeNumber[s];
-//	offset.push_back(sum);
-//	foundAt = MoleculeName.size() - 1;
-//	cerr << "		Added " << newMol << " at " << foundAt << endl;
-//      }
-//      
-//      prevIndex = 0;
-//      for(int i=0; i<foundAt; i++){
-//	prevIndex += MoleculeNumber[i];
-//      }
-//      //cerr << "		set prevIndex " << prevIndex << endl;
-//      
-//      //map<string,int>::iterator findName = (MoleculeMap.find(newMol));
-//      //if(findName != MoleculeMap.end()){
-//      //	assert(N/SpeciesArray(speciesNum)->formula == MoleculeNumber[m]);
-//      //}
-//      //else{
-//      //	MoleculeNumber.push_back(N/SpeciesArray(speciesNum)->formula);
-//      //	MoleculeMap[newMol] = MoleculeNumber.size();
-//      //}
-//      //cerr << "		Doing resizeAndPreserve...";
-//      MolRef.resizeAndPreserve(MolRef.size() + N);
-//      //cerr << " done" << endl;
-//      numMol = MoleculeNumber[0];
-//    }
-    for (int i=0; i < N; i++){
+    for (int i=0; i < N; i++)
       SpeciesArray(speciesNum)->Ptcls(i) = i+first;
 
-//      if(doMol){
-//	//cerr << "		" << i << " prevIndex " << prevIndex << ", foundAt " << foundAt << ", Mol.Num. " << MoleculeNumber[foundAt];
-//	//cerr  << " so mod is " << i%MoleculeNumber[foundAt] << endl;
-//	MolRef(i+first) = prevIndex + i%MoleculeNumber[foundAt]; // need to assign myMolecule
-//	//cerr << "Assigned MolRef " << MolRef(i+first) << " to ptcl " << i+first << endl;
-//	
-//      }
-    }
+    SysStr<<N<<" ("<<name<<"), ";
   }
+  SysStr << "M: " << TotalNumSlices << ", tau: " << tau << endl;
+  if (COMM::WorldProc() == 0)
+    cout << SysStr.str();
 
-  // OBSOLETE molecule stuff
-//  if(doMol){
-//    MolMembers.resize(numMol);
-//    vector<int> catalog(numMol); // for storing info to load MolMembers
-//    // initialize catalog (all zeros)
-//    for(int m = 0; m < catalog.size(); m++)
-//      catalog[m] = 0;
-//    // get number of ptcls for each molecule m; store in catalog
-//    for(int p = 0; p <numParticles; p++)
-//      catalog[MolRef(p)]++;
-//    // resize MolMembers arrays appropritely; re-initialize catalog
-//    for(int m = 0; m < catalog.size(); m++){
-//      MolMembers(m).resize(catalog[m]);
-//      catalog[m] = 0;
-//    }
-//    // load ptcls into the MolMembers array; catalog indexes
-//    for(int p = 0; p <numParticles; p++){
-//      int m = MolRef(p);
-//      MolMembers(m)(catalog[m]) = p;
-//      catalog[m]++;
-//    }
-//  }
-//  else if(!doMol){
-//    MolRef.resize(numParticles);
-//    for(int m=0; m<MolRef.size(); m++)
-//      MolRef(m) = m;
-//    cerr << "Initializing MolRef to default: " << MolRef << endl;
-//  }
   if (WormOn)
-    numParticles=numParticles+2;
+    numParticles += 2;
   Path.resize(MyNumSlices,numParticles+OpenPaths);
   ParticleExist.resize(MyNumSlices,numParticles+OpenPaths);
   RefPath.resize(numParticles+OpenPaths);
@@ -462,34 +362,46 @@ void PathClass::Allocate()
 
   SpeciesNumber.resize(numParticles+OpenPaths);
   if (WormOn)
-    SpeciesNumber=1;///HACK! HACK HACK!
+    SpeciesNumber = 1;///HACK! HACK HACK!
   DoPtcl.resize(numParticles+OpenPaths);
+
   /// Assign the species number to the SpeciesNumber array
-  for (int speciesNum=0;speciesNum<SpeciesArray.size();speciesNum++){
+  for (int speciesNum=0;speciesNum<SpeciesArray.size();speciesNum++) {
     for (int i=SpeciesArray(speciesNum)->FirstPtcl; i<= SpeciesArray(speciesNum)->LastPtcl; i++)
       SpeciesNumber(i) = speciesNum;
   }
-  //Sets to the identity permutaiton 
-  //cerr<<"setting permutations"<<" "<<GetMode()<<endl;
-  for (int ptcl=0;ptcl<Permutation.size();ptcl++){
-    Permutation(ptcl) = ptcl;
-  //  cerr<<ptcl<<" "<<Permutation(ptcl)<<endl;
-  }
-  if (LongRange) {
-#if NDIM==3
-    SetupkVecs3D();
 
-    if (DavidLongRange)
-      SortRhoK();
-#endif
-#if NDIM==2
-    SetupkVecs2D();
-#endif
-    Rho_k.resize(MyNumSlices, NumSpecies(), kVecs.size());
-  }
+  // Set to the identity permutaiton
+  for (int ptcl=0;ptcl<Permutation.size();ptcl++)
+    Permutation(ptcl) = ptcl;
 
   //  InitializeJosephsonCode();
 }
+
+
+void PathClass::SetupkVecs(IOSectionClass& in)
+{
+  // Only setup kVecs if not done so already
+  if (!kVecsSetup) {
+
+    // Read in the k-space radius.
+    assert(in.ReadVar("kCutoff", kCutoff));
+
+    // Do setup
+#if NDIM==2
+    SetupkVecs2D();
+#endif
+#if NDIM==3
+    SetupkVecs3D();
+#endif
+    if (DavidLongRange)
+      SortRhoK();
+    Rho_k.resize(MyNumSlices, NumSpecies(), kVecs.size());
+  }
+  UpdateRho_ks();
+  bool kVecsSetup = true;
+}
+
 
 void PathClass::SetupkVecs2D()
 {
@@ -536,47 +448,6 @@ void PathClass::SetupkVecs2D()
   }
   SortRhoK();
   ///Now it's conceivable that we might want to add some k vectors to be additionally computed
-
-}
-
-
-///Puts in the vector MagKInt a number that corresponds to the sorted
-///order of the magnitude of the k vectors. Doesn't actually change
-///what's in kVec. Currently only used for the reading of David's long
-///range class.
-void PathClass::SortRhoK()
-{
-  MagK.resize(kVecs.size());
-  MagKint.resize(kVecs.size());
-  for (int kVec=0;kVec<kVecs.size();kVec++){
-    MagK(kVec)=sqrt(dot(kVecs(kVec),kVecs(kVec)));
-  }
-  int smallIndex=0;
-
-  for (int counter=0;counter<MagKint.size();counter++){
-    MagKint(counter)=-1;
-  }
-
-  for (int currentNum=0;currentNum<kVecs.size();currentNum++){
-    for (int counter=0;counter<MagK.size();counter++){
-      if (MagKint(counter)==-1 && MagK(counter)<MagK(smallIndex)){
-        smallIndex=counter;
-      }
-    }
-    for (int counter=0;counter<MagK.size();counter++){
-      if (abs(MagK(smallIndex)-MagK(counter))<1e-4){
-        MagKint(counter)=currentNum;
-      }
-    }
-    smallIndex=-1;
-    for (int counter=0;counter<MagK.size();counter++){
-      if (MagKint(counter)==-1)
-        smallIndex=counter;
-    }
-    if (smallIndex==-1)
-      currentNum=kVecs.size()+1;
-  }
-
 }
 
 
@@ -634,6 +505,47 @@ void PathClass::SetupkVecs3D()
   }
 }
 
+
+///Puts in the vector MagKInt a number that corresponds to the sorted
+///order of the magnitude of the k vectors. Doesn't actually change
+///what's in kVec. Currently only used for the reading of David's long
+///range class.
+void PathClass::SortRhoK()
+{
+  MagK.resize(kVecs.size());
+  MagKint.resize(kVecs.size());
+  for (int kVec=0;kVec<kVecs.size();kVec++){
+    MagK(kVec)=sqrt(dot(kVecs(kVec),kVecs(kVec)));
+  }
+  int smallIndex=0;
+
+  for (int counter=0;counter<MagKint.size();counter++){
+    MagKint(counter)=-1;
+  }
+
+  for (int currentNum=0;currentNum<kVecs.size();currentNum++){
+    for (int counter=0;counter<MagK.size();counter++){
+      if (MagKint(counter)==-1 && MagK(counter)<MagK(smallIndex)){
+        smallIndex=counter;
+      }
+    }
+    for (int counter=0;counter<MagK.size();counter++){
+      if (abs(MagK(smallIndex)-MagK(counter))<1e-4){
+        MagKint(counter)=currentNum;
+      }
+    }
+    smallIndex=-1;
+    for (int counter=0;counter<MagK.size();counter++){
+      if (MagKint(counter)==-1)
+        smallIndex=counter;
+    }
+    if (smallIndex==-1)
+      currentNum=kVecs.size()+1;
+  }
+
+}
+
+
 void PathClass::CalcRho_ks_Slow(int slice, int species,Array<dVec,1> &thekvecs, Array<complex<double> ,3> rho_k)
 {
   for (int ki=0; ki<thekvecs.size(); ki++) {
@@ -648,6 +560,7 @@ void PathClass::CalcRho_ks_Slow(int slice, int species,Array<dVec,1> &thekvecs, 
   }
 }
 
+
 void PathClass::CalcRho_ks_Slow(int slice, int species)
 {
   for (int ki=0; ki<kVecs.size(); ki++) {
@@ -661,6 +574,7 @@ void PathClass::CalcRho_ks_Slow(int slice, int species)
     Rho_k(slice, species, ki) = rho;
   }
 }
+
 
 void PathClass::CalcRho_ks_Fast(int slice,int species)
 {
@@ -694,6 +608,7 @@ void PathClass::CalcRho_ks_Fast(int slice,int species)
     }
   }
 }
+
 
 void PathClass::UpdateRho_ks(int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
@@ -755,8 +670,8 @@ void PathClass::UpdateRho_ks(int slice1, int slice2, const Array<int,1> &changed
   }
 }
 
-void 
-PathClass::UpdateRho_ks()
+
+void PathClass::UpdateRho_ks()
 {
   ModeType mode = GetMode();
   SetMode(OLDMODE);
@@ -770,7 +685,6 @@ PathClass::UpdateRho_ks()
 //       CalcRho_ks_Fast(slice,species);
   SetMode(mode);
 }
-
 
 
 void PathClass::MoveJoin(int oldJoin, int newJoin)
@@ -840,7 +754,6 @@ void PathClass::MoveJoin(int oldJoin, int newJoin)
     MoveJoinParticleExist(oldJoin,newJoin);
   //  cerr<<"out move join"<<endl;
 }
-
 
 
 void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &activeParticles)
@@ -919,6 +832,7 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
   numAccepts++;
   // cerr<<"Center of mass: "<<cm2<<" "<<numAccepts<<endl;
 }
+
 
 void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &activeParticles)
 {
@@ -1006,8 +920,8 @@ void PathClass::ShiftData(int slicesToShift)
     OpenLink[OLDMODE]=OpenLink[NEWMODE];
   }
 
-
 }
+
 
 void PathClass::ShiftRho_kData(int slicesToShift)
 {
@@ -1056,8 +970,7 @@ void PathClass::ShiftRho_kData(int slicesToShift)
           sendBuffer(buffIndex)=Rho_k[1](slice-1,species,ki);
           buffIndex++;
         }
-  }
-  else {
+  } else {
     startSlice=0;
     for (int slice=startSlice; slice<startSlice+abs(slicesToShift);slice++)
       for (int species=0; species<numSpecies; species++)
@@ -1089,10 +1002,10 @@ void PathClass::ShiftRho_kData(int slicesToShift)
   // Now copy A into B, since A has all the good, shifted data now.
   for (int slice=0; slice<numSlices; slice++)
     for (int species=0; species<numSpecies; species++)
-      for (int ki=0; ki<numk; ki++) 
+      for (int ki=0; ki<numk; ki++)
         Rho_k[1](slice,species,ki) = Rho_k[0](slice,species,ki);
 
-  // And we're done! 
+  // And we're done!
 }
 
 

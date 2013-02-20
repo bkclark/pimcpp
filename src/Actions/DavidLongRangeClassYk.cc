@@ -187,8 +187,20 @@ void DavidLongRangeClassYk::BuildRPA_SingleSpecies()
 }
 
 
-void DavidLongRangeClassYk::ReadYk()
+void DavidLongRangeClassYk::WriteInfo(IOSectionClass &out)
 {
+  out.WriteVar ("Type", "David_Long_Range");
+}
+
+void DavidLongRangeClassYk::Read(IOSectionClass &in)
+{
+  // Set flags
+  Path.LongRange = true;
+  Path.DavidLongRange = true;
+
+  // Setup k Vecs and RhoK
+  Path.SetupkVecs(in);
+
   TimeSpent=0;
   for (int pai=0;pai<PairArray.size();pai++){
     DavidPAClass &pa(*((DavidPAClass*)PairArray(pai)));
@@ -218,15 +230,19 @@ void DavidLongRangeClassYk::ReadYk()
   Vlong_k.resize(PairArray.size(), Path.kVecs.size());
   yk_zero.resize(PairArray.size());
   Spec2Index.resize(PairMatrix.extent(0),PairMatrix.extent(1));
-  if(PathData.Actions.UseDavidRPA)
-    BuildRPA_MultipleSpecies();
-  else
-    Build_MultipleSpecies();
-  //need to know build the multiple species
-}
 
-void DavidLongRangeClassYk::Read(IOSectionClass &in)
-{
+  // Check to see if doing RPA
+  if (!in.ReadVar ("UseRPA", UseRPA))
+    UseRPA = false;
+  if (PathData.Actions.UseRPA) {
+    if (Path.Communicator.MyProc() == 0)
+      cout<<Path.CloneStr<<" Using David Long Range RPA."<<endl;
+    BuildRPA_MultipleSpecies();
+  } else {
+    if (Path.Communicator.MyProc() == 0)
+      cout<<Path.CloneStr<<" Using David Long Range."<<endl;
+    Build_MultipleSpecies();
+  }
 }
 
 
@@ -467,5 +483,5 @@ DavidLongRangeClassYk::DavidLongRangeClassYk(PathDataClass &pathData,
 
 string DavidLongRangeClassYk::GetName()
 {
-  return "DavidsLongRange";
+  return "DavidLongRange";
 }

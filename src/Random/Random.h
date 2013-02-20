@@ -110,6 +110,7 @@ public:
     int seed;
     if (MyComm.MyProc()==0){
       seed = make_new_seed();
+      seed = 123456;
       cout<<"THE RANDOM SEED IS "<<seed<<endl;
     }
     MyComm.Broadcast(0,seed);

@@ -17,10 +17,11 @@
 #include "StructureFactor.h"
 #include <utility>
 #include <map>
+
 using namespace std;
+
 void StructureFactorClass::Read(IOSectionClass& in)
 {
-  
   ObservableClass::Read(in);
   string species1Name;
   string species2Name;
@@ -65,14 +66,12 @@ void StructureFactorClass::Read(IOSectionClass& in)
     int maxJ=int(kMagRange(1)*PathData.Path.GetBox()[1]/(2.0*M_PI))+1;
     cerr<<"Maxes are "<<maxI<<" "<<maxJ<<endl;
     for (int i=0;i<maxI;i++)
-      for (int j=0;j<maxJ;j++){
-        double kmag=sqrt(
-                         (2*i*M_PI/PathData.Path.GetBox()[0])*
+      for (int j=0;j<maxJ;j++) {
+        double kmag=sqrt((2*i*M_PI/PathData.Path.GetBox()[0])*
                          (2*i*M_PI/PathData.Path.GetBox()[0])+
                          (2*j*M_PI/PathData.Path.GetBox()[1])*
                          (2*j*M_PI/PathData.Path.GetBox()[1]));
-        //      cerr<<kMagRange(0)<<" "<<kmag<<" "<<kMagRange(1)<<" "<<i<<" "<<j<<endl;
-        if (kMagRange(0)<kmag && kmag<kMagRange(1)){
+        if (kMagRange(0)<kmag && kmag<kMagRange(1)) {
           dVec kVec((2*i*M_PI/PathData.Path.GetBox()[0]),(2*j*M_PI/PathData.Path.GetBox()[1]));
           tempkvecs_vec.push_back(kVec);
           kVec[0]=-kVec[0];
@@ -80,36 +79,19 @@ void StructureFactorClass::Read(IOSectionClass& in)
         }
       }
     Additionalkvecs.resize(tempkvecs_vec.size());
-    //    cerr<<"Additional kvecs are "<<endl;
-    for (int kvec=0;kvec<tempkvecs_vec.size();kvec++){
+    for (int kvec=0;kvec<tempkvecs_vec.size();kvec++) {
       Additionalkvecs(kvec)=tempkvecs_vec[kvec];
-      //      cerr<<Additionalkvecs(kvec)[0]<<" "<<Additionalkvecs(kvec)[1]<<endl;
     }
     cerr<<"done"<<endl;
 #else
-        cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
+    cerr<<"DOES NOT SUPPORT 3d yet"<<endl;
 #endif
-  }       
-  else{
+  } else
     Additionalkvecs.resize(0);
-  }
-  AdditionalRho_k.resize(PathData.Path.NumTimeSlices(),1, Additionalkvecs.size()); 
-  
+  AdditionalRho_k.resize(PathData.Path.NumTimeSlices(),1, Additionalkvecs.size());
 
-  ///if it's not long range you haven't set the kvecs up yet and need to
-  if (!PathData.Path.LongRange){//This is hackish..we use kcutoff
-    ///to tell if you are long range and now we have to read 
-    ///it in to get the structure factor corret.
-    assert(in.ReadVar("kCutoff",PathData.Path.kCutoff));
-  
-#if NDIM==3    
-    PathData.Path.SetupkVecs3D();
-#endif
-#if NDIM==2
-    PathData.Path.SetupkVecs2D();
-#endif
-    PathData.Path.Rho_k.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies(), PathData.Path.kVecs.size());
-  }
+  /// Setup k Vecs and RhoK
+  PathData.Path.SetupkVecs(in);
 
   // Sign Tracking
   if(!in.ReadVar("TrackSign", TrackSign))
@@ -120,7 +102,6 @@ void StructureFactorClass::Read(IOSectionClass& in)
   rho_k_imag.resize(PathData.Path.kVecs.size()+Additionalkvecs.size());
   Sk=0;
 }
-
 
 
 void StructureFactorClass::WriteInfo()

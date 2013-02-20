@@ -47,22 +47,26 @@ main(int argc, char **argv)
 {
   COMM::Init(argc, argv);
   string version = VERSION;
-  cout << "pimc++ v. " << version << endl;
+  int proc = COMM::WorldProc();
+  if (proc == 0)
+    cout << "pimc++ v. " << version << endl;
 
   list<ParamClass> argList;
   argList.push_back (ParamClass("verbose", "v", false));
   CommandLineParserClass parser(argList);
   parser.Parse (argc, argv);
-  if (parser.NumFiles() != 1)
-    cout << "Usage:\n" << "  pimc++ [-v] myfile.in\n";
-  else {
+  if (parser.NumFiles() != 1) {
+    if (proc == 0)
+      cout << "Usage:\n" << "  pimc++ [-v] myfile.in\n";
+  } else {
     if (parser.Found ("verbose"))
       IO::SetVerbose(true);
     PIMCClass PIMC;
     string inputName = parser.GetFile(0);
     IOSectionClass in;
     if (!in.OpenFile(inputName)) {
-      cerr << "Could not open " << inputName << " for reading.  Exitting.\n";
+      if (proc == 0)
+        cerr << "Could not open " << inputName << " for reading.  Exitting.\n";
       exit(-1);
     }
     if (PIMC.Read(in)) {

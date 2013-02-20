@@ -335,6 +335,8 @@ src/Moves/MoleculeMoveBase.cc
 src/WormHelper.cc
 src/Moves/MoleculeMoveManager.cc
 src/WriteData.cc
+src/Ewald/OptimizedBreakup.cc
+src/Integration/GKIntegration.cc
 )
 
 message(STATUS "pimc++:${SRCS}")

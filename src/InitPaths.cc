@@ -88,8 +88,6 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
   oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
   string fullFileName = oss.str();
   assert (inFile.OpenFile(fullFileName.c_str()));
-  if (myProc == 0)
-    cout << CloneStr<<" Using "<<oss.str()<<endl;
 
   /// Get the Box
   inFile.OpenSection("System");
@@ -146,8 +144,9 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
     oldPaths.resize(extent0,extent1,extent2);
   }
   Communicator.Broadcast(0,oldPaths);
+
   if (myProc == 0)
-    cout<<CloneStr<<" Path Dumps: "<<numDumps<<" Permutations: "<<numPerms<<endl;
+    cout<<CloneStr<<" Restarting from "<<oss.str()<<", Path Dumps: "<<numDumps<<" Permutations: "<<numPerms<<endl;
 
   /// Assign positions to beads
   int myFirstSlice,myLastSlice;
@@ -850,11 +849,7 @@ PathClass::InitPaths (IOSectionClass &in)
     else if (InitPaths=="RESTART"){
       string pathFile;
       assert(in.ReadVar("File",pathFile));
-      int myProc = Communicator.MyProc();
-      if (myProc == 0)
-        cout<<CloneStr<<" Restarting from "<<pathFile<<endl;
       Restart(in,pathFile,false,species);
-      //cerr<<"Done with initpaths restart"<<endl;
     }
     else if (InitPaths == "FILE"){
       //cerr<<"I'm going to read the file now"<<endl;
@@ -984,8 +979,7 @@ PathClass::InitPaths (IOSectionClass &in)
   ExistsCoupling.AcceptCopy();
   NodeDist.AcceptCopy();
   NodeDet.AcceptCopy();
-  if (LongRange)
-    UpdateRho_ks();
+
 }
 
 
