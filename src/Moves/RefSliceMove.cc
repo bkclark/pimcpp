@@ -58,11 +58,15 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
     newStage -> Actions.push_back(&PathData.Actions.Kinetic);
     if (level == 0) {
       Array<string,1> samplingActions;
-      assert(in.ReadVar("SamplingActions",samplingActions));
-      for (int i=0;i<samplingActions.size();i++) {
+      if(in.ReadVar("SamplingActions",samplingActions)) {
+        for (int i=0;i<samplingActions.size();i++) {
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+          newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+        }
+      } else {
         if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
-        newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
       }
       /// No need to calculate this twice!
       //if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {

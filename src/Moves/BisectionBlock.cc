@@ -84,11 +84,15 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     }
     else if (level == LowestLevel) {
       Array<string,1> samplingActions;
-      assert(in.ReadVar("SamplingActions",samplingActions));
-      for (int i=0;i<samplingActions.size();i++) {
+      if(in.ReadVar("SamplingActions",samplingActions)) {
+        for (int i=0;i<samplingActions.size();i++) {
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+          newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+        }
+      } else {
         if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
-        newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
       }
       if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
         if (myProc == 0)
