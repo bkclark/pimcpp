@@ -28,36 +28,28 @@ void MCTimeClass::Accumulate()
 void MCTimeClass::WriteBlock()
 {
   if (FirstTime){
-    FirstTime=false;
+    FirstTime = false;
     BlockNumber = 0;
     MoveTime.resize(Moves.size());
     ObservableTime.resize(Observables.size());
     ActionTime.resize(Actions.size());
-    MoveTime=0;
-    ObservableTime=0;
-    ActionTime=0;
-    TotalTime=0;
-    Array<string,1> moveNames       (Moves.size());
+    MoveTime = 0;
+    ObservableTime = 0;
+    ActionTime = 0;
+    TotalTime = 0;
+    Array<string,1> moveNames (Moves.size());
     Array<string,1> observableNames (Observables.size());
     Array<string,1> actionNames (Actions.size());
+    int i;
     list<MoveClass*>::iterator moveIter;
-    int i=0;
-    for (moveIter=Moves.begin();moveIter!=Moves.end();moveIter++) {
+    for (moveIter=Moves.begin(),i=0; moveIter!=Moves.end(); moveIter++,i++)
       moveNames(i) = ((*moveIter)->Name);
-      i++;
-    }
-    i = 0;
     list<ObservableClass*>::iterator observableIter;
-    for (observableIter=Observables.begin();
-	 observableIter!=Observables.end();observableIter++) {
+    for (observableIter=Observables.begin(),i=0; observableIter!=Observables.end(); observableIter++,i++)
       observableNames(i) = ((*observableIter)->Name);
-      i++;
-    } 
     list<ActionBaseClass*>::iterator actionIter;
-    for (actionIter=Actions.begin(),i=0;
-	 actionIter!=Actions.end();actionIter++,i++) {
+    for (actionIter=Actions.begin(),i=0; actionIter!=Actions.end(); actionIter++,i++)
       actionNames(i) = ((*actionIter)->GetName());
-    } 
 
     if (PathData.Path.Communicator.MyProc()==0) {
       IOSection.WriteVar("MoveNames", moveNames);

@@ -228,11 +228,12 @@ void ActionsClass::Read(IOSectionClass &in)
       }
     }
 
-    // HACK FOR TIME ANALYSIS, REALLY NEED TO CLEAN THIS UP
-    ActionList.push_back(&Kinetic);
-    ActionLabels.push_back("Kinetic");
     in.CloseSection();
   }
+
+  // HACK FOR TIME ANALYSIS, REALLY NEED TO CLEAN THIS UP
+  ActionList.push_back(&Kinetic);
+  ActionLabels.push_back("Kinetic");
 
   // Nodal Actions
   ReadNodalActions (in);
