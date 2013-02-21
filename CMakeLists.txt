@@ -390,6 +390,16 @@ SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)
 
 ## sources
 #SET(SRCS "")
+#add_sources(src/Fitting/Ellipsoid.cc
+#src/MatrixOps/MatrixOps.cc
+#)
+#
+#message(STATUS "Ellipsoid:${SRCS}")
+#add_executable (Ellipsoid ${SRCS})
+#SET_TARGET_PROPERTIES("Ellipsoid" PROPERTIES LINKER_LANGUAGE CXX)
+
+## sources
+#SET(SRCS "")
 #add_sources(src/test.cc
 #)
 #

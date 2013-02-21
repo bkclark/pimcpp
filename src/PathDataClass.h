@@ -111,6 +111,9 @@ public:
     Join=newJoin;
   }
 
+  // Calculates the centroid postions of all the paths
+  void GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos);
+
   ////Worm Moves///
   bool SliceFullandNextSliceEmpty(int slice,int ptcl);
   bool SliceFullandPreviousSliceEmpty(int slice,int ptcl);

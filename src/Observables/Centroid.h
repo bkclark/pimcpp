@@ -18,6 +18,7 @@
 #define CENTROID_H
 
 #include "ObservableBase.h"
+#include "../MatrixOps/MatrixOps.h"
 
 class CentroidClass : public ObservableClass
 {

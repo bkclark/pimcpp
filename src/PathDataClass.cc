@@ -107,6 +107,63 @@ void PathDataClass::MoveOpenLinkToEnd()
 
 }
 
+
+/// Calculates the centroid position of each path
+void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos)
+{
+  int N = Path.NumParticles();
+  int M = Path.NumTimeSlices()-1;
+
+  //Move the join to the end so we don't have to worry about permutations
+  MoveJoin(M);
+
+  // Loop through particles, making sure to visit each only once
+  int initSlice = 0;
+  bool usedPtcl[N];
+  Array<TinyVector<double,NDIM>,1> tmpCentPos(N);
+  for (int ptcl = 0; ptcl < N; ptcl++) {
+    usedPtcl[ptcl] = false;
+    tmpCentPos(ptcl) = 0.0;
+  }
+  for (int ptcl = 0; ptcl < N; ptcl++) {
+    if (!usedPtcl[ptcl]) { // Only visit each particle once
+
+      // Calculate centroid position
+      int currSlice = initSlice;
+      int currPtcl = ptcl;
+      int nextSlice = -1;
+      int nextPtcl = -1;
+      dVec centPos = 0.0;
+      int numSlices = 0;
+      int numPtcls = 0;
+      while (nextSlice != initSlice || nextPtcl != ptcl) {
+        nextSlice = (currSlice + 1) % M;
+        if (currSlice == Join) {
+          nextPtcl = Path.Permutation(currPtcl);
+          numPtcls++;
+        } else
+          nextPtcl = currPtcl;
+        usedPtcl[nextPtcl] = true;
+        dVec slicePos = Path(currSlice,currPtcl);
+        //Path.PutInBox(slicePos); // HACK: DO I NEED THIS???
+        centPos = centPos + slicePos;
+        currSlice = nextSlice;
+        currPtcl = nextPtcl;
+        numSlices++;
+      }
+      tmpCentPos(ptcl) = centPos;
+    }
+  }
+
+  // Gather up all the position data to get the centroids
+  Path.Communicator.AllSum(tmpCentPos,CentPos);
+
+  // Calculate the variance in each direction
+  CentPos = CentPos/Path.TotalNumSlices;
+
+}
+
+
 ///Worm Moves////////
 bool PathDataClass::SliceFullandNextSliceEmpty(int slice,int ptcl)
 {

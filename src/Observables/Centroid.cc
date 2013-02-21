@@ -113,69 +113,53 @@ void CentroidClass::Read(IOSectionClass &in)
 void CentroidClass::Accumulate()
 {
   NumSamples++;
-  int N = PathData.Path.NumParticles();
+  const int N = PathData.Path.NumParticles();
 
-  //Move the join to the end so we don't have to worry about permutations
-  PathData.MoveJoin(PathData.NumTimeSlices() - 1);
+  // Get the centroid positions
+  Array<TinyVector<double,NDIM>,1> CentPos(N);
+  PathData.GetCentroids(CentPos);
 
-  // Loop through particles, making sure to visit each only once
-  int initSlice = 0;
-  bool usedPtcl[N];
-  Array<TinyVector<double,3>,1> tmpCentPos(N);
+  // Calculate the variance in each direction for each particle
+  const int M = PathData.Path.NumTimeSlices()-1;
+  const int totM = PathData.Path.TotalNumSlices;
   for (int ptcl = 0; ptcl < N; ptcl++) {
-    usedPtcl[ptcl] = false;
-    tmpCentPos(ptcl) = 0.0;
-  }
-  for (int ptcl = 0; ptcl < N; ptcl++) {
-    if (!usedPtcl[ptcl]) { // Only visit each particle once
 
-      // Calculate centroid position
-      int currSlice = initSlice;
-      int currPtcl = ptcl;
-      int nextSlice = -1;
-      int nextPtcl = -1;
-      dVec centPos = 0.0;
-      int numSlices = 0;
-      int numPtcls = 0;
-      while (nextSlice != initSlice || nextPtcl != ptcl) {
-        nextSlice = (currSlice + 1) % (PathData.Path.NumTimeSlices()-1);
-        if (currSlice == PathData.Join) {
-          nextPtcl = PathData.Path.Permutation(currPtcl);
-          numPtcls++;
-        } else
-          nextPtcl = currPtcl;
-        usedPtcl[nextPtcl] = true;
-        dVec slicePos = PathData.Path(currSlice,currPtcl);
-        //PathData.Path.PutInBox(slicePos); // HACK: DO I NEED THIS???
-        centPos = centPos + slicePos;
-        currSlice = nextSlice;
-        currPtcl = nextPtcl;
-        numSlices++;
-      }
-      tmpCentPos(ptcl) = centPos;
+    // Build the covariance matrix
+    const int D = NDIM;
+    Array<double,2> C(D,D); // Will be the covariance matrix.
+    C = 0;                  // Eigenvectors will be major & minor axes. Eigenvalues will be lengths of axes, squared.
+    for (int k = 0; k < M; k++) {
+      dVec diff = PathData.Path(k,ptcl) - CentPos(ptcl);
+      PathData.Path.PutInBox(diff);
+      for (int d1 = 0; d1 < D; d1++)
+        for (int d2 = 0; d2 < D; d2++)
+          C(d1,d2) += diff(d1)*diff(d2);
     }
+
+    // Gather all covariance matrix totals and normalize
+    Array<double,2> totC(D,D);
+    PathData.Path.Communicator.AllSum(C,totC);
+    totC = totC/(totM-1);
+
+    // Diagonalize the covariance matrix
+    Array<double,1> Vals;
+    Array<double,2> Vecs;
+    SymmEigenPairs(totC,D,Vals,Vecs);
+    cout << CentPos(ptcl) << totC << D << Vals << Vecs << endl;
   }
 
-  // Gather up all the position data to get the centroids
-  Array<TinyVector<double,3>,1> totCentPos(N);
-  PathData.Path.Communicator.AllSum(tmpCentPos,totCentPos);
-
-  //if (PathData.Path.Communicator.MyProc() == 0)
-    for (int ptcl = 0; ptcl < N; ptcl++)
-      cout << PathData.Path.CloneStr << " " << ptcl << " " << tmpCentPos(ptcl) << " " << totCentPos(ptcl) << endl;
-
-  // Calculate spread from centroid
+  // Calculate spread from centroid (PROBABLY GOING TO END UP REMOVING THIS!!!)
+  bool usedPtcl[N];
   for (int ptcl = 0; ptcl < N; ptcl++)
     usedPtcl[ptcl] = false;
   for (int ptcl = 0; ptcl < N; ptcl++) {
     if (!usedPtcl[ptcl]) { // Only visit each particle once
-      dVec centPos = totCentPos(ptcl)/PathData.Path.TotalNumSlices;
-      int currSlice = initSlice;
+      int currSlice = 0;
       int currPtcl = ptcl;
       int nextSlice = -1;
       int nextPtcl = -1;
-      while (nextSlice != initSlice || nextPtcl != ptcl) {
-        nextSlice = (currSlice + 1) % (PathData.Path.NumTimeSlices()-1);
+      while (nextSlice != 0 || nextPtcl != ptcl) {
+        nextSlice = (currSlice + 1) % M;
         if (currSlice == PathData.Join)
           nextPtcl = PathData.Path.Permutation(currPtcl);
         else
@@ -183,7 +167,7 @@ void CentroidClass::Accumulate()
         usedPtcl[nextPtcl] = true;
         dVec centDisp;
         double centDist;
-        PathData.Path.DistDispPos(currSlice,currPtcl,centPos,centDist,centDisp);
+        PathData.Path.DistDispPos(currSlice,currPtcl,CentPos(ptcl),centDist,centDisp);
 
         // Add distance from centroid to histogram
         if (centDist < grid.End) {
@@ -197,5 +181,3 @@ void CentroidClass::Accumulate()
   }
 
 }
-
-

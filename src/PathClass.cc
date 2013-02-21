@@ -129,7 +129,6 @@ void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVe
 }
 
 
-
 void PathClass::SetIonConfig(int config)
 {
   ConfigNum = config;
@@ -145,6 +144,7 @@ void PathClass::SetIonConfig(int config)
     for (int slice=0; slice<NumTimeSlices(); slice++)
       SetPos(slice, ptcl+first, IonConfigs[config](ptcl));
 }
+
 
 void PathClass::Read (IOSectionClass &inSection)
 {
