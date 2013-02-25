@@ -522,11 +522,10 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
   if (doLongRange){
     if (UseRPA)
       ULong = LongRangeRPA.Action (0, M, activePtcls, 0);
-    else if (PathData.Path.DavidLongRange)
-      ULong = DavidLongRange.Action(0,M, activePtcls, 0);
     else
       ULong = LongRange.Action (0, M, activePtcls, 0);
-  }
+  } else if (PathData.Path.DavidLongRange)
+    ULong = DavidLongRange.Action(0,M, activePtcls, 0);
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
     if (NodalActions(species) != NULL)
