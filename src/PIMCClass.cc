@@ -38,22 +38,10 @@ bool PIMCClass::Read(IOSectionClass &in)
   if(PathData.IAmQMCManager) {
     doPIMCRun = true;
 
-    // Make the Output file
-    assert(in.OpenSection("Output"));
-    CreateOutFile(in);
-    in.CloseSection();
-
     // Read in the system information and allocate the path
     assert(in.OpenSection("System"));
     PathData.Path.Read(in);
     in.CloseSection();
-
-    // Write out system information
-    if (myProc == 0) {
-      OutFile.NewSection("System");
-      WriteSystemInfo();
-      OutFile.CloseSection();
-    }
 
 #ifdef USE_QMC
     PathData.AssignPtclSetStrings();
@@ -64,59 +52,77 @@ bool PIMCClass::Read(IOSectionClass &in)
     //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
     // }
 
-    // Initialize the paths
+    /// Initialize the paths
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Initializing Paths"<<endl;
     assert(in.OpenSection("System"));
     PathData.Path.InitPaths(in);
     in.CloseSection();
 
-    // Read in the action information
+    /// Make the Output file
+    assert(in.OpenSection("Output"));
+    CreateOutFile(in);
+    in.CloseSection();
+
+    /// Write out system information
+    if (myProc == 0) {
+      OutFile.NewSection("System");
+      WriteSystemInfo();
+      OutFile.CloseSection();
+    }
+
+    /// Read in the action information
     if (myProc == 0)
       cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
     assert(in.OpenSection("Actions"));
     PathData.Actions.Read(in);
     in.CloseSection();
 
-    // Set Ion Config
-    if (PathData.Path.UseCorrelatedSampling())
-      PathData.Path.SetIonConfig(0);
-
-    // Init Actions caches
-    if (myProc == 0)
-      cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
-    PathData.Actions.Init();
-
-    // Write out Actions
+    /// Write out Actions
     if (myProc == 0) {
       OutFile.NewSection("Actions");
       PathData.Actions.WriteInfo(OutFile);
       OutFile.CloseSection(); // "Actions"
     }
 
-    // Read in the Observables
+    /// Set Ion Config
+    if (PathData.Path.UseCorrelatedSampling())
+      PathData.Path.SetIonConfig(0);
+
+    /// Init Actions caches
+    if (myProc == 0)
+      cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
+    PathData.Actions.Init();
+
+    /// Read in the Observables
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<< " Reading Observables"<<endl;
     assert(in.OpenSection("Observables"));
     ReadObservables(in);
     in.CloseSection();
 
-    // Read in the Moves
+    /// Read in the Moves
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Reading Moves"<<endl;
     assert(in.OpenSection("Moves"));
     ReadMoves(in);
     in.CloseSection();
 
-    // Read in the Algorithm
+    /// Read in the Algorithm
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Reading Algorithm"<<endl;
     assert(in.OpenSection("Algorithm"));
     ReadAlgorithm(in);
     in.CloseSection();
+
   } else {
     QMCWrapper = new QMCWrapperClass(PathData);
   }
+
+  //double K,Us,Ul,N;
+  //PathData.Actions.GetActions(K,Us,Ul,N);
+  //cout << K << " " << Us << " " << Ul << " " << N << endl;
+  //abort();
 
   return doPIMCRun;
 
