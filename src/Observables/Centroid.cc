@@ -145,7 +145,7 @@ void CentroidClass::Accumulate()
     Array<double,1> Vals;
     Array<double,2> Vecs;
     SymmEigenPairs(totC,D,Vals,Vecs);
-    cout << CentPos(ptcl) << totC << D << Vals << Vecs << endl;
+    //cout << CentPos(ptcl) << totC << D << Vals << Vecs << endl;
   }
 
   // Calculate spread from centroid (PROBABLY GOING TO END UP REMOVING THIS!!!)
