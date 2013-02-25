@@ -108,7 +108,7 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     Stages.push_back (newStage);
   }
   // Add the second stage of the permutation step
-  /// EVIL BAD ERROR!!!  Pushing onto the stack twice causes the stage
+  /// HACK!!!  Pushing onto the stack twice causes the stage
   /// to be accepted twice, which causes swapping the forward and
   // reverse tables twice!
   Stages.push_back (PermuteStage);

@@ -189,7 +189,7 @@ void DisplaceMoveClass::MakeMove()
   Slice1 = 0;
   Slice2 = Path.NumTimeSlices()-1;
 
-  // PROBABLY A SMARTER WAY OF DOING THIS WITH VECTORS (WHAT TO DO IF SAME PARTICLE CHOSEN TWICE)
+  // HACK!!! PROBABLY A SMARTER WAY OF DOING THIS WITH VECTORS (WHAT TO DO IF SAME PARTICLE CHOSEN TWICE)
   Array<bool,1> ptclChecker(PathData.Path.NumParticles());
   ptclChecker = 0;
 
