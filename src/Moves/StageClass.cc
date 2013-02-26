@@ -21,11 +21,14 @@ void StageClass::Read(IOSectionClass &in)
 {
   ///Do nothing for now
 }
+
+
 void StageClass::WriteRatio()
 {
   AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
   AcceptRatioVar.Flush();
 }
+
 
 //BUG: DOES NOT HAVE CORRECT SLICES!
 void StageClass::Accept()
@@ -35,6 +38,7 @@ void StageClass::Accept()
   for (list<ActionBaseClass*>::iterator actionIter = Actions.begin(); actionIter != Actions.end(); actionIter++)
     (*actionIter) -> AcceptCopy(0,0);
 }
+
 
 //BUG: DOES NOT HAVE CORRECT SLICES
 void StageClass::Reject()
@@ -93,6 +97,8 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
 
 bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
 {
+  slice1 = 0;
+  slice2 = PathData.NumTimeSlices()-1;
   assert (slice1 == 0);
   assert (slice2 == PathData.NumTimeSlices()-1);
 

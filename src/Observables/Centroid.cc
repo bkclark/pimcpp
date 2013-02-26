@@ -136,7 +136,10 @@ void CentroidClass::Accumulate()
 
   // Get the centroid positions
   Array<TinyVector<double,NDIM>,1> CentPos(N);
-  PathData.GetCentroids(CentPos);
+  Array<int,1> activeParticles(N);
+  for (int i = 0; i < N; ++i)
+    activeParticles(i) = i;
+  PathData.GetCentroids(CentPos,activeParticles);
 
   // Calculate the variance in each direction for each particle
   const int M = PathData.Path.NumTimeSlices()-1;

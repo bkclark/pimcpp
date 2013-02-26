@@ -24,10 +24,7 @@ void PathDataClass::Next(int &slice, int &ptcl)
 }
 
 
-void 
-PathDataClass::WormInfo(int &headSlice, int &headPtcl,
-		    int &tailSlice, int &tailPtcl,
-		    int &numEmpty, int &wormSize)
+void PathDataClass::WormInfo(int &headSlice, int &headPtcl, int &tailSlice, int &tailPtcl, int &numEmpty, int &wormSize)
 {
   tailSlice=-1;tailPtcl=-1;headSlice=-1;headPtcl=-1;
   numEmpty=0;
@@ -53,8 +50,9 @@ PathDataClass::WormInfo(int &headSlice, int &headPtcl,
     Next(currSlice,currPtcl);
   } 
 }
-void
-PathDataClass::MoveTailToSliceZero()
+
+
+void PathDataClass::MoveTailToSliceZero()
 {
   int tailPtcl,tailSlice;
   int lastSlice=NumTimeSlices()-1;
@@ -109,9 +107,9 @@ void PathDataClass::MoveOpenLinkToEnd()
 
 
 /// Calculates the centroid position of each path
-void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos)
+void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos, Array<int,1> &activeParticles)
 {
-  int N = Path.NumParticles();
+  int N = activeParticles.size();
   int M = Path.NumTimeSlices()-1;
 
   //Move the join to the end so we don't have to worry about permutations
@@ -121,13 +119,14 @@ void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos)
   int initSlice = 0;
   bool usedPtcl[N];
   Array<TinyVector<double,NDIM>,1> tmpCentPos(N);
-  for (int ptcl = 0; ptcl < N; ptcl++) {
-    usedPtcl[ptcl] = false;
-    tmpCentPos(ptcl) = 0.0;
+  for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+    int ptcl = activeParticles(ptclIndex);
+    usedPtcl[ptclIndex] = false;
+    tmpCentPos(ptclIndex) = 0.0;
   }
-  for (int ptcl = 0; ptcl < N; ptcl++) {
-    if (!usedPtcl[ptcl]) { // Only visit each particle once
-
+  for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+    int ptcl = activeParticles(ptclIndex);
+    if (!usedPtcl[ptclIndex]) { // Only visit each particle once
       // Calculate centroid position
       int currSlice = initSlice;
       int currPtcl = ptcl;
@@ -143,7 +142,11 @@ void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos)
           numPtcls++;
         } else
           nextPtcl = currPtcl;
-        usedPtcl[nextPtcl] = true;
+        // Get nextPtclIndex
+        int nextPtclIndex = 0;
+        while (activeParticles(nextPtclIndex) != nextPtcl)
+          nextPtclIndex++;
+        usedPtcl[nextPtclIndex] = true;
         dVec slicePos = Path(currSlice,currPtcl);
         //Path.PutInBox(slicePos); // HACK: DO I NEED THIS???
         centPos = centPos + slicePos;
@@ -151,7 +154,7 @@ void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos)
         currPtcl = nextPtcl;
         numSlices++;
       }
-      tmpCentPos(ptcl) = centPos;
+      tmpCentPos(ptclIndex) = centPos;
     }
   }
 
@@ -176,6 +179,7 @@ bool PathDataClass::SliceFullandNextSliceEmpty(int slice,int ptcl)
   return (Path.ParticleExist(slice,ptcl)==1.0 && Path.ParticleExist(nextSlice,nextPtcl)==0.0);
 }
 
+
 bool PathDataClass::SliceFullandPreviousSliceEmpty(int slice,int ptcl)
 {
   int prevSlice=((slice-1)+Path.NumTimeSlices() ) % Path.NumTimeSlices();
@@ -188,35 +192,31 @@ bool PathDataClass::SliceFullandPreviousSliceEmpty(int slice,int ptcl)
     prevPtcl=ptcl;
 
   return (Path.ParticleExist(slice,ptcl)==1.0 && Path.ParticleExist(prevSlice,prevPtcl)==0.0);
-
 }
-  
+
 
 void PathDataClass::FindHead(int &headSlice,int &headPtcl)
 {
   for (int slice=0;slice<Path.NumTimeSlices();slice++)
     for (int ptcl=0;ptcl<Path.NumParticles();ptcl++)
-      if (SliceFullandPreviousSliceEmpty(slice,ptcl)){
-	headSlice=slice;
-	headPtcl=ptcl;
-	return;
+      if (SliceFullandPreviousSliceEmpty(slice,ptcl)) {
+        headSlice=slice;
+        headPtcl=ptcl;
+        return;
       }
 }
+
 
 void PathDataClass::FindTail(int &tailSlice,int &tailPtcl)
 {
   for (int slice=0;slice<Path.NumTimeSlices();slice++)
     for (int ptcl=0;ptcl<Path.NumParticles();ptcl++)
-      if (SliceFullandNextSliceEmpty(slice,ptcl)){
-	tailSlice=slice;
-	tailPtcl=ptcl;
-	return;
+      if (SliceFullandNextSliceEmpty(slice,ptcl)) {
+        tailSlice=slice;
+        tailPtcl=ptcl;
+        return;
       }
 }
-
-
-
-
 
 
 void PathDataClass::Read (IOSectionClass &in)
@@ -402,6 +402,7 @@ void PathDataClass::Read (IOSectionClass &in)
   moveClock = 0;
 }
 
+
 #if USE_QMC
 // Function for qmcpack functionality
 void PathDataClass::AssignPtclSetStrings()
@@ -424,6 +425,7 @@ void PathDataClass::AssignPtclSetStrings()
 	for(int s=0; s<ptclSet0.size(); s++) cerr << Path.Species(s).Name << "  " << ptclSet0(s) << "  " << ptclSet1(s) << endl;
 }
 #endif
+
 
 void PathDataClass::MoveRefSlice (int absSlice)
 {
@@ -464,8 +466,7 @@ void PathDataClass::MoveRefSlice (int absSlice)
 
 #include <sys/time.h>
 
-int
-PathDataClass::GetWallTime()
+int PathDataClass::GetWallTime()
 {
   struct timeval tv;
   struct timezone tz;
@@ -474,17 +475,15 @@ PathDataClass::GetWallTime()
 }
 
 
-bool
-PathDataClass::ExceededWallTime()
+bool PathDataClass::ExceededWallTime()
 {
   if (MaxWallTime == -1)
     return false;
   return ((GetWallTime()-StartWallTime) > MaxWallTime);
 }
 
-void
-PathDataClass::SetMaxWallTime(int maxWallTime)
+
+void PathDataClass::SetMaxWallTime(int maxWallTime)
 {
   MaxWallTime = maxWallTime;
 }
-

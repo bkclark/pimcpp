@@ -333,6 +333,8 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new PrintMoveClass(PathData, OutFile);
     else if (moveType=="BisectionBlock")
       move = new BisectionBlockClass(PathData,OutFile);
+    else if (moveType=="Centroid")
+      move = new CentroidMoveClass(PathData,OutFile);
     else if (moveType=="SwapMove")
       move = new SwapMoveClass(PathData,OutFile);
     else if (moveType=="CorrelatedBisectionBlock")
@@ -403,7 +405,6 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
 }
 
 
-
 void PIMCClass::ReadAlgorithm(IOSectionClass &in)
 {
   int maxWallTime;
@@ -432,11 +433,13 @@ void PIMCClass::Run()
     cout <<PathData.Path.CloneStr<<" PIMC++ has completed"<<endl;
 }
 
+
 void PIMCClass::Dummy()
 {
   while(true)
     QMCWrapper->QMCDummy(PathData);
 }
+
 
 void PIMCClass::WriteSystemInfo()
 {

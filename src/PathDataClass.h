@@ -112,7 +112,7 @@ public:
   }
 
   // Calculates the centroid postions of all the paths
-  void GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos);
+  void GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos, Array<int,1> &activeParticles);
 
   ////Worm Moves///
   bool SliceFullandNextSliceEmpty(int slice,int ptcl);

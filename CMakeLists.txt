@@ -112,7 +112,7 @@ INCLUDE(${PROJECT_CMAKE}/FindSPRNG.cmake)
 IF(SPRNG_FOUND)
   SET(HAVE_SPRNG 1)
   INCLUDE_DIRECTORIES(${SPRNG_INCLUDE_DIR})
-  LINK_LIBRARIES(${SPRNG_LIBRARY})
+  LINK_LIBRARIES(${SPRNG_LIBRARY} -lgmp)
 ELSE(SPRNG_FOUND)
   MESSAGE(FATAL_ERROR "Require SPRNG. Set SPRNG_HOME")
 ENDIF(SPRNG_FOUND)
@@ -289,6 +289,7 @@ src/Observables/Time.cc
 src/MirroredClass.cc
 src/Observables/TimeHexatic.cc
 src/Observables/Centroid.cc
+src/Moves/CentroidMove.cc
 src/MoleculeHelper.cc
 src/Observables/TimeLindenman.cc
 src/Moves/AVBMove.cc
