@@ -24,7 +24,7 @@
 #include "sys/time.h"
 
 
-void BisectionBlockClass::Read_new(IOSectionClass &in)
+void BisectionBlockClass::Read(IOSectionClass &in)
 {
   int myProc = PathData.Path.Communicator.MyProc();
   string moveName = "BisectionBlock";
@@ -116,15 +116,6 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
 }
 
 
-
-
-void BisectionBlockClass::Read(IOSectionClass &in)
-{
-  Read_new(in);
-  return;
-}
-
-
 void BisectionBlockClass::ChooseTimeSlices()
 {
   //  if (PathData.Path.Communicator.MyProc()==0)
@@ -195,60 +186,18 @@ void BisectionBlockClass::ChooseTimeSlices()
   ////  cerr<<"Slices: "<<Slice1<<" "<<Slice2<<endl;
 }
 
+
 void BisectionBlockClass::MakeMove()
 {
-
-  {
   struct timeval start, end;
   struct timezone tz;
-
-
-  ////  FP.CheckxyzDeriv();
-  ///  FP.CheckGradRho();
-  
-
-  //  cerr<<"Bisection Block beginning"<<endl;
-
-  //  cerr<<"Starting bisection block"<<endl;
-
-  //  for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++)
-  //    cerr<<PathData.Path.Permutation(ptcl)<<endl;
-
-//   //HACK!
-//   ifstream infile;
-//   infile.open("fort.500");
-//   int ptclNum;
-//   double zero;
-//   double pos;
-//   for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++){
-//     infile >> ptclNum;
-//     infile >> zero;
-//     infile >> pos;
-//     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
-//       PathData.Path(slice,ptcl)[0]=pos;
-//     }
-//     infile >> zero;
-//     infile >> zero;
-//     infile >>pos;
-//     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
-//       PathData.Path(slice,ptcl)[1]=pos;
-//     }
-//     infile >> zero;
-//     infile >> zero;
-//   }
 
   //HACK!
   ChooseTimeSlices();
   PathData.MoveJoin(Slice2);
 
-//   if (PathData.Path.OrderN){
-//     for (int slice=Slice1;slice<=Slice2;slice++)
-//       PathData.Path.Cell.BinParticles(slice);
-//   }
-
   ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1,Slice2);
   ActiveParticles.resize(1);
-  //cerr << "Bisecting" << endl;
   for (int step=0; step<StepsPerBlock; step++) {
     NumAttempted++;
     ActiveParticles(0)=-1;
@@ -260,17 +209,17 @@ void BisectionBlockClass::MakeMove()
 
   if (LowestLevel != 0)
     MakeStraightPaths();
-  //  cerr<<"Time spent is "<<TimeSpent<<endl;
-  //  cerr<<"Time spent2 is "<<TimeSpent2<<endl;
-  }
 
 }
+
+
 void BisectionBlockClass::WriteRatio()
 {
   //  PrintTimeSpent();
   MultiStageClass::WriteRatio();
 
 }
+
 
 void BisectionBlockClass::PrintTimeSpent()
 {
@@ -288,8 +237,8 @@ void BisectionBlockClass::PrintTimeSpent()
   }
 }
 
-void
-BisectionBlockClass::MakeStraightPaths()
+
+void BisectionBlockClass::MakeStraightPaths()
 {
   PathClass &Path = PathData.Path;
   SetMode(NEWMODE);
@@ -311,5 +260,3 @@ BisectionBlockClass::MakeStraightPaths()
     ptcls(ptcl-first) = ptcl;
   PathData.AcceptMove(Slice1, Slice2, ptcls);
 }
-  
-      
