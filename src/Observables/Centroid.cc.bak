@@ -45,23 +45,13 @@ void CentroidClass::WriteInfo()
 void CentroidClass::WriteBlock()
 {
   PathClass &Path = PathData.Path;
-  int myProc = Path.Communicator.MyProc();
-
-  if (myProc == 0) {
-    totVals = totVals/NumSamples;
-    SpreadValsVar.Write(totVals);
-    SpreadValsVar.Flush();
-    totVecs = totVecs/NumSamples;
-    SpreadVecsVar.Write(totVecs);
-    SpreadVecsVar.Flush();
-  }
-  totVals = 0;
-  totVecs = 0;
-
+  Array<int,1> pathHistSum(pathHistogram.size());
   Array<int,1> centHistSum(centHistogram.size());
+  Path.Communicator.Sum(pathHistogram, pathHistSum);
   Path.Communicator.Sum(centHistogram, centHistSum);
   double norm = NumSamples*Path.NumParticles()*Path.TotalNumSlices/Path.GetVol();
-  if (myProc == 0) {
+  if (Path.Communicator.MyProc() == 0) {
+    Array<double,1> pathArray(pathHistSum.size());
     Array<double,1> centArray(centHistSum.size());
     for (int i=0; i<grid.NumPoints-1; i++) {
       double r1 = grid(i);
@@ -73,26 +63,27 @@ void CentroidClass::WriteBlock()
 #if NDIM==2
       double binVol = M_PI * (r2*r2-r1*r1);
 #endif
+      pathArray(i) = (double) pathHistSum(i) / (binVol*norm);
       centArray(i) = (double) centHistSum(i) / (binVol*norm);
+      if (isnan(pathArray(i)) || isinf(pathArray(i)))
+        pathArray(i) = 0.0;
       if (isnan(centArray(i)) || isinf(centArray(i)))
         centArray(i) = 0.0;
     }
+    PathLengthVar.Write(pathArray);
     CentroidSpreadVar.Write(centArray);
+    PathLengthVar.Flush();
     CentroidSpreadVar.Flush();
   }
-  centHistogram = 0;
-
   NumSamples = 0;
+  pathHistogram = 0;
+  centHistogram = 0;
 }
 
 
 void CentroidClass::Read(IOSectionClass &in)
 {
   ObservableClass::Read(in);
-
-  const int N = PathData.Path.NumParticles();
-  totVals.resize(N,NDIM);
-  totVecs.resize(N,NDIM,NDIM);
 
   // Setup the grid and histograms
   assert(in.OpenSection("Grid"));
@@ -116,7 +107,9 @@ void CentroidClass::Read(IOSectionClass &in)
   }
   assert(in.ReadVar("NumPoints",numGridPoints));
   grid.Init(gridStart,gridEnd,numGridPoints);
+  pathHistogram.resize(numGridPoints-1);
   centHistogram.resize(numGridPoints-1);
+  pathHistogram = 0;
   centHistogram = 0;
   in.CloseSection();
 
@@ -127,67 +120,89 @@ void CentroidClass::Read(IOSectionClass &in)
 
 }
 
-// Check out MetaMoves.cc! Shift was changed to 0 b/c for some reason it's messing this procedure up!
+
 void CentroidClass::Accumulate()
 {
   NumSamples++;
-  int myProc = Path.Communicator.MyProc();
-  const int N = PathData.Path.NumParticles();
 
-  // Get the centroid positions
-  Array<TinyVector<double,NDIM>,1> CentPos(N);
-  PathData.GetCentroids(CentPos);
+  // Count starting from reference slice (WLOG)
+  int refSlice = PathData.Path.RefSlice;
+  int procWithRefSlice = PathData.Path.SliceOwner(refSlice);
+  cout << refSlice << " " << procWithRefSlice << endl;
+  int N = PathData.Path.NumParticles();
+  int M = PathData.Path.NumTimeSlices()-1;
+  //int M = PathData.Path.TotalNumSlices;
+  cout << N << " " << M << endl;
 
-  // Calculate the variance in each direction for each particle
-  const int M = PathData.Path.NumTimeSlices()-1;
-  const int totM = PathData.Path.TotalNumSlices;
+  // Loop through particles, making sure to visit each only once
+  int initSlice = refSlice; // start at reference slice (WLOG)
+  bool usedPtcl[N];
+
+
+  Array<TinyVector<double,3>,1> tmpCentPos(N);
   for (int ptcl = 0; ptcl < N; ptcl++) {
+    usedPtcl[ptcl] = false;
+    tmpCentPos(ptcl) = 0.0;
+  }
+  for (int ptcl = 0; ptcl < N; ptcl++) {
+    if (!usedPtcl[ptcl]) { // Only visit each particle once
 
-    // Build the covariance matrix
-    const int D = NDIM;
-    Array<double,2> C(D,D); // Will be the covariance matrix.
-    C = 0;                  // Eigenvectors will be major & minor axes. Eigenvalues will be lengths of axes, squared.
-    for (int k = 0; k < M; k++) {
-      dVec diff = PathData.Path(k,ptcl) - CentPos(ptcl);
-      PathData.Path.PutInBox(diff);
-      for (int d1 = 0; d1 < D; d1++)
-        for (int d2 = 0; d2 < D; d2++)
-          C(d1,d2) += diff(d1)*diff(d2);
-    }
-
-    // Gather all covariance matrix totals and normalize
-    Array<double,2> totC(D,D);
-    PathData.Path.Communicator.AllSum(C,totC);
-    totC = totC/(totM-1);
-
-    // Diagonalize the covariance matrix
-    Array<double,1> Vals;
-    Array<double,2> Vecs;
-    SymmEigenPairs(totC,D,Vals,Vecs);
-    //cout << CentPos(ptcl) << totC << D << Vals << Vecs << endl;
-
-    // Store values
-    if (myProc == 0) {
-      for (int d1 = 0; d1 < NDIM; ++d1) {
-        totVals(ptcl,d1) = totVals(ptcl,d1) + Vals(d1);
-        for (int d2 = 0; d2 < NDIM; ++d2) {
-          totVecs(ptcl,d1,d2) = totVecs(ptcl,d1,d2) + Vecs(d1,d2);
-        }
+      // Calculate centroid position and path length
+      int currSlice = initSlice;
+      int currPtcl = ptcl;
+      int nextSlice = -1;
+      int nextPtcl = -1;
+      dVec pathDisp = 0.0;
+      dVec centPos = 0.0;
+      int numSlices = 0;
+      int numPtcls = 0;
+      while (nextSlice != initSlice || nextPtcl != ptcl) {
+        nextSlice = (currSlice + 1) % M;
+        if (currSlice == PathData.Join) {
+          nextPtcl = PathData.Path.Permutation(currPtcl);
+          numPtcls++;
+        } else
+          nextPtcl = currPtcl;
+        usedPtcl[nextPtcl] = true;
+        dVec linkDisp = PathData.Path.VelocityBetweenPtcl(currSlice,currPtcl,nextSlice,nextPtcl);
+        dVec slicePos = PathData.Path(currSlice,currPtcl);
+        //PathData.Path.PutInBox(slicePos); // DO I NEED THIS???
+        pathDisp = pathDisp + linkDisp;
+        centPos = centPos + slicePos;
+        currSlice = nextSlice;
+        currPtcl = nextPtcl;
+        numSlices++;
       }
+      tmpCentPos(ptcl) = centPos;
+
+      // Add path length to histogram
+      double pathLength = sqrt(dot(pathDisp,pathDisp));
+      if (pathLength < grid.End) {
+        int index = grid.ReverseMap(pathLength);
+        pathHistogram(index)++;
+      }
+
     }
   }
 
-  // Calculate spread from centroid (PROBABLY GOING TO END UP REMOVING THIS!!!)
-  bool usedPtcl[N];
+  // HACK: Should pull this out so you don't have to do it at every iteration
+  Array<TinyVector<double,3>,1> totCentPos(N);
+  PathData.Path.Communicator.AllSum(tmpCentPos,totCentPos);
+
   for (int ptcl = 0; ptcl < N; ptcl++)
     usedPtcl[ptcl] = false;
   for (int ptcl = 0; ptcl < N; ptcl++) {
     if (!usedPtcl[ptcl]) { // Only visit each particle once
-      int currSlice = 0;
+
+      dVec centPos = totCentPos(ptcl)/PathData.Path.TotalNumSlices;
+      cout << PathData.Path.CloneStr << " " << ptcl << " " << centPos << endl;
+
+      // Calculate spread from centroid
+      int currSlice = initSlice;
       int currPtcl = ptcl;
       int nextSlice = -1;
       int nextPtcl = -1;
-      while (nextSlice != 0 || nextPtcl != ptcl) {
+      while (nextSlice != initSlice || nextPtcl != ptcl) {
         nextSlice = (currSlice + 1) % M;
         if (currSlice == PathData.Join)
           nextPtcl = PathData.Path.Permutation(currPtcl);
@@ -196,17 +211,19 @@ void CentroidClass::Accumulate()
         usedPtcl[nextPtcl] = true;
         dVec centDisp;
         double centDist;
-        PathData.Path.DistDispPos(currSlice,currPtcl,CentPos(ptcl),centDist,centDisp);
+        PathData.Path.DistDispPos(currSlice,currPtcl,centPos,centDist,centDisp);
 
         // Add distance from centroid to histogram
         if (centDist < grid.End) {
           int index = grid.ReverseMap(centDist);
           centHistogram(index)++;
         }
+
         currSlice = nextSlice;
         currPtcl = nextPtcl;
       }
     }
   }
-
 }
+
+
