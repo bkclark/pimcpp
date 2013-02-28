@@ -198,6 +198,7 @@ public:
   inline void DistDispFast (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp);
   inline void DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB);
   void DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB);
+  void BackflowRefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath);
   void RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp);
   void RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath);
   //  inline double Distance (int slice, int ptcl1, int ptcl2);Not used?

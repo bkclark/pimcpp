@@ -72,6 +72,22 @@ void PathClass::SetTail(const dVec &r)
   (*this)(OpenLink, NumParticles()) = r;
 }
 
+void PathClass::BackflowRefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath)
+{
+  dVec pathPos = Path(slice,ptcl);
+  dVec refPos = RefPath(refPtcl);
+  for (int i=0; i<NumParticles(); i++){
+    // add in backflow coordinates
+    
+  }
+  disp = pathPos - refPos;
+
+  for (int i=0; i<NDIM; i++) {
+    double n = -floor(disp(i)*BoxInv(i)+0.5);
+    disp(i) += n*IsPeriodic(i)*Box(i);
+  }
+  dist = sqrt(dot(disp,disp));
+}
 
 void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp)
 {

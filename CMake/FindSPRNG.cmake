@@ -9,13 +9,11 @@
 SET(TRIAL_LIBRARY_PATHS
   /usr/local/lib
   /sw/lib
-  $ENV{HOME}/lib
   $ENV{SPRNG_HOME}/lib
 )
 SET(TRIAL_INCLUDE_PATHS
   /usr/local/include
   /sw/include
-  $ENV{HOME}/include
   $ENV{SPRNG_HOME}/include
 )
 

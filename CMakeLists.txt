@@ -340,9 +340,9 @@ src/Ewald/OptimizedBreakup.cc
 src/Integration/GKIntegration.cc
 )
 
-message(STATUS "pimc++:${SRCS}")
-add_executable (pimc++ ${SRCS})
-SET_TARGET_PROPERTIES("pimc++" PROPERTIES LINKER_LANGUAGE CXX)
+message(STATUS "pimc++_test:${SRCS}")
+add_executable (pimc++_test ${SRCS})
+SET_TARGET_PROPERTIES("pimc++_test" PROPERTIES LINKER_LANGUAGE CXX)
 
 # sources
 SET(SRCS "")

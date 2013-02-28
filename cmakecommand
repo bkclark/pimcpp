@@ -1,0 +1,13 @@
+#
+cd build
+module load intel mkl openmpi-intel
+setenv BLITZ_HOME /usr/gapps/qmc/pimc++
+setenv SPRNG_HOME /usr/gapps/qmc/pimc++
+setenv MKL_HOME /usr/local/tools/mkl-11.0.0
+
+cmake -DCMAKE_CXX_COMPILER=/opt/openmpi-1.6-intel/bin/mpic++ -DCMAKE_C_COMPILER=/opt/openmpi-1.6-intel/bin/mpicc -DCMAKE_Fortran_COMPILER=/opt/openmpi-1.6-intel/bin/mpif77 ..
+make -j 16
+
+cd ..
+chown -R :qmc * >& /dev/null
+chmod -R 0770 * >& /dev/null
