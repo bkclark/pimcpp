@@ -1,0 +1,3 @@
+[submodule "src/Scripts"]
+	path = src/Scripts
+	url = git@bitbucket.org:efang/pimc-scripts
