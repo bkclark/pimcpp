@@ -156,6 +156,9 @@ public:
   /// The first and the last slice, respectively, on this processor
   /// are stored.
   Mirrored1DClass<int> FirstSlice, LastSlice;
+  /// This function returns the sign for the given path. The total
+  /// sign is the product of this for all the paths.
+  int GetSign();
   /// This function accumulates the total permutation vector
   /// from all of the processors individual permutation vector.
   /// Only processor 0 gets the result

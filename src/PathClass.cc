@@ -1333,6 +1333,35 @@ void PathClass::BroadcastRefPath()
 }
 
 
+// Determine sign of a given path. Total sign will have to multiply
+// this number for all paths.
+int PathClass::GetSign()
+{
+  int N = NumParticles();
+  int ptcl = 0;
+  Array<bool,1> CountedAlready(N);
+  vector<int,1> ThisPerm;
+  CountedAlready = false;
+  int sign = 1;
+  while (ptcl < N) {
+    if (!CountedAlready(ptcl)) {
+      int startPtcl = ptcl;
+      int roamingPtcl = ptcl;
+      int cycleLength = 0;
+      roamingPtcl = Permutation(roamingPtcl);
+      while (roamingPtcl != startPtcl) {
+        CountedAlready(roamingPtcl) = true;
+        cycleLength++;
+        roamingPtcl = Permutation(roamingPtcl);
+      }
+      sign *= (-1)**(cycleLength);
+    }
+    ptcl++;
+  }
+  return sign;
+}
+
+
 // Combines the permutation vectors of all the processors.  Note:
 // only processor 0 gets the result.  All others get junk.
 void PathClass::TotalPermutation(Array<int,1> &permVec)

@@ -969,6 +969,10 @@ PathClass::InitPaths (IOSectionClass &in)
     //  cerr<<"I have binned them"<<endl;
     //Cell.PrintParticles(0);
   }
+
+  // Calculate current sign
+  SignWeight = GetSign();
+
   //Everything needs to be accepted
   Path.AcceptCopy();
   Permutation.AcceptCopy();
@@ -983,10 +987,7 @@ PathClass::InitPaths (IOSectionClass &in)
 }
 
 
-
-void
-PathClass::InitRandomFixed(IOSectionClass &in,
-                           SpeciesClass &species)
+void PathClass::InitRandomFixed(IOSectionClass &in, SpeciesClass &species)
 {
   double radius;
   assert (in.ReadVar("Radius", radius));
