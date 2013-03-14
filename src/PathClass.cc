@@ -1340,7 +1340,6 @@ int PathClass::GetSign()
   int N = NumParticles();
   int ptcl = 0;
   Array<bool,1> CountedAlready(N);
-  vector<int,1> ThisPerm;
   CountedAlready = false;
   int sign = 1;
   while (ptcl < N) {
@@ -1354,7 +1353,7 @@ int PathClass::GetSign()
         cycleLength++;
         roamingPtcl = Permutation(roamingPtcl);
       }
-      sign *= (-1)**(cycleLength);
+      sign *= pow(-1,cycleLength);
     }
     ptcl++;
   }
