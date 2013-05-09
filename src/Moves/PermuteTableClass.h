@@ -19,13 +19,6 @@
 
 #include "../PathDataClass.h"
 
-// class Hclass
-// {
-//  public:
-//   int j;
-//   double Htilde_ij;
-// };
-
 /// Note:  all indices in this file are with respect to the present
 /// species only.  Thus, when accessing the actual path, we must add
 /// the PathData.Species(SpeciesNum).FirstPtcl to our indices.
@@ -127,14 +120,12 @@ inline void PermuteTableClass::AddEntry(const CycleClass &cycle)
 {
   if (NumEntries >= (TableSize-1)) {
     TableSize *= 2;
-    //cerr<<"My new tablesize is "<<TableSize<<endl;
     CycleTable.resizeAndPreserve(TableSize);
   }
 
   CycleTable(NumEntries) = cycle;
   NumEntries++;
 }
-
 
 inline int PermuteTableClass::FindEntrySlow(double xi)
 {
@@ -176,26 +167,5 @@ inline int PermuteTableClass::FindEntry(double xi)
 //       cerr<<"ERROR! ERROR! We are DUMB!"<<endl;
   return hi;
 }
-
-
-//   while (attempt != lo) {
-//     attempt = (hi+lo)/2;
-//     if (CycleTable(attempt).C > xi)
-//       hi = attempt;
-//     else
-//       lo = attempt;
-//   }
-//   if (hi!=toCheck){
-//     cerr<<"ERROR! ERROR! We are DUMB!"<<endl;
-//   }
-//   return (hi);
-  
-//   int num=0;
-//   while (CycleTable(num).C<xi){
-//     num++;
-//   }
-//   return num;
-
-
 
 #endif

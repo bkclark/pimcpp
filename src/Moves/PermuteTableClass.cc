@@ -169,7 +169,6 @@ void PermuteTableClass::ConstructHTable()
 void CycleClass::Apply(PathClass &path, int firstPtcl, int slice)
 {
   SetMode(NEWMODE);
-  //  cerr<<CycleRep(0)<<" "<<firstPtcl<<" "<<slice<<endl;
   dVec tempPos = path(slice, CycleRep(0)+firstPtcl);
   int tempPtcl = path.Permutation(CycleRep(0)+firstPtcl);
   for(int i=0;i<Length-1;i++) {
@@ -178,33 +177,18 @@ void CycleClass::Apply(PathClass &path, int firstPtcl, int slice)
   }
   path.SetPos(slice,CycleRep(Length-1)+firstPtcl,tempPos);
   path.Permutation(CycleRep(Length-1)+firstPtcl) = tempPtcl;
-
 }
 
 double PermuteTableClass::AttemptPermutation()
 {
-  //Get a random number number from the local processor stream.
-//   Array<int,1> TestArray(NumEntries);
-//   TestArray=0;
-//   int index;
-//   for (int counter=0;counter<1000000;counter++){
-//     double xi=PathData.Path.Random.Local(); 
-//     index=FindEntry(xi);
-//     TestArray(index)++;
-//   }
-//   //  PrintTable();
-//   //  cerr<<"Printing stuff: "<<endl;
-//   for (int counter=0;counter<TestArray.size();counter++){
-//     cerr<<TestArray(counter)<<endl;
-//   }
-  double xi=PathData.Path.Random.Local(); 
-  int index=FindEntry(xi);
+  double xi = PathData.Path.Random.Local();
+  int index = FindEntry(xi);
   CurrentCycle = CycleTable(index);
   if (CurrentCycle.CycleRep[0]<0 || CurrentCycle.CycleRep[0]>10000){
     PrintTable();
   }
   // Now, apply the permutation to the Path
-  int firstPtcl=PathData.Species(SpeciesNum).FirstPtcl;
+  int firstPtcl = PathData.Species(SpeciesNum).FirstPtcl;
   CurrentCycle.Apply(PathData.Path,firstPtcl,Slice2);
   return (CurrentCycle.P * NormInv);
 }

@@ -161,7 +161,7 @@ void PathDataClass::GetCentroids(Array<TinyVector<double,NDIM>,1> &CentPos, Arra
   // Gather up all the position data to get the centroids
   Path.Communicator.AllSum(tmpCentPos,CentPos);
 
-  // Calculate the variance in each direction
+  // Normalize
   CentPos = CentPos/Path.TotalNumSlices;
 
 }
@@ -297,47 +297,41 @@ void PathDataClass::Read (IOSectionClass &in)
   cerr << MetaWorldComm.MyProc() << ": # of managers is " << managers << ".  IAmQMCManager is " << IAmQMCManager << " and I belong to CEIMC family " << myCEIMCNum << " of which I am proc " << QMCComm.MyProc() << endl;
   MetaWorldComm.Subset(WorldMembers, WorldComm);
 
-  if(IAmQMCManager){
-  int N = WorldComm.NumProcs();
-    cerr << WorldComm.MyProc() << ": WorldComm size is " << N << endl;
-  int procsPerClone = 1;
-  if (N > 1) {
-    assert (in.OpenSection ("Parallel"));
-    assert (in.ReadVar("ProcsPerClone", procsPerClone));
-    in.CloseSection();
-  }
+  if(IAmQMCManager) {
+    int N = WorldComm.NumProcs();
+      cerr << WorldComm.MyProc() << ": WorldComm size is " << N << endl;
+    int procsPerClone = 1;
+    if (N > 1) {
+      assert (in.OpenSection ("Parallel"));
+      assert (in.ReadVar("ProcsPerClone", procsPerClone));
+      in.CloseSection();
+    }
 
-  ////  cerr << "  Set up Inter- and Intra- " << endl;
-  // Setup Inter- and IntraComms
-  assert ((N % procsPerClone) == 0);
-  NumClones = N / procsPerClone;
-  MyCloneNum = WorldComm.MyProc()/procsPerClone;
-  // Create IntraComm
-  //// cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
-  WorldComm.Split(MyCloneNum, IntraComm);
-  /// cerr << "  initialized IntraComm" << endl;  
-  // cerr << "  skipped IntraComm" << endl;  
-  Array<int,1> ranks (NumClones);
-  for (int clone=0; clone<NumClones; clone++)
-    ranks(clone) = clone*procsPerClone;
-  /// cerr << "  ranks is " << ranks << "; going to creat Intercomm." << endl;
-  WorldComm.Subset (ranks, InterComm);
-  /// cerr << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
+    ////  cerr << "  Set up Inter- and Intra- " << endl;
+    // Setup Inter- and IntraComms
+    assert ((N % procsPerClone) == 0);
+    NumClones = N / procsPerClone;
+    MyCloneNum = WorldComm.MyProc()/procsPerClone;
+    // Create IntraComm
+    //// cerr << "  Going to initialize IntraComm with MyCloneNum " << MyCloneNum << endl;
+    WorldComm.Split(MyCloneNum, IntraComm);
+    /// cerr << "  initialized IntraComm" << endl;  
+    // cerr << "  skipped IntraComm" << endl;  
+    Array<int,1> ranks (NumClones);
+    for (int clone=0; clone<NumClones; clone++)
+      ranks(clone) = clone*procsPerClone;
+    /// cerr << "  ranks is " << ranks << "; going to creat Intercomm." << endl;
+    WorldComm.Subset (ranks, InterComm);
+    /// cerr << "  PIMC: initialized InterComm; ranks is " << ranks << endl;
 
-  int seed;
-  bool haveSeed = in.ReadVar ("Seed", seed);
-  // Now, set up random number generator
+    // Now, set up random number generator
+    if (in.ReadVar("Seed",Seed))
+      Random.Init(Seed, NumClones);
+    else
+      Seed = Random.InitWithRandomSeed(NumClones);
+    cout<<"THE SEED IS "<<Seed<<endl;
 
-  //  int seed;
-  if (in.ReadVar("Seed",Seed)){
-    Random.Init (Seed, NumClones);
-  }
-  else {
-    Seed=Random.InitWithRandomSeed(NumClones);
-  }
-  //    Random.Init (314159, numClones);
-
-  Path.MyClone=WorldComm.MyProc()/procsPerClone;
+    Path.MyClone=WorldComm.MyProc()/procsPerClone;
   }
 
 #else
@@ -366,15 +360,11 @@ void PathDataClass::Read (IOSectionClass &in)
   WorldComm.Subset(ranks, InterComm);
 
   // Now, set up random number generator
-  int seed;
-  bool haveSeed = in.ReadVar ("Seed", seed);
-  if (in.ReadVar("Seed",Seed)){
-    cout<<"RANDOM SEED: "<<Seed<<endl;
-    Random.Init (Seed, NumClones, sameSeed);
-  }
-  else {
-    Seed=Random.InitWithRandomSeed(NumClones);
-  }
+  if (in.ReadVar("Seed",Seed))
+    Random.Init(Seed, NumClones, sameSeed);
+  else
+    Seed = Random.InitWithRandomSeed(NumClones);
+  cout<<"THE SEED IS "<<Seed<<endl;
 
   // Assign Path clone variables
   Path.MyClone = MyCloneNum;

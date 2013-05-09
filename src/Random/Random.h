@@ -56,7 +56,7 @@ public:
   inline double LocalGaussian2 (double sigma);
   inline double CommonGaussian (double sigma);
   inline double WorldGaussian  (double sigma);
-  
+
   /// Produces a guassian random vector with radius that has STD sigma
   inline void LocalGaussianVec (double sigma, Vec1 &c);
   inline void CommonGaussianVec(double sigma, Vec1 &c);
@@ -70,54 +70,53 @@ public:
   inline void LocalGaussianVec (double sigma, Vec3 &c);
   inline void CommonGaussianVec(double sigma, Vec3 &c);
   inline void WorldGaussianVec (double sigma, Vec3 &c);
-      
+
   void Init()
   {
     int seed = make_sprng_seed();
     //cerr<<"My seed is "<<seed<<endl;
     Init (seed);
   }
-  
+
   int make_new_seed()
   {
-    
+
     time_t tp;
     struct tm *temp;
     unsigned int temp2, temp3;
     static unsigned int temp4 = 0xe0e1;
-    
+
     time(&tp);
     temp = localtime(&tp);
-    
+
     temp2 = (temp->tm_sec<<26)+(temp->tm_min<<20)+(temp->tm_hour<<15)+
       (temp->tm_mday<<10)+(temp->tm_mon<<6);
     temp3 = (temp->tm_year<<13)+(temp->tm_wday<<10)+(temp->tm_yday<<1)+
       temp->tm_isdst;
     temp2 ^= clock()^temp3;
-    
+
     temp4 = (temp4*0xeeee)%0xffff;
     temp2 ^= temp4<<16;
     temp4 = (temp4*0xaeee)%0xffff;
     temp2 ^= temp4;
-    
+
     temp2 &= 0x7fffffff;
-    
+
     return temp2;
   }
-  
+
   int InitWithRandomSeed(int numClones=1)
   {
     int seed;
-    if (MyComm.MyProc()==0){
+    if (MyComm.MyProc()==0) {
       seed = make_new_seed();
-      cout<<"THE RANDOM SEED IS "<<seed<<endl;
     }
     MyComm.Broadcast(0,seed);
     Init (seed, numClones);
     return seed;
   }
-  
-  
+
+
   void Init(int seed, int numClones=1, bool SameSeed=false)
   {
     NumClones=numClones;
@@ -129,32 +128,26 @@ public:
     int worldID = numProcs+NumClones;
     if(!SameSeed) {
       ///LocalStream is a stream of random numbers unique to the node
-      LocalStream = 
-        init_sprng(SPRNG_DEFAULT,myProc,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
+      LocalStream = init_sprng(SPRNG_DEFAULT,myProc,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
     } else {
       ///unless you explicitly sync the streams
-      LocalStream = 
-        init_sprng(SPRNG_DEFAULT,0,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
+      LocalStream = init_sprng(SPRNG_DEFAULT,0,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
     }
     /// CommonStream is a stream of random numbers shared between all
     /// processors that are on the same clone 
-    CommonStream = 
-      init_sprng(SPRNG_DEFAULT,commID,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
+    CommonStream = init_sprng(SPRNG_DEFAULT,commID,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
     /// World Stream is a stream of random numbers shared between all
     /// processors in MPICommWorld
-    WorldStream =  init_sprng(SPRNG_DEFAULT,worldID,numProcs+NumClones+1,
-			      seed,SPRNG_DEFAULT);
+    WorldStream =  init_sprng(SPRNG_DEFAULT,worldID,numProcs+NumClones+1,seed,SPRNG_DEFAULT);
   }
 
   RandomClass(CommunicatorClass &comm) : 
     MyComm(comm), NumCommon(0), NumLocal(0)
-  {
-    
-  }
+  {}
 };
 
 inline double RandomClass::LocalGaussian(double sigma)
-{                                      
+{
   double V1, V2, S, X1;
   static double X2;
   static int OneLeft = 0;

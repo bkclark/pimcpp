@@ -18,25 +18,25 @@
 #include "ShortRangeClass.h"
 #include "ShortRangeOnClass.h"
 #include "ctime"
- #include "../MatrixOps/MatrixOps.h"
+#include "../MatrixOps/MatrixOps.h"
 #include "sys/time.h"
-///This has to be called after pathdata knows how many
-///particles it has
+
+
+///This has to be called after pathdata knows how many particles it has
 void ShortRangeClass::Read(IOSectionClass& in)
 {
-  TotalTime=0;
-  TimeSpent=0;
+  TotalTime = 0;
+  TimeSpent = 0;
 }
 
-ShortRangeClass::ShortRangeClass(PathDataClass &pathData,
-				 Array<PairActionFitClass* ,2> &pairMatrix) : 
-  ToCheck(pathData,pairMatrix),
-  ActionBaseClass (pathData),
-  PairMatrix(pairMatrix),
+
+ShortRangeClass::ShortRangeClass(PathDataClass &pathData, Array<PairActionFitClass* ,2> &pairMatrix) :
+  ToCheck(pathData,pairMatrix), ActionBaseClass (pathData), PairMatrix(pairMatrix),
   m(2), NumBasisFuncs(4), Router(0.6), UseLowVariance(/*true*/false)
 {
   Setup_ck();
 }
+
 
 void ShortRangeClass::Setup_ck()
 {
@@ -55,17 +55,10 @@ void ShortRangeClass::Setup_ck()
   for (int i=0; i < NumBasisFuncs; i++)
     for (int j=0; j < NumBasisFuncs; j++)
       ck(i) += S(i,j) * h(j);
-
-  /// HACK HACK HACK
-//   FILE *fout = fopen ("gr.dat", "w");
-//   for (double r=0.0; r<=Router; r+=0.001)
-//     fprintf (fout, "%1.18e %1.18e\n", r, g(r));
-//   fclose (fout);
-
 }
 
-inline double
-ShortRangeClass::g(double r)
+
+inline double ShortRangeClass::g(double r)
 {
   if (r > Router)
     return 1.0;
@@ -81,8 +74,8 @@ ShortRangeClass::g(double r)
   return gval;
 }
 
-double 
-ShortRangeClass::dUdR(int slice,int ptcl1, int ptcl2, int level)
+
+double ShortRangeClass::dUdR(int slice,int ptcl1, int ptcl2, int level)
 {
   int species1=Path.ParticleSpeciesNum(ptcl1);
   int species2=Path.ParticleSpeciesNum(ptcl2);
@@ -96,8 +89,7 @@ ShortRangeClass::dUdR(int slice,int ptcl1, int ptcl2, int level)
 }
 
 
-double 
-ShortRangeClass::dUdR_movers(int slice,int ptcl1, int ptcl2, int level)
+double ShortRangeClass::dUdR_movers(int slice,int ptcl1, int ptcl2, int level)
 {
   int species1=Path.ParticleSpeciesNum(ptcl1);
   int species2=Path.ParticleSpeciesNum(ptcl2);
@@ -110,8 +102,7 @@ ShortRangeClass::dUdR_movers(int slice,int ptcl1, int ptcl2, int level)
 }
 
 
-double 
-ShortRangeClass::d2UdR2(int slice,int ptcl1, int ptcl2, int level)
+double ShortRangeClass::d2UdR2(int slice,int ptcl1, int ptcl2, int level)
 {
   int species1=Path.ParticleSpeciesNum(ptcl1);
   int species2=Path.ParticleSpeciesNum(ptcl2);
@@ -123,8 +114,8 @@ ShortRangeClass::d2UdR2(int slice,int ptcl1, int ptcl2, int level)
   return ((DavidPAClass*)PA)->dUdRTimesSigma(dist,level);
 }
 
-double 
-ShortRangeClass::d2UdR2_movers(int slice,int ptcl1, int ptcl2, int level)
+
+double ShortRangeClass::d2UdR2_movers(int slice,int ptcl1, int ptcl2, int level)
 {
   int species1=Path.ParticleSpeciesNum(ptcl1);
   int species2=Path.ParticleSpeciesNum(ptcl2);
@@ -137,135 +128,59 @@ ShortRangeClass::d2UdR2_movers(int slice,int ptcl1, int ptcl2, int level)
 }
 
 
-double 
-ShortRangeClass::SingleAction (int slice1, int slice2,
-			       const Array<int,1> &changedParticles,
-			       int level)
+double ShortRangeClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
   struct timeval start, end;
   struct timezone tz;
-  double TotalU=0.0;
-  //  int startTime=clock();
-  //  for (int toRun=0;toRun<1000;toRun++){
+  double TotalU = 0.0;
   PathClass &Path = PathData.Path;
   // First, sum the pair actions
-  Path.DoPtcl=true;
+  Path.DoPtcl = true;
   int numChangedPtcls = changedParticles.size();
   int skip = 1<<level;
-  double levelTau = Path.tau* (1<<level);
+  double levelTau = Path.tau * (1<<level);
   gettimeofday(&start, &tz);
-  for (int ptcl1Index=0; ptcl1Index<numChangedPtcls; ptcl1Index++){
+  for (int ptcl1Index=0; ptcl1Index<numChangedPtcls; ptcl1Index++) {
     int ptcl1 = changedParticles(ptcl1Index);
     Path.DoPtcl(ptcl1) = false;
-    int species1=Path.ParticleSpeciesNum(ptcl1);
-    for (int ptcl2=0;ptcl2<Path.NumParticles();ptcl2++) {
-      if (Path.DoPtcl(ptcl2)){
-	int species2=Path.ParticleSpeciesNum(ptcl2);
-	PairActionFitClass &PA = *(PairMatrix(species1, species2));
-	for (int slice=slice1;slice<slice2;slice+=skip){
-	  dVec r, rp;
-	  double rmag, rpmag;
- 	  PathData.Path.DistDisp(slice, slice+skip, ptcl1, ptcl2,
- 				     rmag, rpmag, r, rp);
-	  double s2 = dot (r-rp, r-rp);
-	  double q = 0.5 * (rmag + rpmag);
-	  double z = (rmag - rpmag);
-
-	  double U;
-	  U = PA.U(q,z,s2, level);
+    int species1 = Path.ParticleSpeciesNum(ptcl1);
+    for (int ptcl2=0; ptcl2<Path.NumParticles(); ptcl2++) {
+      if (Path.DoPtcl(ptcl2)) {
+        int species2 = Path.ParticleSpeciesNum(ptcl2);
+        PairActionFitClass &PA = *(PairMatrix(species1, species2));
+        for (int slice=slice1; slice<slice2; slice+=skip) {
+          dVec r, rp;
+          double rmag, rpmag;
+          PathData.Path.DistDisp(slice, slice+skip, ptcl1, ptcl2, rmag, rpmag, r, rp);
+          double s2 = dot(r-rp, r-rp);
+          double q = 0.5*(rmag + rpmag);
+          double z = (rmag - rpmag);
+          double U;
+          U = PA.U(q,z,s2,level);
           if(isnan(U)) {
             cerr << "U "<< U << " " << q << " " << z << " " << s2 << " " << level << endl;
             abort();
           }
-	  //	  double UP = 0.5*(PA.U(rmag,0,0, level)+PA.U(rpmag,0,0,level))
-	  // Subtract off long-range part from short-range action
-	  if (PA.IsLongRange() && PathData.Actions.UseLongRange)
-	    U -= 0.5* (PA.Ulong(level)(rmag) + PA.Ulong(level)(rpmag));
-	  //	  TotalU+=U;
-	  //	  cerr<<" "<<U<<" "<<-0.5*levelTau*(1.0/rmag+1.0/rpmag)<<endl;
-	  TotalU+=U;
-
-	  //	  TotalU+=-0.5*levelTau*(1.0/rmag+1.0/rpmag);
-	}
+          // double UP = 0.5*(PA.U(rmag,0,0, level)+PA.U(rpmag,0,0,level))
+          /// Subtract off long-range part from short-range action
+          if (PA.IsLongRange() && PathData.Actions.UseLongRange)
+            U -= 0.5* (PA.Ulong(level)(rmag) + PA.Ulong(level)(rpmag));
+          TotalU+=U;
+          //  cerr<<" "<<U<<" "<<-0.5*levelTau*(1.0/rmag+1.0/rpmag)<<endl;
+          //  TotalU+=-0.5*levelTau*(1.0/rmag+1.0/rpmag);
+        }
       }
     }
   }
   gettimeofday(&end,   &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) +
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
-  return (TotalU); //hack
+  return (TotalU);
 }
 
 
-// double 
-// ShortRangeClass::SingleAction (int slice1, int slice2,
-// 			       const Array<int,1> &changedParticles,
-// 			       int level)
-// {
-//   //  cerr<<"I'm in the short range action"<<endl;
-//   double TotalU=0.0;
-//   //  int startTime=clock();
-//   //  for (int toRun=0;toRun<1000;toRun++){
-//   PathClass &Path = PathData.Path;
-//   // First, sum the pair actions
-//   for (int ptcl=0;ptcl<Path.DoPtcl.size();ptcl++)
-//     Path.DoPtcl(ptcl)=true;
-//   int numChangedPtcls = changedParticles.size();
-//   int skip = 1<<level;
-//   double levelTau = Path.tau* (1<<level);
-//   for (int ptcl1Index=0; ptcl1Index<numChangedPtcls; ptcl1Index++){
-//     int ptcl1 = changedParticles(ptcl1Index);
-//     Path.DoPtcl(ptcl1) = false;
-//     int species1=Path.ParticleSpeciesNum(ptcl1);
-
-//     for (int ptcl2=0;ptcl2<Path.NumParticles();ptcl2++) {
-//       if (Path.DoPtcl(ptcl2)){
-// 	int species2=Path.ParticleSpeciesNum(ptcl2);
-// 	PairActionFitClass &PA = *(PairMatrix(species1, species2));
-// 	for (int slice=slice1;slice<slice2;slice+=skip){
-// 	  dVec r, rp;
-// 	  double rmag, rpmag;
-
-// 	  PathData.Path.DistDisp(slice, slice+skip, ptcl1, ptcl2,
-// 				 rmag, rpmag, r, rp);
-// 	  double s2 = dot (r-rp, r-rp);
-// 	  double q = 0.5 * (rmag + rpmag);
-// 	  double z = (rmag - rpmag);
-// 	  double U;
-// // 	  if (rmag<2.8 || rpmag<2.8)
-// // 	    U=5000;
-// // 	  else 
-// // 	    U=0;
-// 	  U = PA.U(q,z,s2, level);
-// 	  // Subtract off long-range part from short-range action
-// 	  if (PA.IsLongRange() && PathData.Actions.UseLongRange)
-// 	    U -= 0.5* (PA.Ulong(level)(rmag) + PA.Ulong(level)(rpmag));
-
-// 	  if (PathData.Path.FunnyCoupling && 
-// 	      (species1==1 || species2==1))
-// 	    TotalU +=sqrt(PathData.Path.ExistsCoupling)*U;
-// 	  else if (PathData.Path.WormOn){
-// 	    TotalU += U*PathData.Path.ParticleExist(slice,ptcl1)*
-// 	      PathData.Path.ParticleExist(slice,ptcl2)*
-// 	      PathData.Path.ParticleExist(slice+skip,ptcl1)*
-// 	      PathData.Path.ParticleExist(slice+skip,ptcl2);
-// 	  }
-// 	  else
-// 	    TotalU+=U;
-// 	}
-//       }
-//     }
-//   }
-// //  cerr<<"Num total U is "<<TotalU<<endl;
-// ////  cerr<<"Worm short range action is "<<TotalU<<endl;
-// //  cerr<<"I'm out of the short range action"<<endl;
-//   return (TotalU);
-// }
-
 //Doesn't deal correctly with the long range term possibly
-double 
-ShortRangeClass::SingleActionForcedPairAction (int slice1, int slice2,
-					       PairActionFitClass &PA)
+double ShortRangeClass::SingleActionForcedPairAction (int slice1, int slice2, PairActionFitClass &PA)
 {
   double TotalU=0.0;
   PathClass &Path = PathData.Path;
@@ -300,11 +215,7 @@ ShortRangeClass::SingleActionForcedPairAction (int slice1, int slice2,
 }
 
 
-
-double 
-ShortRangeClass::d_dBetaForcedPairAction (int slice1, int slice2,
-					  PairActionFitClass &pa)
-
+double ShortRangeClass::d_dBetaForcedPairAction (int slice1, int slice2, PairActionFitClass &pa)
 {
   cerr<<"Calling me "<<endl;
   double levelTau=Path.tau;
@@ -392,10 +303,7 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
 
 
 //Gradient of the action only works in 3d!!!!!!!
-void
-ShortRangeClass::GradAction(int slice1, int slice2, 
-			    const Array<int,1> &ptcls, int level,
-			    Array<dVec,1> &gradVec)
+void ShortRangeClass::GradAction(int slice1, int slice2,  const Array<int,1> &ptcls, int level, Array<dVec,1> &gradVec)
 {
 
   PathClass &Path = PathData.Path;
@@ -448,8 +356,7 @@ ShortRangeClass::GradAction(int slice1, int slice2,
 }
 
 
-string
-ShortRangeClass::GetName()
+string ShortRangeClass::GetName()
 {
   return "ShortRange";
 }
