@@ -30,19 +30,20 @@
 // Fix to include final link between link M and 0
 void EnergyClass::Accumulate()
 {
+  NumSamples++;
   TimesCalled++;
+
   //Move the join to the end so we don't have to worry about permutations
   PathData.MoveJoin(PathData.NumTimeSlices() - 1);
 
   // Get the Full Weight from sign and importance sampling
   double FullWeight = CalcFullWeight();
-  NumSamples++;
 
   double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal, residual;
   PathData.Actions.Energy(kinetic, dUShort, dULong, node, vShort, vLong,
                           dUNonlocal, residual);
-  double localSum = (kinetic + dUShort + dULong + node + dUNonlocal) * FullWeight;
-  TotalSum += localSum;
+  double localSum = kinetic + dUShort + dULong + node + dUNonlocal;
+  TotalSum += localSum * FullWeight;
   KineticSum += kinetic * FullWeight; /* * PathData.Path.Weight */ ;
   dUShortSum += dUShort * FullWeight; /* * PathData.Path.Weight */ ;
   dULongSum += dULong * FullWeight; /* * PathData.Path.Weight */ ;
@@ -129,31 +130,46 @@ void EnergyClass::WriteBlock()
   if (CountPerms && PathData.Path.Communicator.MyProc() == 0) {
 
     // Map out the PermEnergy vector
-    map<int,double> PermEnergyMap;
-    map<int,int> SectorMap;
+    map<int,vector<double> > PermEnergyMap;
+    //map<int,int> SectorMap;
     double norm = Prefactor; // /((double) NumSamples);
     for (int i = 0; i < NumSamples; i++) {
       double energy = PermEnergy.back();
       int perm = SectorCount.back();
-      if (PermEnergyMap.find(perm) == PermEnergyMap.end()) {
-        PermEnergyMap.insert(pair<int,double>(perm,energy*norm));
-        SectorMap.insert(pair<int,int>(perm,1));
+      if (PermEnergyMap.count(perm) == 0) {
+        vector<double> tmpE;
+        tmpE.push_back(energy*norm);
+        PermEnergyMap.insert(pair<int,vector<double> >(perm,tmpE));
+        //SectorMap.insert(pair<int,int>(perm,1));
       } else {
-        PermEnergyMap[perm] += energy*norm;
-        SectorMap[perm] += 1;
+        PermEnergyMap[perm].push_back(energy*norm);
+        //SectorMap[perm] += 1;
       }
       PermEnergy.pop_back();
       SectorCount.pop_back();
     }
 
     // Put the map into an array and write
-    map<int,double>::iterator it;
+    map<int,vector<double> >::iterator it;
     for(it = PermEnergyMap.begin(); it != PermEnergyMap.end(); it++) {
-      Array<double,1> tmpPermEnergy(2);
+      Array<double,1> tmpPermEnergy(4);
       int perm = (*it).first;
-      double energy = (*it).second;
+      //double energy = (*it).second;
+      vector<double> tmpE = (*it).second;
+      double energy, err, N;
+      GetStats(tmpE,energy,err,N);
       tmpPermEnergy(0) = perm;
-      tmpPermEnergy(1) = energy/SectorMap[perm];
+      tmpPermEnergy(1) = energy;
+      //tmpPermEnergy(1) = energy/SectorMap[perm];
+      tmpPermEnergy(2) = N;
+      //tmpPermEnergy(2) = SectorMap[perm];
+      tmpPermEnergy(3) = err;
+    //for (int i = 0; i < NumSamples; i++) {
+    //  Array<double,1> tmpPermEnergy(2);
+    //  tmpPermEnergy(0) = SectorCount.back();
+    //  tmpPermEnergy(1) = PermEnergy.back();
+    //  SectorCount.pop_back();
+    //  PermEnergy.pop_back();
       PermEnergyVar.Write(tmpPermEnergy);
       PermEnergyVar.Flush();
     }
