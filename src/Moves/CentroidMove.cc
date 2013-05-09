@@ -167,6 +167,18 @@ double CentroidStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activ
       PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) - disp;
   }
 
+  //PathData.GetCentroids(newCentPos, activeParticles);
+  //for (int i=0; i<N; i++) {
+  //  for (int d=0; d<NDIM; d++) {
+  //    if(abs(float(oldCentPos(i)(d))-float(newCentPos(i)(d))) > 1e-8) {
+  //      cout << oldCentPos(i)(d) << " " << newCentPos(i)(d) << endl;
+  //      cout << oldCentPos << endl;
+  //      cout << newCentPos << endl;
+  //      abort();
+  //    }
+  //  }
+  //}
+
   // And return log sample probability ratio
   return log(1.0);
 }

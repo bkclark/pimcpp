@@ -782,8 +782,11 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
   NowOpen.AcceptCopy();
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
-    for (int slice=startSlice;slice<=endSlice;slice++)
-      PutInBoxFast(Path(slice,ptcl));
+    // HACK!! Though not really, I commented this out b/c I believe it's not necessary
+    // since we make sure to PutInBox everytime we measure distances. Additionally
+    // this messes up centroid calculations. -ewb
+    //for (int slice=startSlice;slice<=endSlice;slice++)
+    //  PutInBoxFast(Path(slice,ptcl));
 
     dVec cmPart=0.0;
     for (int slice=startSlice;slice<endSlice;slice++){

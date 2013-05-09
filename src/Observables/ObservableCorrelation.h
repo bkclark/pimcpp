@@ -24,8 +24,12 @@ class PairCorrelationClass : public ObservableClass
 {
 private:
   ObservableVecDouble1 gofrVar;
+  ObservableVecDouble1 gofrVarNeg;
+  ObservableVecDouble1 gofrVarPos;
   /// Stores number of counts in each bin
   Array<int,1> Histogram;
+  Array<int,1> HistogramNeg;
+  Array<int,1> HistogramPos;
   /// Stores the total number of counts
   int TotalCounts;
   int TimesCalled;
@@ -47,17 +51,20 @@ public:
   void WriteBlock();
   void WriteInfo();
   void Read(IOSectionClass& IO);
-  PairCorrelationClass(PathDataClass &myPathData, IOSectionClass &ioSection) : 
-    ObservableClass(myPathData,ioSection), 
-    gofrVar("y", IOSection, myPathData.Path.Communicator)
+  PairCorrelationClass(PathDataClass &myPathData, IOSectionClass &ioSection) :
+    ObservableClass(myPathData,ioSection),
+    gofrVar("y", IOSection, myPathData.Path.Communicator),
+    gofrVarNeg("yNeg", IOSection, myPathData.Path.Communicator),
+    gofrVarPos("yPos", IOSection, myPathData.Path.Communicator)
   {
     TimesCalled=0;
   }
-  PairCorrelationClass(PathDataClass &myPathData, IOSectionClass &ioSection,
-		       int species1, int species2) : 
-    ObservableClass(myPathData, ioSection), 
+  PairCorrelationClass(PathDataClass &myPathData, IOSectionClass &ioSection, int species1, int species2) :
+    ObservableClass(myPathData, ioSection),
     Species1(species1), Species2(species2),
-    gofrVar("y", IOSection, myPathData.Path.Communicator)
+    gofrVar("y", IOSection, myPathData.Path.Communicator),
+    gofrVarNeg("yNeg", IOSection, myPathData.Path.Communicator),
+    gofrVarPos("yPos", IOSection, myPathData.Path.Communicator)
   { Initialize(); }
 
 

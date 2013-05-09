@@ -65,6 +65,11 @@ void PairCorrelationClass::Read(IOSectionClass& in)
   TotalCounts=0;
   Histogram.resize(numGridPoints-1);
   Histogram=0;
+  HistogramNeg.resize(numGridPoints-1);
+  HistogramNeg=0;
+  HistogramPos.resize(numGridPoints-1);
+  HistogramPos=0;
+
 
   // Sign Tracking
   if(!in.ReadVar("TrackSign", TrackSign))
@@ -76,7 +81,6 @@ void PairCorrelationClass::Read(IOSectionClass& in)
   if (PathData.Path.Communicator.MyProc()==0)
     WriteInfo();
 }
-
 
 
 void PairCorrelationClass::WriteInfo()
@@ -103,11 +107,12 @@ void PairCorrelationClass::WriteInfo()
 }
 
 
-
 void PairCorrelationClass::WriteBlock()
 {
   PathClass &Path= PathData.Path;
   Array<int,1> HistSum(Histogram.size());
+  Array<int,1> HistSumNeg(HistogramNeg.size());
+  Array<int,1> HistSumPos(HistogramPos.size());
   double norm=0.0;
   int N1 = PathData.Species(Species1).NumParticles;
   int N2 = PathData.Species(Species2).NumParticles;
@@ -120,7 +125,11 @@ void PairCorrelationClass::WriteBlock()
       (double)(N1*N2)/PathData.Path.GetVol();
 
   Path.Communicator.Sum(Histogram, HistSum);
+  Path.Communicator.Sum(HistogramNeg, HistSumNeg);
+  Path.Communicator.Sum(HistogramPos, HistSumPos);
   Array<double,1> gofrArray(HistSum.size());
+  Array<double,1> gofrArrayNeg(HistSumNeg.size());
+  Array<double,1> gofrArrayPos(HistSumPos.size());
   for (int i=0; i<grid.NumPoints-1; i++){
     double r1 = grid(i);
     double r2 = (i<(grid.NumPoints-1)) ? grid(i+1):(2.0*grid(i)-grid(i-1));
@@ -136,10 +145,18 @@ void PairCorrelationClass::WriteBlock()
     //gofrArray(i) = (double) HistSum(i) / (norm);
                 //////////////////////////
     gofrArray(i) = (double) HistSum(i) / (binVol*norm);
+    gofrArrayNeg(i) = (double) HistSumNeg(i) / (binVol*norm);
+    gofrArrayPos(i) = (double) HistSumPos(i) / (binVol*norm);
   }
   gofrVar.Write(gofrArray);
   gofrVar.Flush();
+  gofrVarNeg.Write(gofrArrayNeg);
+  gofrVarNeg.Flush();
+  gofrVarPos.Write(gofrArrayPos);
+  gofrVarPos.Flush();
   Histogram = 0;
+  HistogramNeg = 0;
+  HistogramPos = 0;
   TotalCounts = 0;
 }
 
@@ -156,8 +173,6 @@ void PairCorrelationClass::Print()
       fprintf (stderr, "%1.12e %1.12e\n", r, gofr);
     }
 }
-
-
 
 
 /// Fix me to accumulate data only between the two species I'm
@@ -184,10 +199,13 @@ void PairCorrelationClass::Accumulate()
           PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
           if (dist<grid.End) {
             int index=grid.ReverseMap(dist);
-            if (FullWeight > 0)
+            if (FullWeight > 0) {
               Histogram(index)++;
-            else
+              HistogramPos(index)++;
+            } else {
               Histogram(index)--;
+              HistogramNeg(index)++;
+            }
           }
         }
   } else {
@@ -202,10 +220,13 @@ void PairCorrelationClass::Accumulate()
           PathData.Path.DistDisp(slice,ptcl1,ptcl2,dist,disp);
           if (dist<grid.End) {
             int index=grid.ReverseMap(dist);
-            if (FullWeight > 0)
+            if (FullWeight > 0) {
               Histogram(index)++;
-            else
+              HistogramPos(index)++;
+            } else {
               Histogram(index)--;
+              HistogramNeg(index)++;
+            }
           }
         }
   }
@@ -217,7 +238,6 @@ void PairCorrelationClass::Initialize()
   TotalCounts = 0;
   TimesCalled=0;
 }
-
 
 
 

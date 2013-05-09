@@ -17,20 +17,16 @@
 #ifndef PATH_CLASS_H
 #define PATH_CLASS_H
 
-
 #include "Communication/Communication.h"
-
 #include "IO/IO.h"
 #include "MirroredClass.h"
 #include "SpeciesClass.h"
-
 #include "Random/Random.h"
 #include "GridClass.h"
 #include <vector>
 //#include <fftw3.h>
 
 class ActionsClass;
-
 using namespace IO;
 
 ///The number of time slices is the number of slices on this processor.
@@ -419,6 +415,7 @@ public:
 
 };
 
+
 inline bool PathClass::HasFermions(const Array<int,1>& activeParticles)
 {
   bool HasFermion=false;
@@ -428,9 +425,6 @@ inline bool PathClass::HasFermions(const Array<int,1>& activeParticles)
   }
   return HasFermion;
 }
-
-
-
 
 
 inline int PathClass::SpeciesNum (string name)
@@ -446,79 +440,78 @@ inline int PathClass::SpeciesNum (string name)
 
 
 /// Return what species type a particle belongs to;
-inline int 
-PathClass::ParticleSpeciesNum(int ptcl)
+inline int PathClass::ParticleSpeciesNum(int ptcl)
 {
   return (SpeciesNumber(ptcl));
 }
+
+
 /// Return a reference to the species that particle ptcl belongs to
-inline SpeciesClass& 
-PathClass::ParticleSpecies(int ptcl) 
+inline SpeciesClass& PathClass::ParticleSpecies(int ptcl) 
 {
   return *(SpeciesArray(SpeciesNumber(ptcl)));
 }
+
+
 /// Return a species references
-inline SpeciesClass& 
-PathClass::Species(int speciesNum)
+inline SpeciesClass& PathClass::Species(int speciesNum)
 {
   return (*(SpeciesArray(speciesNum)));
 }
 
 
 /// Returns the number of particle Species
-inline int 
-PathClass::NumSpecies() 
+inline int PathClass::NumSpecies() 
 { 
   return SpeciesArray.size();
 }
 
-inline int 
-PathClass::NumParticles() 
+
+inline int PathClass::NumParticles() 
 { 
   return Path.cols()-OpenPaths;
 }
+
 
 ///The number of time slices is the number of slices on this processor.
 ///In all cases this processor shares a time slice with the processor 
 ///ahead of it and behind it. The convention for the shared slices
 ///is that the processor owns its first but not its last slice.
-inline int 
-PathClass::NumTimeSlices() 
+inline int PathClass::NumTimeSlices()
 { 
   return Path.rows();
 }
 
+
 /// Returns the position of the reference slice w.r.t. slice 0 on this
 /// processor 0.
-inline int 
-PathClass::GetRefSlice() const
+inline int PathClass::GetRefSlice() const
 {
   return RefSlice;
 }
 
 
 /// Returns the position of particle ptcl at time slice timeSlice
-inline const dVec& 
-PathClass::operator() (int slice, int ptcl) const
+inline const dVec& PathClass::operator() (int slice, int ptcl) const
 { 
   return Path(slice, ptcl); 
 }
+
 
 /// Returns the position of particle ptcl at time slice timeSlice
-inline dVec& 
-PathClass::operator() (int slice, int ptcl)
+inline dVec& PathClass::operator() (int slice, int ptcl)
 { 
   return Path(slice, ptcl); 
 }
 
-inline void 
-PathClass::SetPos(int slice, int ptcl, const dVec &r)
+
+inline void PathClass::SetPos(int slice, int ptcl, const dVec &r)
 {
   (*this)(slice, ptcl) = r;
 }
 
-inline void 
-PathClass::AddSpecies (SpeciesClass *newSpecies)
+
+inline void PathClass::AddSpecies (SpeciesClass *newSpecies)
 {
   int numSpecies = SpeciesArray.size();
   /// Add an element for the new species
@@ -526,12 +519,9 @@ PathClass::AddSpecies (SpeciesClass *newSpecies)
   SpeciesArray(numSpecies) = newSpecies;
 }
 
-inline 
-PathClass::PathClass (CommunicatorClass &communicator,
-			     RandomClass &random,
-			     ActionsClass &actions) : 
-  Communicator(communicator), Random(random), Actions(actions),Cell(*this),
-     CorrelatedSampling(false), ConfigNum(0),ScaleBox(1.0)
+
+inline PathClass::PathClass (CommunicatorClass &communicator, RandomClass &random, ActionsClass &actions) :
+  Communicator(communicator), Random(random), Actions(actions),Cell(*this), CorrelatedSampling(false), ConfigNum(0), ScaleBox(1.0)
 {
   //      NumSpecies = 0;
   TotalNumSlices=0;
@@ -552,40 +542,12 @@ PathClass::PathClass (CommunicatorClass &communicator,
 }
 
 
-// <<<<<<< .mine
-// =======
-// ///Must start diagonal or this is goign to break because of where
-// ///you are starting the openlink at 0
-// inline void 
-// PathClass::InitOpenPaths()
-// {
-//   cerr<<"Starting to initialize"<<endl;
-//   if (OpenPaths){
-//     cerr<<"openpaths"<<endl;
-//     SetMode(OLDMODE);
-//     OpenLink=NumTimeSlices()-1;
-//     cerr<<"Set up the open link"<<endl;
-//     OpenPtcl=Species(OpenSpeciesNum).FirstPtcl;
-//     cerr<<"set up the open particle"<<endl;
-//     SetMode(NEWMODE);
-//     OpenLink=NumTimeSlices()-1;
-//     OpenPtcl=0;
-//     cerr<<"Preparing for moving things in path around"<<endl;
-//     Path[OLDMODE]((int)OpenLink,NumParticles())=Path[OLDMODE]((int)OpenLink,(int)OpenPtcl);
-//     cerr<<"Moved the first thing"<<endl;
-//     Path[NEWMODE]((int)OpenLink,NumParticles())=Path[NEWMODE]((int)OpenLink,(int)OpenPtcl);
-//     cerr<<"Moved the second thing"<<endl;
-//     Path[OLDMODE](0,NumParticles())=Path[OLDMODE](0,(int)OpenPtcl);
-//     cerr<<"Moved the first thing"<<endl;
-//     Path[NEWMODE](0,NumParticles())=Path[NEWMODE](0,(int)OpenPtcl);
-// >>>>>>> .r523
-
 ////////////////////////////////
 /// Boundary conditions stuff //
 ////////////////////////////////
 
-inline void 
-PathClass::SetBox (dVec box)
+
+inline void PathClass::SetBox (dVec box)
 {
   Box = box;
   for (int i=0; i<NDIM; i++){
@@ -595,26 +557,26 @@ PathClass::SetBox (dVec box)
   
 }
 
-inline const dVec 
-PathClass::GetBox()
+
+inline const dVec PathClass::GetBox()
 {
   return Box;
 }
 
-inline const dVec
-PathClass::GetBoxInv()
+
+inline const dVec PathClass::GetBoxInv()
 {
   return BoxInv;
 }
 
-inline const dVec
-PathClass::GetkBox()
+
+inline const dVec PathClass::GetkBox()
 {
   return kBox;
 }
 
-inline double 
-PathClass::GetVol()
+
+inline double PathClass::GetVol()
 {
   double  vol=1.0;
   for (int i=0;i<NDIM;i++){
@@ -624,8 +586,7 @@ PathClass::GetVol()
 }
 
 
-inline void 
-PathClass::SetPeriodic(TinyVector<bool,NDIM> period)
+inline void PathClass::SetPeriodic(TinyVector<bool,NDIM> period)
 {
   for (int i=0; i<NDIM; i++)
     IsPeriodic(i) = period(i) ? 1.0 : 0.0;
@@ -654,9 +615,7 @@ inline void PathClass::DistDispPos (int slice, int ptcl, dVec &pos, double &dist
 }
 
 
-inline void 
-PathClass::DistDisp (int slice, int ptcl1, int ptcl2,
-		     double &dist, dVec &disp)
+inline void PathClass::DistDisp (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp)
 {
   disp = Path(slice, ptcl2) -Path(slice, ptcl1);
   dVec n;
@@ -696,9 +655,8 @@ PathClass::DistDisp (int slice, int ptcl1, int ptcl2,
 #endif
 }
 
-inline void 
-PathClass::DistDispFast (int slice, int ptcl1, int ptcl2,
-			 double &dist, dVec &disp)
+
+inline void PathClass::DistDispFast (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp)
 {
   disp = Path(slice, ptcl2) -Path(slice, ptcl1);
   dVec box=GetBox();
@@ -713,11 +671,8 @@ PathClass::DistDispFast (int slice, int ptcl1, int ptcl2,
 }
 
 
-inline void 
-PathClass::DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2,
-		     double &distA, double &distB, 
-		     dVec &dispA, dVec &dispB)
-{  
+inline void PathClass::DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB)
+{
   dispA = Path(sliceA, ptcl2) - Path(sliceA,ptcl1);
 #ifdef OPEN_LOOPS
   if (OpenPaths && sliceB==(int)OpenLink && ptcl1==(int)OpenPtcl){
@@ -765,91 +720,8 @@ PathClass::DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2,
   distB = sqrt(dot(dispB,dispB));
 }
 
-// inline void 
-// PathClass::DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2,
-// 		     double &distA, double &distB, 
-// 		     dVec &dispA, dVec &dispB)
-// {  
-//   //  //  bool changePtcl1=(OpenPaths && sliceB==(int)OpenLink && ptcl1==(int)OpenPtcl);
-//   //  //  ptcl1=ptcl1*!changePtcl1+NumParticles()*changePtcl1;
-//   //  //  bool changePtcl2=(OpenPaths && sliceB==(int)OpenLink && ptcl2==(int)OpenPtcl);
-//   //  //  ptcl2=ptcl2*!changePtcl2+NumParticles()*changePtcl2;
-//   dispA = Path(sliceA, ptcl2) - Path(sliceA,ptcl1);
-//   if (OpenPaths && sliceB==(int)OpenLink && ptcl1==(int)OpenPtcl){
-//     dispB=Path(sliceB,ptcl2)-Path(sliceB,NumParticles());
-//   }
-//   else if (OpenPaths && sliceB==(int)OpenLink && ptcl2==(int)OpenPtcl){
-//     dispB=Path(sliceB,NumParticles())-Path(sliceB,ptcl1);
-//   }
-//   else{
-//     dispB = Path(sliceB, ptcl2) - Path(sliceB,ptcl1);
-//   }
-//   //  dVec tempDispB;
-//   //  dVec tempDispBN;
-//   //  dVec dispBNew;
-// //   cerr << "A1 = " << Path(sliceA,ptcl1) << endl;
-// //   cerr << "A2 = " << Path(sliceA,ptcl2) << endl;
-// //   cerr << "B1 = " << Path(sliceB,ptcl1) << endl;
-// //   cerr << "B2 = " << Path(sliceB,ptcl2) << endl;
-//   int m;
-//   for (int i=0; i<NDIM; i++) {
-//     double n = -floor(dispA(i)*BoxInv(i)+0.5);
-//     dispA(i) += n*IsPeriodic(i)*Box(i);
-// //     double m = -floor(dispB(i)*BoxInv(i)+0.5);
-// //     dispB(i) += m*IsPeriodic(i)*Box(i);
-//     double mNew=-floor((dispA(i)-dispB(i))*BoxInv(i)+0.5);
-//     dispB(i)-= mNew*IsPeriodic(i)*Box(i);
-// //     // HACK HACK HACK
-// //     m=0;
-// //     tempDispB(i) = dispB(i)+m*IsPeriodic(i)*Box(i);
-// //     tempDispBN(i)=dispB(i)-m*IsPeriodic(i)*Box(i);
-// //     while (fabs(dispA(i)-tempDispB(i))>Box(i)/2.0 &&
-// // 	   fabs(dispA(i)-tempDispBN(i))>Box(i)/2.0){
-// //       m=m+1;
-// //       tempDispB(i) = dispB(i)+m*IsPeriodic(i)*Box(i);
-// //       tempDispBN(i)=dispB(i)-m*IsPeriodic(i)*Box(i);
-// //     }
-// //     if (fabs(dispA(i)-tempDispB(i))<=Box(i)/2.0)
-// //       dispB(i)=tempDispB(i);
-// //     else if (fabs(dispA(i)-tempDispBN(i))<=Box(i)/2.0)
-// //       dispB(i)=tempDispBN(i);
-// //     else cerr<<"ERROR! ERROR! ERROR!"<<endl;
-// //     if (fabs(dispBNew(i)-dispB(i))>1e-12){
-// //       cerr<<"dispBNew and dispB are not the same!\n";
-// //     }
-// //     //    double m = -floor(dispB(i)*BoxInv(i)+0.5);
-// //     //    dispB(i) += m*IsPeriodic(i)*Box(i);
-// //     //    cerr << "n = " << n << endl;
-//   }
-// //   cerr << "dispA = " << dispA << endl;
-// //   cerr << "dispB = " << dispB << endl;
-//   distA = sqrt(dot(dispA,dispA));
-//   distB = sqrt(dot(dispB,dispB));
 
-// #ifdef GARBAGEDEBUG
-//   dVec DBdispA = Path(sliceA, ptcl2) -Path(sliceA, ptcl1);
-//   dVec DBdispB = Path(sliceB, ptcl2) -Path(sliceB, ptcl1);
-//   for (int i=0; i<NDIM; i++) {
-//     while (DBdispA(i) > 0.5*Box(i)) 
-//       DBdispA(i) -= Box(i);
-//     while (DBdispA(i) < -0.5*Box(i)) 
-//       DBdispA(i) += Box(i);
-//     while ((DBdispB(i)-DBdispA(i)) > 0.5*Box(i))
-//       DBdispB -= Box(i);
-//     while ((DBdispB(i)-DBdispA(i)) < -0.5*Box(i))
-//       DBdispB += Box(i);
-//   }
-// //   cerr << "DBdispA = " << DBdispA << endl;
-// //   cerr << "DBdispB = " << DBdispB << endl;
-//   for (int i=0; i<NDIM; i++) {
-//     assert (fabs(DBdispA(i)-dispA(i)) < 1.0e-12);
-//     assert (fabs(DBdispB(i)-dispB(i)) < 1.0e-12);
-//   }
-// #endif
-// }
-
-inline dVec 
-PathClass::Velocity (int sliceA, int sliceB, int ptcl)
+inline dVec PathClass::Velocity (int sliceA, int sliceB, int ptcl)
 {
 
   //  bool changePtcl=(OpenPaths && sliceB==(int)OpenLink && ptcl==(int)OpenPtcl);
@@ -884,8 +756,8 @@ PathClass::Velocity (int sliceA, int sliceB, int ptcl)
   return vel;
 }
 
-inline dVec 
-PathClass::VelocityBetweenPtcl (int sliceA, int ptclA,int sliceB, int ptclB)
+
+inline dVec PathClass::VelocityBetweenPtcl (int sliceA, int ptclA,int sliceB, int ptclB)
 {
 
   dVec vel;
@@ -902,20 +774,20 @@ PathClass::VelocityBetweenPtcl (int sliceA, int ptclA,int sliceB, int ptclB)
   return vel;
 }
 
-inline void
-PathClass::Mag (dVec &v, double &mag)
+
+inline void PathClass::Mag (dVec &v, double &mag)
 {
   mag = sqrt(dot(v,v));
 }
 
-inline void
-PathClass::MagSquared (dVec &v, double &mag2)
+
+inline void PathClass::MagSquared (dVec &v, double &mag2)
 {
   mag2 = dot(v,v);
 }
 
-inline void 
-PathClass::PutInBox (dVec &v)
+
+inline void PathClass::PutInBox (dVec &v)
 {
 #ifdef DEBUG2
   dVec Dv=v;
@@ -940,8 +812,8 @@ PathClass::PutInBox (dVec &v)
   
 }
 
-inline void 
-PathClass::SliceRange(int proc, int &start, int &end)
+
+inline void PathClass::SliceRange(int proc, int &start, int &end)
 {
   end = 0;
   int nProcs = Communicator.NumProcs();
@@ -952,8 +824,8 @@ PathClass::SliceRange(int proc, int &start, int &end)
   }
 }
 
-inline int 
-PathClass::SliceOwner(int slice)
+
+inline int PathClass::SliceOwner(int slice)
 {
   int proc = 0;
   int nProcs = Communicator.NumProcs();
