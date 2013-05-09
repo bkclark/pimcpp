@@ -1,4 +1,4 @@
-#
+#!/bin/tcsh
 cd build
 module load intel mkl openmpi-intel
 setenv BLITZ_HOME /usr/gapps/qmc/pimc++
