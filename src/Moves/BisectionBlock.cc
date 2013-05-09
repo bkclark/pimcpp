@@ -64,14 +64,24 @@ void BisectionBlockClass::Read(IOSectionClass &in)
   PermuteStage->Read (in);
   Stages.push_back (PermuteStage);
 
+  // IsFree flag for faster runtimes for free particles
+  bool IsFree;
+  if (!in.ReadVar ("IsFree",IsFree))
+    IsFree = false;
+  if (IsFree)
+    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" Free particle sampling " << IsFree << endl;
+
   for (int level=NumLevels-1; level>=LowestLevel; level--) {
     BisectionStageClass *newStage = new BisectionStageClass (PathData, level, IOSection);
     newStage->TotalLevels = NumLevels;
     newStage->BisectionLevel = level;
     newStage->UseCorrelatedSampling = useCorrelatedSampling;
-    if (myProc == 0)
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
-    newStage->Actions.push_back(&PathData.Actions.Kinetic);
+    newStage->IsFree = IsFree;
+    if (!IsFree) {
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
+      newStage->Actions.push_back(&PathData.Actions.Kinetic);
+    }
     if (level!=LowestLevel){
       Array<string,1> higherLevelActions;
       if (in.ReadVar("HigherLevelActions",higherLevelActions)){
