@@ -36,7 +36,6 @@ public:
   virtual bool IsGroundState() = 0;
   virtual NodeType Type() = 0;
   virtual void Setk (Vec3 kVec);
-  virtual void WriteInfo(IOSectionClass &out) = 0;
   virtual void Update();
   NodalActionClass (PathDataClass &pathData) :
     ActionBaseClass (pathData)

@@ -36,9 +36,8 @@ public:
   /// function is called twice during a successful multistage move.
   double forwT;
   bool zFocus;
-  double Sample (int &slice1,int &slice2,
-		 Array<int,1> &changedParticles); 
-  TablePermuteStageClass (PathDataClass &pathData, int speciesNum, int numLevels) 
+  double Sample (int &slice1,int &slice2, Array<int,1> &changedParticles);
+  TablePermuteStageClass (PathDataClass &pathData, int speciesNum, int numLevels)
     : PermuteStageClass(pathData, speciesNum, numLevels)
   {
     // do nothing for now

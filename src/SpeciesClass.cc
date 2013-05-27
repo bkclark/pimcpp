@@ -27,12 +27,6 @@ bool SpeciesClass::Read(IOSectionClass &inSection)
   inSection.ReadVar("ChargeSpread",chargeSpread);
   inSection.ReadVar("Epsilon",Epsilon);
   inSection.ReadVar("Sigma",Sigma);
-  // OBSOLETE
-	//AssignMoleculeIndex = false;
-	//if(inSection.ReadVar("Molecule",molecule)){
-	//	assert(inSection.ReadVar("Formula",formula));
-	//	AssignMoleculeIndex = true;
-	//}
   assert(inSection.ReadVar("NumParticles",NumParticles));
   assert(inSection.ReadVar("NumDim",NumDim));
   assert(inSection.ReadVar("Type",Type));
@@ -46,31 +40,23 @@ bool FermionClass::Read(IOSectionClass &inSection)
   return success;
 }
 
-
 SpeciesClass* ReadSpecies(IOSectionClass &inSection)
 {
-  
   string statisticsString;
   SpeciesClass *mySpecies;
   assert(inSection.ReadVar("Statistics",statisticsString));
-  //  cerr<<"My type string is "<<typeString<<endl;
-  if (statisticsString=="FERMION")
-    mySpecies=new FermionClass();
-  else if (statisticsString=="BOSON"){
-    mySpecies=new BosonClass();
-  }
-  else if (statisticsString=="BOLTZMANNON"){
-    mySpecies=new BoltzmannonClass();
-  }
+  if (statisticsString == "FERMION")
+    mySpecies = new FermionClass();
+  else if (statisticsString == "BOSON")
+    mySpecies = new BosonClass();
+  else if (statisticsString == "BOLTZMANNON")
+    mySpecies = new BoltzmannonClass();
   else {
     cerr<<"Species Statistics Unknown "<<statisticsString<<endl;
     exit(1);
   }
   assert(mySpecies->Read(inSection));
   return mySpecies;
-
-
-
 }
 
 

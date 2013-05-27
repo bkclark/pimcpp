@@ -17,8 +17,7 @@
 #include "../PathDataClass.h"
 #include "StructureReject.h"
 
-///This has to be called after pathdata knows how many
-///particles it has
+///This has to be called after pathdata knows how many particles it has
 void StructureRejectClass::Read(IOSectionClass& in)
 {
   string species1Name;
@@ -43,38 +42,19 @@ void StructureRejectClass::Read(IOSectionClass& in)
   assert(Species1!=-1);
   assert(Species2!=-1);
 
-
-  ///if it's not long range you haven't set the kvecs up yet and need to
-  if (!PathData.Path.LongRange){//This is hackish..we use kcutoff
-    ///to tell if you are long range and now we have to read 
-    ///it in to get the structure factor corret.
-    assert(in.ReadVar("kCutoff",PathData.Path.kCutoff));
-  
-#if NDIM==3    
-    PathData.Path.SetupkVecs3D();
-#endif
-#if NDIM==2
-    PathData.Path.SetupkVecs2D();
-#endif
-    PathData.Path.Rho_k.resize(PathData.Path.NumTimeSlices(), PathData.Path.NumSpecies(), PathData.Path.kVecs.size());
-  }
-  
-
+  /// Setup k Vecs and RhoK
+  PathData.Path.SetupkVecs(in);
   Sk.resize(PathData.Path.kVecs.size());
   Sk=0;
 
-
 }
 
-StructureRejectClass::StructureRejectClass(PathDataClass &pathData ) : 
+StructureRejectClass::StructureRejectClass(PathDataClass &pathData ) :
   ActionBaseClass (pathData)
 {
 }
 
-double 
-StructureRejectClass::SingleAction (int slice1, int slice2,
-				    const Array<int,1> &changedParticles, 
-				    int level)
+double StructureRejectClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
   Array<dVec,1> &kVecs = PathData.Path.kVecs;
   TotalCounts++;
@@ -83,7 +63,7 @@ StructureRejectClass::SingleAction (int slice1, int slice2,
       PathData.Path.CalcRho_ks_Fast(slice, Species1);
     if (Species2 != Species1)
       for (int slice=0; slice < PathData.NumTimeSlices()-1; slice++)
-	PathData.Path.CalcRho_ks_Fast(slice, Species2);
+        PathData.Path.CalcRho_ks_Fast(slice, Species2);
   }
 
   for (int slice=0;slice<PathData.NumTimeSlices()-1;slice++) {
@@ -93,7 +73,7 @@ StructureRejectClass::SingleAction (int slice1, int slice2,
       double c = PathData.Path.Rho_k(slice, Species2, ki).real();
       double d = PathData.Path.Rho_k(slice, Species2, ki).imag();
       // \f$ Sk(ki) :=  Sk(ki) + \Re(rho^1_k * rho^2_{-k}) \f
-      Sk(ki) += a*c + b*d;	
+      Sk(ki) += a*c + b*d;
     }
   }
   double max=Sk(0);
@@ -101,25 +81,22 @@ StructureRejectClass::SingleAction (int slice1, int slice2,
     if (Sk(counter)<max)
       max=Sk(counter);
   }
-  if (max>10.0){
+  if (max>10.0)
     return 10e5;
-  }
-  else 
+  else
     return 0.0;
 
 }
 
 
 
-double StructureRejectClass::d_dBeta (int slice1, int slice2,
-			      int level)
+double StructureRejectClass::d_dBeta (int slice1, int slice2, int level)
 {
   return 0.0;
 }
 
 
-string 
-StructureRejectClass::GetName()
+string StructureRejectClass::GetName()
 {
   return "StructureReject";
 }

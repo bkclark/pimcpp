@@ -88,8 +88,6 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
   oss<<fileName<<"."<<counter<<"."<<tmpMyClone<<".h5";
   string fullFileName = oss.str();
   assert (inFile.OpenFile(fullFileName.c_str()));
-  if (myProc == 0)
-    cout << CloneStr<<" Using "<<oss.str()<<endl;
 
   /// Get the Box
   inFile.OpenSection("System");
@@ -146,8 +144,9 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
     oldPaths.resize(extent0,extent1,extent2);
   }
   Communicator.Broadcast(0,oldPaths);
+
   if (myProc == 0)
-    cout<<CloneStr<<" Path Dumps: "<<numDumps<<" Permutations: "<<numPerms<<endl;
+    cout<<CloneStr<<" Restarting from "<<oss.str()<<", Path Dumps: "<<numDumps<<" Permutations: "<<numPerms<<endl;
 
   /// Assign positions to beads
   int myFirstSlice,myLastSlice;
@@ -661,6 +660,7 @@ PathClass::InitPaths (IOSectionClass &in)
       int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/3.0)-1.0e-6);
       double delta = Box[0] / numPerDim;
       double eps = 1.0e-2 * delta;
+      cout << eps << endl;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
         int ip = (ptcl-species.FirstPtcl)/2;
         int ix, iy, iz;
@@ -680,10 +680,15 @@ PathClass::InitPaths (IOSectionClass &in)
         for (int slice=0; slice<NumTimeSlices(); slice++) {
           double dx = eps * cos((slice/(double)NumTimeSlices())*2*M_PI);
           double dy = eps * sin((slice/(double)NumTimeSlices())*2*M_PI);
+#if NDIM==3
+          double dz = 0.0;
+#endif
           dVec dr;
           dr[0] = dx;
           dr[1] = dy;
-          dr[2] = 0.0;
+#if NDIM==3
+          dr[2] = dz;
+#endif
           Path(slice,ptcl) = r + dr;
         }
       }
@@ -844,11 +849,7 @@ PathClass::InitPaths (IOSectionClass &in)
     else if (InitPaths=="RESTART"){
       string pathFile;
       assert(in.ReadVar("File",pathFile));
-      int myProc = Communicator.MyProc();
-      if (myProc == 0)
-        cout<<CloneStr<<" Restarting from "<<pathFile<<endl;
       Restart(in,pathFile,false,species);
-      //cerr<<"Done with initpaths restart"<<endl;
     }
     else if (InitPaths == "FILE"){
       //cerr<<"I'm going to read the file now"<<endl;
@@ -968,6 +969,10 @@ PathClass::InitPaths (IOSectionClass &in)
     //  cerr<<"I have binned them"<<endl;
     //Cell.PrintParticles(0);
   }
+
+  // Calculate current sign
+  SignWeight = GetSign();
+
   //Everything needs to be accepted
   Path.AcceptCopy();
   Permutation.AcceptCopy();
@@ -978,15 +983,11 @@ PathClass::InitPaths (IOSectionClass &in)
   ExistsCoupling.AcceptCopy();
   NodeDist.AcceptCopy();
   NodeDet.AcceptCopy();
-  if (LongRange)
-    UpdateRho_ks();
+
 }
 
 
-
-void
-PathClass::InitRandomFixed(IOSectionClass &in,
-                           SpeciesClass &species)
+void PathClass::InitRandomFixed(IOSectionClass &in, SpeciesClass &species)
 {
   double radius;
   assert (in.ReadVar("Radius", radius));

@@ -66,6 +66,7 @@ public:
   double rc;
   int NumImages;
   int NumPoints;
+  int NumKnots;
 
   void SetkCut(double t_kCut)
   {
@@ -102,6 +103,11 @@ public:
   void SetNumImages(double t_NumImages)
   {
     NumImages=t_NumImages;
+  }
+
+  void SetNumKnots(double t_NumKnots)
+  {
+    NumKnots=t_NumKnots;
   }
 
   double Xk_V (double k,double rcut)
@@ -187,18 +193,17 @@ public:
   {
     const double tolerance = 1.0e-11;
     double boxVol = box[0]*box[1]*box[2];
-    for (int i=1; i<NDIM; i++)
-      rc = min (rc, 0.5*box[i]);
+    //for (int i=1; i<NDIM; i++)
+    //  rc = min (rc, 0.5*box[i]);
     double kvol = 2*M_PI/box[0]; // Path.GetkBox()[0];
     for (int i=1; i<NDIM; i++)
       kvol *= 2*M_PI/box[i]; // Path.GetkBox()[i];
     double kavg = pow(kvol,1.0/3.0);
-    int numKnots=8;
 
     LPQHI_BasisClass basis;
     basis.Set_rc(rc);
     basis.SetBox(box);
-    basis.SetNumKnots (numKnots);
+    basis.SetNumKnots(NumKnots);
 
     // We try to pick kcont to keep reasonable number of k-vectors
     double kCont = 50.0 * kavg;
@@ -353,10 +358,10 @@ public:
         if ((MagK(i)==0))
           foundMe=true;
         for (int j=0;j<magDavid.size();j++){
-          if ((fabs(MagK(i)-magDavid[j])<1e-5)){
+          if ((fabs(MagK(i)-magDavid[j])<1e-3)){
             if (!foundMe){
               foundMe=true;
-              for (int nL = NumImages; nL <= NumImages; nL++) {
+              for (int nL = -NumImages; nL <= NumImages; nL++) {
                 double kdotr;
                 double rp;
                 if (diagonal){
@@ -373,8 +378,7 @@ public:
           }
         }
         if (!foundMe){
-          cerr<<MagK[i]<<" "<<endl;
-          cerr<<"ERROR! "<<endl;
+          cerr<<"ERROR! Cannot find MagK "<<MagK(i)<<endl;
           exit(1);
         }
       }
@@ -439,13 +443,14 @@ int main(int argc, char* argv[])
   double L = atof(argv[1]);
   dVec box(L,L,L);
   e.SetBox(box);
-  e.SetkCut(atof(argv[2]));
+  e.SetkCut(3*atof(argv[2]));
   e.Setr0(atof(argv[3]));
   double rCut = atof(argv[4]);
   e.SetrCut(rCut);
   e.SetCharge(atof(argv[5]));
   e.SetNumPoints(atoi(argv[6]));
   bool doBreakup = atoi(argv[7]);
+  e.SetNumKnots(atoi(argv[8]));
 
   if (doBreakup) {
     e.Breakup();
@@ -456,6 +461,6 @@ int main(int argc, char* argv[])
     e.SetNumImages(0);
     e.BasicEwald(alpha);
   }
-  bool diagonal = atoi(argv[8]);
+  bool diagonal = atoi(argv[9]);
   e.FourierTransform(diagonal);
 }

@@ -36,6 +36,7 @@ protected:
   Array<PairActionFitClass*,1> &PairArray;
   Array<int,2> &PairIndex;
   Array<double,2> Spec2Index;
+  bool UseRPA;
  //  LinearGrid LongGrid;
 
 
@@ -81,11 +82,11 @@ public:
   string GetName();
   bool fequals(double a,double b, double tol);
   bool vecEquals(dVec &a, dVec &b,double tol);
+  void WriteInfo(IOSectionClass &out);
   DavidLongRangeClassYk(PathDataClass &pathData,
-			Array<PairActionFitClass* ,2> &pairMatrix,
-			 Array<PairActionFitClass*, 1> &pairArray,
-			 Array<int,2> &pairIndex);
-
+                        Array<PairActionFitClass*,2> &pairMatrix,
+                        Array<PairActionFitClass*,1> &pairArray,
+                        Array<int,2> &pairIndex);
 };
 
 #endif

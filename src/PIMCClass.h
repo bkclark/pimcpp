@@ -35,6 +35,7 @@ public:
   void ReadObservables(IOSectionClass &in);
   void ReadAlgorithm(IOSectionClass &in);
   void WriteSystemInfo();
+  void CreateOutFile(IOSectionClass &in);
   string OutFileName;
   IOSectionClass OutFile;
   LoopClass Algorithm;

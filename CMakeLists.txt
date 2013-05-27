@@ -288,6 +288,8 @@ src/MatrixOps/MatrixOps.cc
 src/Observables/Time.cc
 src/MirroredClass.cc
 src/Observables/TimeHexatic.cc
+src/Observables/Centroid.cc
+src/Moves/CentroidMove.cc
 src/MoleculeHelper.cc
 src/Observables/TimeLindenman.cc
 src/Moves/AVBMove.cc
@@ -334,6 +336,8 @@ src/Moves/MoleculeMoveBase.cc
 src/WormHelper.cc
 src/Moves/MoleculeMoveManager.cc
 src/WriteData.cc
+src/Ewald/OptimizedBreakup.cc
+src/Integration/GKIntegration.cc
 )
 
 message(STATUS "pimc++:${SRCS}")
@@ -387,6 +391,16 @@ SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)
 
 ## sources
 #SET(SRCS "")
+#add_sources(src/Fitting/Ellipsoid.cc
+#src/MatrixOps/MatrixOps.cc
+#)
+#
+#message(STATUS "Ellipsoid:${SRCS}")
+#add_executable (Ellipsoid ${SRCS})
+#SET_TARGET_PROPERTIES("Ellipsoid" PROPERTIES LINKER_LANGUAGE CXX)
+
+## sources
+#SET(SRCS "")
 #add_sources(src/test.cc
 #)
 #
@@ -394,6 +408,6 @@ SET_TARGET_PROPERTIES("FreeParticles" PROPERTIES LINKER_LANGUAGE CXX)
 #add_executable (test ${SRCS})
 #SET_TARGET_PROPERTIES("test" PROPERTIES LINKER_LANGUAGE CXX)
 
-EXECUTE_PROCESS( WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-                 COMMAND chown -R brown281:qmc pimc++ FreeParticles ewald
-                 COMMAND chmod -R 0770 pimc++ FreeParticles ewald )
+#EXECUTE_PROCESS( WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+#                 COMMAND chown -R brown281:qmc pimc++ FreeParticles ewald
+#                 COMMAND chmod -R 0770 pimc++ FreeParticles ewald )

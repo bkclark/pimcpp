@@ -69,7 +69,7 @@ bool myIsNormal (double x)
 
 void QuinticSpline::Update()
 {
-  assert(1==2);
+  //assert(1==2);
   ///QUINTIC SPLINE QUINAT NOT THERE!
   /// First, use double and triple knots to specify first and second
   /// derivatives at the boundary if we so desire.

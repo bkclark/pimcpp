@@ -20,6 +20,7 @@
 
 #include "BisectionBlock.h"
 #include "BisectionSphereBlock.h"
+#include "CentroidMove.h"
 #include "CenterDropletMove.h"
 #include "MetaMoves.h"
 #include "PermuteTableClass.h"

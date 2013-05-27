@@ -95,7 +95,8 @@ public:
   bool UseLongRange;
   /// Specifies whether we have a nonlocal potential
   bool UseNonlocal;
-
+  /// Whether or not the optimized breakup has been performed yet
+  bool CompletedBreakup;
 
   // Actions
   OpenLoopImportanceClass OpenLoopImportance;
@@ -161,7 +162,6 @@ public:
   /// Stores whether we use Random Phase Approximation corrections to
   /// the long range action.
   bool UseRPA;
-  bool UseDavidRPA;
 
   /// Stores number of images to sum over for kinetic action and energy.
   int NumImages;

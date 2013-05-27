@@ -189,3 +189,25 @@ void ObservableClass::GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &P
     return;
   }
 }
+
+
+void ObservableClass::GetStats(vector<double>& xs, double& mean, double& err, double& N)
+{
+  vector<double>::iterator it;
+  double totx = 0.0;
+  double totx2 = 0.0;
+  for(it = xs.begin(); it != xs.end(); it++) {
+    double x = *it;
+    totx += x;
+    totx2 += x*x;
+  }
+  N = xs.size();
+  mean = totx/N;
+  double mean2 = totx2/N;
+  double sampVar = mean2 - mean*mean;
+  double var = 0.0;
+  if (N > 1)
+    var = ((N+0.0)/(N-1.0)) * sampVar;
+  double sigma = sqrt(var);
+  err = sigma/sqrt(N);
+}

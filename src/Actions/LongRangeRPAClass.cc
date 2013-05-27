@@ -118,8 +118,23 @@ Array<double,1> LongRangeRPAClass::Integrand(double t,
   return duwvec;    
 }
 
+
+void LongRangeRPAClass::Read(IOSectionClass &in)
+{
+  // Do nothing for now
+}
+
+
+void LongRangeRPAClass::WriteInfo(IOSectionClass &out)
+{
+  if (!PathData.Actions.CompletedBreakup)
+    PathData.Actions.LongRange.Init(out);
+  Init();
+}
+
+
 // All of the OptimizedBreakups must be computed before this is called.
-void LongRangeRPAClass::Init(IOSectionClass &in)
+void LongRangeRPAClass::Init()
 {
   cerr << "Doing RPA correction...\n";
 

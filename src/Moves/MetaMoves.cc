@@ -54,11 +54,10 @@ void ShiftMoveClass::MakeMove()
 //     minSlices + PathData.Path.Random.CommonInt(maxSlices-minSlices+1);
   
   int maxSlices=slice2-slice1;
-  int numTimeSlicesToShift =
-    PathData.Path.Random.CommonInt(maxSlices);
-//   //  There is no point in shifting more than maxSlices/2
-//   if (numTimeSlicesToShift > (maxSlices>>1))
-//     numTimeSlicesToShift -= (maxSlices>>1);
+  int numTimeSlicesToShift = PathData.Path.Random.CommonInt(maxSlices);
+  //  There is no point in shifting more than maxSlices/2
+  if (numTimeSlicesToShift > (maxSlices>>1))
+    numTimeSlicesToShift -= (maxSlices>>1);
 
 
   PathData.MoveJoin(0);

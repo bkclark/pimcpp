@@ -124,8 +124,55 @@ void guassianDisplace(dVec rbar)
 
 }
 
+double BisectionStageClass::SampleFree(int &slice1, int &slice2, Array<int,1> &activeParticles)
+{
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
+  PathClass &Path = PathData.Path;
+
+  int skip = 1<<(BisectionLevel+1);
+  double levelTau = 0.5*PathData.Path.tau*skip;
+
+  int numImages = PathData.Actions.NumImages;
+  int oldSlice2 = slice2;
+  slice2 = slice1+(1<<TotalLevels);
+
+  for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+    int ptcl = activeParticles(ptclIndex);
+    double lambda = PathData.Path.ParticleSpecies(ptcl).lambda;
+    double sigma2 = (1.0*lambda*levelTau);
+    double sigma = sqrt(sigma2);
+    double prefactorOfSampleProb = 0.0;
+    for (int slice=slice1; slice<slice2; slice+=skip) {
+      SetMode(NEWMODE);
+      dVec r = Path(slice,ptcl);
+      dVec rdiff = Path.Velocity(slice,slice+skip,ptcl);
+      dVec rbar = r + 0.5*rdiff;
+
+      dVec Delta;
+      Path.Random.LocalGaussianVec(sigma,Delta);
+      PathData.Path.PutInBox(Delta);
+      dVec rpp=rbar+Delta;
+
+      ///Here we've stored the new position in the path
+      Path.SetPos(slice+(skip>>1),ptcl,rpp);
+    }
+  }
+  slice2 = oldSlice2;
+
+  gettimeofday(&end,   &tz);
+  return log(1);
+}
+
+
 double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
+  // Check for free particle sampling
+  if (IsFree)
+    return SampleFree(slice1,slice2,activeParticles);
+
   //std::cout << "Bisecting " << slice1 << " " << slice2 << " " << BisectionLevel << endl;
   struct timeval start, end;
   struct timezone tz;
@@ -282,8 +329,7 @@ double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activ
   //return (exp (-newSample + oldSample));
 }
 
-double BisectionStageClass::Sample_old(int &slice1,int &slice2,
-				   Array<int,1> &activeParticles)
+double BisectionStageClass::Sample_old(int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
   PathClass &Path = PathData.Path;
   int skip = 1<<(BisectionLevel+1);

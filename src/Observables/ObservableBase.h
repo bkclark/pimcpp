@@ -75,8 +75,6 @@ class ObservableClass : public EventClass
 
   bool TrackSign;
 
-
-
   struct CompareVectors
   {
     inline bool operator() (const vector<int> &a, const vector<int> &b) {
@@ -102,6 +100,9 @@ class ObservableClass : public EventClass
 
     }
   };
+
+  /// Statistics
+  void GetStats(vector<double>& xs, double& mean, double& err, double& N);
 
  public:
   /// The first time you write to an observable you have to do the

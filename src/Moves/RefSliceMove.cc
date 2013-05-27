@@ -57,26 +57,18 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
       cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
     newStage -> Actions.push_back(&PathData.Actions.Kinetic);
     if (level == 0) {
-      if (myProc == 0)
-        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding ShortRange Action"<<endl;
-      newStage -> Actions.push_back(&PathData.Actions.ShortRange);
-      if (PathData.Path.LongRange) {
-        if (PathData.Actions.UseRPA){
+      Array<string,1> samplingActions;
+      if(in.ReadVar("SamplingActions",samplingActions)) {
+        for (int i=0;i<samplingActions.size();i++) {
           if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRangeRPA);
-        } else if (PathData.Path.DavidLongRange) {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.DavidLongRange);
-        } else {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeAction"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRange);
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+          newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
         }
+      } else {
+        if (myProc == 0)
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
       }
       /// No need to calculate this twice!
-      //
       //if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
       //  if (myProc == 0)
       //    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;

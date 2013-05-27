@@ -24,7 +24,7 @@
 #include "sys/time.h"
 
 
-void BisectionBlockClass::Read_new(IOSectionClass &in)
+void BisectionBlockClass::Read(IOSectionClass &in)
 {
   int myProc = PathData.Path.Communicator.MyProc();
   string moveName = "BisectionBlock";
@@ -64,14 +64,24 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
   PermuteStage->Read (in);
   Stages.push_back (PermuteStage);
 
+  // IsFree flag for faster runtimes for free particles
+  bool IsFree;
+  if (!in.ReadVar ("IsFree",IsFree))
+    IsFree = false;
+  if (IsFree)
+    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" Free particle sampling " << IsFree << endl;
+
   for (int level=NumLevels-1; level>=LowestLevel; level--) {
     BisectionStageClass *newStage = new BisectionStageClass (PathData, level, IOSection);
     newStage->TotalLevels = NumLevels;
     newStage->BisectionLevel = level;
     newStage->UseCorrelatedSampling = useCorrelatedSampling;
-    if (myProc == 0)
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
-    newStage->Actions.push_back(&PathData.Actions.Kinetic);
+    newStage->IsFree = IsFree;
+    if (!IsFree) {
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
+      newStage->Actions.push_back(&PathData.Actions.Kinetic);
+    }
     if (level!=LowestLevel){
       Array<string,1> higherLevelActions;
       if (in.ReadVar("HigherLevelActions",higherLevelActions)){
@@ -84,26 +94,15 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     }
     else if (level == LowestLevel) {
       Array<string,1> samplingActions;
-      assert(in.ReadVar("SamplingActions",samplingActions));
-      for (int i=0;i<samplingActions.size();i++) {
-        if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
-        newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
-      }
-      if (PathData.Path.DavidLongRange) {
-        if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding DavidLongRange Action"<<endl;
-        newStage -> Actions.push_back(&PathData.Actions.DavidLongRange);
-      } else if (PathData.Actions.HaveLongRange()) {
-        if (PathData.Actions.UseRPA) {
+      if(in.ReadVar("SamplingActions",samplingActions)) {
+        for (int i=0;i<samplingActions.size();i++) {
           if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRangeRPA Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRangeRPA);
-        } else {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding LongRange Action"<<endl;
-          newStage -> Actions.push_back(&PathData.Actions.LongRange);
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+          newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
         }
+      } else {
+        if (myProc == 0)
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
       }
       if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
         if (myProc == 0)
@@ -119,20 +118,11 @@ void BisectionBlockClass::Read_new(IOSectionClass &in)
     Stages.push_back (newStage);
   }
   // Add the second stage of the permutation step
-  /// EVIL BAD ERROR!!!  Pushing onto the stack twice causes the stage
+  /// HACK!!!  Pushing onto the stack twice causes the stage
   /// to be accepted twice, which causes swapping the forward and
   // reverse tables twice!
   Stages.push_back (PermuteStage);
 
-}
-
-
-
-
-void BisectionBlockClass::Read(IOSectionClass &in)
-{
-  Read_new(in);
-  return;
 }
 
 
@@ -206,60 +196,18 @@ void BisectionBlockClass::ChooseTimeSlices()
   ////  cerr<<"Slices: "<<Slice1<<" "<<Slice2<<endl;
 }
 
+
 void BisectionBlockClass::MakeMove()
 {
-
-  {
   struct timeval start, end;
   struct timezone tz;
-
-
-  ////  FP.CheckxyzDeriv();
-  ///  FP.CheckGradRho();
-  
-
-  //  cerr<<"Bisection Block beginning"<<endl;
-
-  //  cerr<<"Starting bisection block"<<endl;
-
-  //  for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++)
-  //    cerr<<PathData.Path.Permutation(ptcl)<<endl;
-
-//   //HACK!
-//   ifstream infile;
-//   infile.open("fort.500");
-//   int ptclNum;
-//   double zero;
-//   double pos;
-//   for (int ptcl=0;ptcl<PathData.Path.NumParticles();ptcl++){
-//     infile >> ptclNum;
-//     infile >> zero;
-//     infile >> pos;
-//     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
-//       PathData.Path(slice,ptcl)[0]=pos;
-//     }
-//     infile >> zero;
-//     infile >> zero;
-//     infile >>pos;
-//     for (int slice=0;slice<PathData.Path.NumTimeSlices();slice++){
-//       PathData.Path(slice,ptcl)[1]=pos;
-//     }
-//     infile >> zero;
-//     infile >> zero;
-//   }
 
   //HACK!
   ChooseTimeSlices();
   PathData.MoveJoin(Slice2);
 
-//   if (PathData.Path.OrderN){
-//     for (int slice=Slice1;slice<=Slice2;slice++)
-//       PathData.Path.Cell.BinParticles(slice);
-//   }
-
   ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1,Slice2);
   ActiveParticles.resize(1);
-  //cerr << "Bisecting" << endl;
   for (int step=0; step<StepsPerBlock; step++) {
     NumAttempted++;
     ActiveParticles(0)=-1;
@@ -271,17 +219,17 @@ void BisectionBlockClass::MakeMove()
 
   if (LowestLevel != 0)
     MakeStraightPaths();
-  //  cerr<<"Time spent is "<<TimeSpent<<endl;
-  //  cerr<<"Time spent2 is "<<TimeSpent2<<endl;
-  }
 
 }
+
+
 void BisectionBlockClass::WriteRatio()
 {
   //  PrintTimeSpent();
   MultiStageClass::WriteRatio();
 
 }
+
 
 void BisectionBlockClass::PrintTimeSpent()
 {
@@ -299,8 +247,8 @@ void BisectionBlockClass::PrintTimeSpent()
   }
 }
 
-void
-BisectionBlockClass::MakeStraightPaths()
+
+void BisectionBlockClass::MakeStraightPaths()
 {
   PathClass &Path = PathData.Path;
   SetMode(NEWMODE);
@@ -322,5 +270,3 @@ BisectionBlockClass::MakeStraightPaths()
     ptcls(ptcl-first) = ptcl;
   PathData.AcceptMove(Slice1, Slice2, ptcls);
 }
-  
-      

@@ -48,6 +48,9 @@ public:
   double AcceptProb;
   double OldAcceptProb;
 
+  // Flag for faster simulation for free particles
+  bool IsFree;
+
   // The first stage will set the slices and activeParticles
   // This returns transition probability ratio T(new->old)/T(old->new)
   virtual double Sample (int &slice1, int &slice2, Array<int,1> &activeParticles) = 0;
@@ -69,6 +72,7 @@ public:
   {
     if (PathData.Path.Communicator.MyProc()==0)
       OutSection.NewSection("Stage");
+    IsFree = false;
   }
 };
 

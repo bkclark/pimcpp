@@ -32,8 +32,7 @@ protected:
   Array<PairActionFitClass*,2> &PairMatrix;
   ShortRangeOnClass ToCheck;
   int TotalTime;
-  /// These are the coefficients used for the low-variance estimator
-  /// for the gradient
+  /// These are the coefficients used for the low-variance estimator for the gradient
   Array<double,1> ck;
   int NumBasisFuncs, m;
   double Router;
@@ -47,20 +46,13 @@ public:
   double  dUdR_movers(int slice,int ptcl1, int ptcl2, int level);
   double d2UdR2(int slice,int ptcl1, int ptcl2, int level);
   double d2UdR2_movers(int slice,int ptcl1, int ptcl2, int level);
-
-
-  double SingleAction (int slice1, int slice2, 
-		       const Array<int,1> &activeParticles, int level);
-  double SingleActionForcedPairAction (int slice1, int slice2,
-				       PairActionFitClass &PA);
-  double  d_dBetaForcedPairAction (int slice1, int slice2,
-				   PairActionFitClass &pA);
+  double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  double SingleActionForcedPairAction (int slice1, int slice2, PairActionFitClass &PA);
+  double  d_dBetaForcedPairAction (int slice1, int slice2, PairActionFitClass &pA);
   double d_dBeta (int slice1, int slice2, int level);
-  void GradAction (int slice1, int slice2, const Array<int,1> &ptcls,
-		   int level, Array<dVec,1> &gradVec);
+  void GradAction (int slice1, int slice2, const Array<int,1> &ptcls, int level, Array<dVec,1> &gradVec);
   string GetName();
-  ShortRangeClass (PathDataClass &pathData,
-		   Array<PairActionFitClass*, 2> &pairMatrix);
+  ShortRangeClass (PathDataClass &pathData, Array<PairActionFitClass*, 2> &pairMatrix);
 };
 
 #endif

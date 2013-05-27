@@ -45,9 +45,10 @@ public:
 
 public:
   bool UseBackground;
-  /// NOTE: this can only be called after LongRangeClass's Init has
-  /// been called.
-  void Init(IOSectionClass &in);
+  void Read(IOSectionClass &in);
+  void WriteInfo(IOSectionClass &out);
+  /// NOTE: this can only be called after LongRangeClass's Init has been called.
+  void Init();
   double SingleAction (int slice1, int slice2, 
 		   const Array<int,1> &activeParticles, int level);
   double d_dBeta(int slice1, int slice2, int level);

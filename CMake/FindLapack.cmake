@@ -12,14 +12,6 @@ set(BLAS_FOUND FALSE)
 set(MKL_FOUND FALSE)
 #
 #IF(NOT CMAKE_COMPILER_IS_GNUCXX)
-# IF($ENV{MKL} MATCHES "mkl")
-#    MESSAGE(STATUS "Using intel/mkl library: $ENV{MKL}")
-#    link_libraries($ENV{MKL})
-#    set(LAPACK_FOUND TRUE)
-#    set(BLAS_FOUND TRUE)
-#    set(MKL_FOUND TRUE)
-#  ENDIF($ENV{MKL} MATCHES "mkl")
-
   if($ENV{MKL_HOME} MATCHES "mkl")
     if(NOT MKL_FOUND)
       #default MKL libraries 
@@ -70,7 +62,17 @@ set(MKL_FOUND FALSE)
         endif(mkl_vml_file)
       endif(MKL_INCLUDE_DIR)
     endif(NOT MKL_FOUND)
+  else($ENV{MKL_HOME} MATCHES "mkl")
+    IF($ENV{MKL} MATCHES "mkl")
+      MESSAGE(STATUS "Using intel/mkl library: $ENV{MKL}")
+      link_libraries($ENV{MKL})
+      set(LAPACK_FOUND TRUE)
+      set(BLAS_FOUND TRUE)
+      set(MKL_FOUND TRUE)
+    ENDIF($ENV{MKL} MATCHES "mkl")
   endif($ENV{MKL_HOME} MATCHES "mkl")
+
+
   #ENDIF(NOT CMAKE_COMPILER_IS_GNUCXX)
 
 if(MKL_FOUND)

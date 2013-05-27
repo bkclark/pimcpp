@@ -138,32 +138,21 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
 
   // Construct action list
   Array<string,1> samplingActions;
-  assert(in.ReadVar("SamplingActions",samplingActions));
-  for (int i=0;i<samplingActions.size();i++) {
+  if((in.ReadVar("SamplingActions",samplingActions))) {
+    for (int i=0;i<samplingActions.size();i++) {
+      if (myProc == 0)
+        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+      DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+    }
+  } else {
     if (myProc == 0)
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
-    DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
   }
   // if (PathData.Path.OrderN)
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRangeOn);
   // else
   //   //  DisplaceStage.Actions.push_back(&PathData.Actions.DiagonalAction);
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRange);
-  if (PathData.Path.LongRange) {
-    if (PathData.Actions.UseRPA) {
-      if (myProc == 0)
-        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRangeRPA Action"<<endl;
-      DisplaceStage.Actions.push_back(&PathData.Actions.LongRangeRPA);
-    } else if (PathData.Path.DavidLongRange) {
-      if (myProc == 0)
-        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding DavidLongRange Action"<<endl;
-      DisplaceStage.Actions.push_back(&PathData.Actions.DavidLongRange);
-    } else {
-      if (myProc == 0)
-        cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding LongRange Action"<<endl;
-      DisplaceStage.Actions.push_back(&PathData.Actions.LongRange);
-    }
-  }
   for (int i=0; i<activeSpecies.size(); i++) {
     int speciesNum = activeSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
@@ -200,7 +189,7 @@ void DisplaceMoveClass::MakeMove()
   Slice1 = 0;
   Slice2 = Path.NumTimeSlices()-1;
 
-  // PROBABLY A SMARTER WAY OF DOING THIS WITH VECTORS (WHAT TO DO IF SAME PARTICLE CHOSEN TWICE)
+  // HACK!!! PROBABLY A SMARTER WAY OF DOING THIS WITH VECTORS (WHAT TO DO IF SAME PARTICLE CHOSEN TWICE)
   Array<bool,1> ptclChecker(PathData.Path.NumParticles());
   ptclChecker = 0;
 

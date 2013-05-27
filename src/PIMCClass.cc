@@ -35,8 +35,9 @@ bool PIMCClass::Read(IOSectionClass &in)
   int myProc = PathData.Path.Communicator.MyProc();
 
   // this is set to true in PathDataClass::Read when not built with qmcpack
-  if(PathData.IAmQMCManager){
+  if(PathData.IAmQMCManager) {
     doPIMCRun = true;
+
     // Read in the system information and allocate the path
     assert(in.OpenSection("System"));
     PathData.Path.Read(in);
@@ -51,85 +52,87 @@ bool PIMCClass::Read(IOSectionClass &in)
     //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
     // }
 
-    // Read in the action information
-    if (myProc == 0)
-      cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
-    assert(in.OpenSection("Action"));
-    PathData.Actions.Read(in);
-    in.CloseSection();
-
-    // Now actually initialize the paths
+    /// Initialize the paths
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Initializing Paths"<<endl;
     assert(in.OpenSection("System"));
     PathData.Path.InitPaths(in);
     in.CloseSection();
 
-    // Set Ion Config
+    /// Make the Output file
+    assert(in.OpenSection("Output"));
+    CreateOutFile(in);
+    in.CloseSection();
+
+    /// Write out system information
+    if (myProc == 0) {
+      OutFile.NewSection("System");
+      WriteSystemInfo();
+      OutFile.CloseSection();
+    }
+
+    /// Read in the action information
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
+    assert(in.OpenSection("Actions"));
+    PathData.Actions.Read(in);
+    in.CloseSection();
+
+    /// Write out Actions
+    if (myProc == 0) {
+      OutFile.NewSection("Actions");
+      PathData.Actions.WriteInfo(OutFile);
+      OutFile.CloseSection(); // "Actions"
+    }
+
+    /// Set Ion Config
     if (PathData.Path.UseCorrelatedSampling())
       PathData.Path.SetIonConfig(0);
 
-    // Init Actions caches
+    /// Init Actions caches
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Initializing Actions Caches"<<endl;
     PathData.Actions.Init();
 
-    // Read in the Observables
+    /// Read in the Observables
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<< " Reading Observables"<<endl;
     assert(in.OpenSection("Observables"));
     ReadObservables(in);
     in.CloseSection();
 
-    // Check for root processor
-    bool iAmRootProc = (PathData.Path.Communicator.MyProc()==0);
-
-    // Create Actions section in output file
-    if (iAmRootProc)
-      OutFile.NewSection("Actions");
-
-    // Append Long Range Action
-    if (PathData.Actions.HaveLongRange()) {
-      if (myProc == 0)
-        cout << PathData.Path.CloneStr << "Initializing Long Range" << endl;
-      assert (in.OpenSection ("Action"));
-      PathData.Actions.LongRange.Init (in, OutFile);
-      if (PathData.Actions.UseRPA)
-        PathData.Actions.LongRangeRPA.Init(in);
-      in.CloseSection();
-    }
-    if (iAmRootProc) {
-      PathData.Actions.WriteInfo(OutFile);
-      OutFile.CloseSection(); // "Actions"
-    }
-
-    // Read in the Moves
+    /// Read in the Moves
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Reading Moves"<<endl;
     assert(in.OpenSection("Moves"));
     ReadMoves(in);
     in.CloseSection();
 
-    // Read in the Algorithm
+    /// Read in the Algorithm
     if (myProc == 0)
       cout <<PathData.Path.CloneStr<<" Reading Algorithm"<<endl;
     assert(in.OpenSection("Algorithm"));
     ReadAlgorithm(in);
     in.CloseSection();
+
   } else {
     QMCWrapper = new QMCWrapperClass(PathData);
   }
+
+  //double K,Us,Ul,N;
+  //PathData.Actions.GetActions(K,Us,Ul,N);
+  //cout << K << " " << Us << " " << Ul << " " << N << endl;
+  //abort();
 
   return doPIMCRun;
 
 }
 
 
-void PIMCClass::ReadObservables(IOSectionClass &in)
+void PIMCClass::CreateOutFile(IOSectionClass &in)
 {
   int myProc=PathData.Path.Communicator.MyProc();
-  bool iAmRoot= myProc==0;
-  if (iAmRoot) {
+  if (myProc == 0) {
     string outFileBase;
     assert(in.ReadVar("OutFileBase",outFileBase));
     int fileStart;
@@ -146,21 +149,18 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       stringstream tempStream;
       int counter=0;
       tempStream<<outFileBase<<"."<<counter<<"."<<(PathData.GetCloneNum()+fileStart)<<".h5";
-      //cerr<<"Checking for "<<tempStream.str();
+      // Checking for tempStream.str();
       while (fileExists(tempStream.str())){
-	counter++;
-	tempStream.str("");
-	tempStream<<outFileBase<<"."<<counter<<"."<<(PathData.GetCloneNum()+fileStart)<<".h5";
-	//cerr<<"Checking for "<<tempStream.str();
+        counter++;
+        tempStream.str("");
+        tempStream<<outFileBase<<"."<<counter<<"."<<(PathData.GetCloneNum()+fileStart)<<".h5";
       }
       ostringstream counterNum;
       counterNum<<counter;
       OutFileName=outFileBase+"."+counterNum.str()+"."+cloneNum.str()+".h5";
     }
-    else{
-      OutFileName = 
-	outFileBase+ "." + cloneNum.str() + ".h5";
-    }
+    else
+      OutFileName = outFileBase+"."+cloneNum.str()+".h5";
     OutFile.NewFile(OutFileName);
     /// This is needed so that all of the decendents of the root
     /// LoopClass object have a real output file that they can flush.
@@ -179,17 +179,24 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
     infile.read(buffer,length);
     buffer[length] = '\0';
     infile.close(); 
-    string fileCopy(buffer);   
+    string fileCopy(buffer);
     delete buffer;
     OutFile.WriteVar("InputFile",fileCopy);
-
 
     OutFile.NewSection("RunInfo");
     RunInfo.Write(OutFile);
     OutFile.CloseSection();
-    OutFile.NewSection("System");
-    WriteSystemInfo();
-    OutFile.CloseSection(); // "System" 
+
+  }
+
+}
+
+
+void PIMCClass::ReadObservables(IOSectionClass &in)
+{
+  int myProc = PathData.Path.Communicator.MyProc();
+  bool iAmRoot = (myProc == 0);
+  if (iAmRoot) {
     OutFile.NewSection ("Observables");
     Array<double,1> weights;
     if (in.ReadVar("Weights", weights)) {
@@ -197,8 +204,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       OutFile.WriteVar("Weight", myWeight);
     }
   }
-  int numOfObservables=in.CountSections("Observable");
-  
+  int numOfObservables = in.CountSections("Observable");
+
   for (int counter=0;counter<numOfObservables;counter++){
     in.OpenSection("Observable",counter);
     string observeType, observeName;
@@ -255,11 +262,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new PhiKClass(PathData,OutFile);
     else if (observeType=="Pressure")
       tempObs = new PressureClass(PathData,OutFile);
-    //    else if (observeType=="VacancyLocation")
-    //      tempObs = new VacancyLocClass(PathData,OutFile);
     else if (observeType=="TimeAnalysis")
-      tempObs = new MCTimeClass(PathData,OutFile,Moves,Observables,
-				PathData.Actions.ActionList);
+      tempObs = new MCTimeClass(PathData,OutFile,Moves,Observables,PathData.Actions.ActionList);
     else if (observeType=="TimeLindenman")
       tempObs= new TimeLindenmanClass(PathData,OutFile);
     else if (observeType=="TimeHexatic")
@@ -270,8 +274,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new PathDumpClass(PathData,OutFile);
     else if (observeType=="WindingNumber")
       tempObs = new WindingNumberClass(PathData,OutFile);
-    //else if (observeType=="Vacancy")
-    //  tempObs = new VacancyLocClass(PathData,OutFile);
+    else if (observeType=="Centroid")
+      tempObs = new CentroidClass(PathData,OutFile);
     else if (observeType=="CycleCount")
       tempObs = new PermutationCountClass(PathData,OutFile);
     else if (observeType=="StructureFactor")
@@ -306,8 +310,6 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
 }
 
 
-
-
 void PIMCClass::ReadMoves(IOSectionClass &in)
 {
 
@@ -331,6 +333,8 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new PrintMoveClass(PathData, OutFile);
     else if (moveType=="BisectionBlock")
       move = new BisectionBlockClass(PathData,OutFile);
+    else if (moveType=="Centroid")
+      move = new CentroidMoveClass(PathData,OutFile);
     else if (moveType=="SwapMove")
       move = new SwapMoveClass(PathData,OutFile);
     else if (moveType=="CorrelatedBisectionBlock")
@@ -401,7 +405,6 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
 }
 
 
-
 void PIMCClass::ReadAlgorithm(IOSectionClass &in)
 {
   int maxWallTime;
@@ -430,11 +433,13 @@ void PIMCClass::Run()
     cout <<PathData.Path.CloneStr<<" PIMC++ has completed"<<endl;
 }
 
+
 void PIMCClass::Dummy()
 {
   while(true)
     QMCWrapper->QMCDummy(PathData);
 }
+
 
 void PIMCClass::WriteSystemInfo()
 {

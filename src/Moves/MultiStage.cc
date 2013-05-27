@@ -21,18 +21,17 @@
 void MultiStageClass::Read(IOSectionClass& in)
 {
   cm2=0.0;
-  ///do nothing for now
 }
+
 
 void MultiStageClass::WriteRatio()
 {
    list<StageClass*>::iterator stageIter=Stages.begin();
    double prevActionChange=0.0;
-   while (stageIter!=Stages.end()){
-     //    cerr<<"Some stage is writing their ratio"<<endl;
+   while (stageIter!=Stages.end()) {
      (*stageIter)->WriteRatio();
      stageIter++;
-   }  
+   }
    MoveClass::WriteRatio();
    CenterOfMassVar.Write(cm2);
    cm2=0;
@@ -44,36 +43,14 @@ void MultiStageClass::MakeMove()
   bool toAccept=true;
   list<StageClass*>::iterator stageIter=Stages.begin();
   double prevActionChange=0.0;
-  //  NewMoveProb=1.0;
-  //  OldMoveProb=1.0;
-  //  cerr<<"In "<<endl;
-  
   struct timeval start, end;
   struct timezone tz;
 
-
-
-  while (stageIter!=Stages.end() && toAccept){
+  while (stageIter!=Stages.end() && toAccept) {
     gettimeofday(&start, &tz);
-    //    cerr<<"attempting"<<endl;
-    toAccept = (*stageIter)->Attempt(Slice1,Slice2,
-				     ActiveParticles,prevActionChange);
-    //    cerr<<"done attempting"<<endl;
-  gettimeofday(&end, &tz);
-  TimeSpent2 += (double)(end.tv_sec-start.tv_sec) +
-    1.0e-6*(double)(end.tv_usec-start.tv_usec);
-  
-
-//     if (toAccept){
-//       NewMoveProb*=(*stageIter)->NewSample*(*stageIter)->AcceptProb;
-//       OldMoveProb*=(*stageIter)->OldSample*(*stageIter)->OldAcceptProb;
-//     }
-//     else {
-//       NewMoveProb*=(*stageIter)->NewSample*(1.0-((*stageIter)->AcceptProb));
-//       OldMoveProb*=(*stageIter)->OldSample*(1.0-((*stageIter)->OldAcceptProb));
-//     }
-//     cerr<<(*stageIter)->OldSample<<" "<<(*stageIter)->OldAcceptProb<<endl;
-
+    toAccept = (*stageIter)->Attempt(Slice1,Slice2,ActiveParticles,prevActionChange);
+    gettimeofday(&end, &tz);
+    TimeSpent2 += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
     stageIter++;
   }
 
@@ -83,8 +60,6 @@ void MultiStageClass::MakeMove()
   else {
     Reject();
   }
-  //MoveClass::MakeMove();
-  //  cerr<<NewMoveProb<<" "<<OldMoveProb<<endl;
 }
 
 
@@ -96,6 +71,7 @@ void MultiStageClass::Accept()
   NumAccepted++;
   cm2=cm2+PathData.Path.cm2;
 }
+
 
 void MultiStageClass::Reject()
 {

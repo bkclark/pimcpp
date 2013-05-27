@@ -36,9 +36,9 @@ private:
   Array<double,1> ActionTime;
   int StartTime;
   double TotalTime;
-  list<MoveClass*>  &Moves;
+  list<MoveClass*> &Moves;
   list<ObservableClass*> &Observables;
-  list<ActionBaseClass* > &Actions;
+  list<ActionBaseClass*> &Actions;
   int BlockNumber;
 public:
   struct timeval start, end;
@@ -47,23 +47,15 @@ public:
   void Accumulate();
   void WriteBlock();
   void Read(IOSectionClass& in);
-  MCTimeClass(PathDataClass &myPathData, IOSectionClass &ioSection,
-	      list<MoveClass*> &moves,
-	      list<ObservableClass*> &observables,
-	      list<ActionBaseClass* > &actions)
-    : ObservableClass(myPathData, ioSection) , 
+  MCTimeClass(PathDataClass &myPathData, IOSectionClass &ioSection, list<MoveClass*> &moves, list<ObservableClass*> &observables, list<ActionBaseClass* > &actions)
+    : ObservableClass(myPathData, ioSection),
       MoveTimeVar("MoveTime",IOSection,myPathData.Path.Communicator),
-      ObservableTimeVar("ObservableTime",
-			IOSection,myPathData.Path.Communicator),
-      ActionTimeVar("ActionTime",
-		    IOSection,myPathData.Path.Communicator),
-      TotalTimeVar("TotalTime",
-		   IOSection,myPathData.Path.Communicator),
-
+      ObservableTimeVar("ObservableTime",IOSection,myPathData.Path.Communicator),
+      ActionTimeVar("ActionTime",IOSection,myPathData.Path.Communicator),
+      TotalTimeVar("TotalTime",IOSection,myPathData.Path.Communicator),
       Moves(moves),
       Observables(observables),
       Actions(actions)
-
   {
     TimesCalled=0;
   }

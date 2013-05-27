@@ -24,16 +24,13 @@
 class BisectionStageClass : public LocalStageClass
 {
 public:
-  
+
   void WriteRatio();
   //  void Read(IOSectionClass& IO);
-  void CalcShift(Array<int,1> &activeParticles,int slice,
-		 double sigma,
-		 double &det);
-  double Sample(int &slice1,int &slice2, 
-		Array<int,1> &activeParticles);
-  double Sample_old(int &slice1,int &slice2, 
-		    Array<int,1> &activeParticles);
+  void CalcShift(Array<int,1> &activeParticles, int slice, double sigma, double &det);
+  double Sample(int &slice1,int &slice2, Array<int,1> &activeParticles);
+  double SampleFree(int &slice1,int &slice2, Array<int,1> &activeParticles);
+  double Sample_old(int &slice1,int &slice2, Array<int,1> &activeParticles);
 
   Array<dVec,1> dispShift;
   Array<double,2> Correlated;
@@ -43,14 +40,11 @@ public:
   void Reject();
   int TotalLevels;
 
-  BisectionStageClass(PathDataClass &pathData, int level,
-		      IOSectionClass outSection) : 
-    LocalStageClass(pathData,outSection) 
-  { 
-    //do nothing for now
+  BisectionStageClass(PathDataClass &pathData, int level, IOSectionClass outSection) :
+    LocalStageClass(pathData,outSection)
+  {
     BisectionLevel = level;
-    TimeSpent=0.0;
-
+    TimeSpent = 0.0;
   }
 };
 

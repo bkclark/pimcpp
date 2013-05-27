@@ -52,6 +52,8 @@ void OpenEndMoveClass::MakeMove()
 
 void OpenEndMoveClass::Read(IOSectionClass &in)
 {
+  int myProc = PathData.Path.Communicator.MyProc();
+  string moveName = "OpenEndMove";
   string speciesName;
   StageClass *permuteStage;
   assert (in.ReadVar ("NumLevels", NumLevels));
@@ -71,31 +73,27 @@ void OpenEndMoveClass::Read(IOSectionClass &in)
 
     newStage->Actions.push_back(&PathData.Actions.Kinetic);
     // May need later
-    //if (level==0)
-      //newStage->Actions.push_back(&PathData.Actions.OpenLoopImportance);
+    if (level==0)
+      newStage->Actions.push_back(&PathData.Actions.OpenLoopImportance);
     if (level>0) 
       newStage->Actions.push_back(&PathData.Actions.ShortRangeApproximate);
     else if (PathData.Path.OrderN)
       newStage->Actions.push_back(&PathData.Actions.ShortRangeOn);
-    else 
-      newStage->Actions.push_back(&PathData.Actions.ShortRange);
     if (level == 0) {
-      if (PathData.Path.LongRange){
-         if (PathData.Actions.UseRPA)
-           newStage->Actions.push_back(&PathData.Actions.LongRangeRPA);
-         ///If it's David's long range class then do this
-         else if (PathData.Path.DavidLongRange){
-           newStage->Actions.push_back(&PathData.Actions.DavidLongRange);
-         }
-         ////
-         else
-           newStage->Actions.push_back(&PathData.Actions.LongRange);
+      Array<string,1> samplingActions;
+      if(in.ReadVar("SamplingActions",samplingActions)) {
+        for (int i=0;i<samplingActions.size();i++) {
+          if (myProc == 0)
+            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+          newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
+        }
+      } else {
+        if (myProc == 0)
+          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;     
       }
       if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
-	      cerr << "Adding fermion node action for species " 
-	     << speciesName << endl;
-
-	      newStage->Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
+        cerr << "Adding fermion node action for species " << speciesName << endl;
+        newStage->Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
       }
     }
     newStage->BisectionLevel = level;
