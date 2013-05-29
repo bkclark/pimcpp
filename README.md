@@ -16,7 +16,7 @@ Fully-correlated simulations of quantum systems in continuous space at finite te
 * Set the environmental variables to point to the respective installation directories:
   `FFTW_HOME`,`HDF5_HOME`, `GSL_HOME`, `SPRNG_HOME`, `BLITZ_HOME`
 * Adjust the CMakeLists.txt file to fit the machine and compilers you are using.
-* Run `mkdir build && cd build && cmake ..`
+* Run `mkdir build && cd build && cmake ..`.
 * Run `make` (use `-j` for distributed compiling if possible). Built libraries are put in `$PROJECTDIR/bin/`.
 
 
