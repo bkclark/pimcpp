@@ -4,8 +4,11 @@ Fully-correlated simulations of quantum systems in continuous space at finite te
 
 ## Requirements
 
-* [Blitz++](http://sourceforge.net/projects/blitz/)
+* [FFTW3](https://github.com/FFTW/fftw3)
+* [HDF5](http://www.hdfgroup.org/HDF5/)
+* [GSL](http://www.gnu.org/software/gsl/)
 * [SPRNG](http://www.sprng.org/)
+* [Blitz++](http://sourceforge.net/projects/blitz/)
 * [CMake](http://www.cmake.org/)
 
 ## Installation
