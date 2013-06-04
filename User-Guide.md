@@ -1,4 +1,5 @@
 ---
+layout: entry
 title: User-Guide
 ---
 
