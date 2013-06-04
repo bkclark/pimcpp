@@ -1,76 +1,79 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
   <head>
-    <meta charset='utf-8'>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <link href='https://fonts.googleapis.com/css?family=Chivo:900' rel='stylesheet' type='text/css'>
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/pygment_trac.css" media="screen" />
-    <link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
+    <title>PIMC++ by etano</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
     <!--[if lt IE 9]>
     <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
     <![endif]-->
-    <title>PIMC++ by etano</title>
   </head>
-
   <body>
-    <div id="container">
-      <div class="inner">
+    <div class="wrapper">
+      <header>
+        <h1>PIMC++</h1>
+        <p>Path Integral Monte Carlo suite in C++</p>
 
-        <header>
-          <h1>PIMC++</h1>
-          <h2>Path Integral Monte Carlo suite in C++</h2>
-        </header>
+        <p class="view"><a href="https://github.com/etano/pimcpp">View the Project on GitHub <small>etano/pimcpp</small></a></p>
 
-        <section id="downloads" class="clearfix">
-          <a href="https://github.com/etano/pimcpp/zipball/master" id="download-zip" class="button"><span>Download .zip</span></a>
-          <a href="https://github.com/etano/pimcpp/tarball/master" id="download-tar-gz" class="button"><span>Download .tar.gz</span></a>
-          <a href="https://github.com/etano/pimcpp" id="view-on-github" class="button"><span>View on GitHub</span></a>
-        </section>
 
-        <hr>
+        <ul>
+          <li><a href="https://github.com/etano/pimcpp/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/etano/pimcpp/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/etano/pimcpp">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h3>
+<a name="what-is-it" class="anchor" href="#what-is-it"><span class="octicon octicon-link"></span></a>What is it?</h3>
 
-        <section id="main_content">
-          <h3>
-<a name="welcome-to-github-pages" class="anchor" href="#welcome-to-github-pages"><span class="octicon octicon-link"></span></a>Welcome to GitHub Pages.</h3>
-
-<p>This automatic page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here using GitHub Flavored Markdown, select a template crafted by a designer, and publish. After your page is generated, you can check out the new branch:</p>
-
-<pre><code>$ cd your_repo_root/repo_name
-$ git fetch origin
-$ git checkout gh-pages
-</code></pre>
-
-<p>If you're using the GitHub for Mac, simply sync your repository and you'll see the new branch.</p>
+<p>PIMC++ is a code designed to perform fully-correlated simulations of quantum systems in continuous space at finite temperature using Path Integral Monte Carlo.
+Written in object-oriented C++, it is designed in a modular way to facilitate easy addition of new methods, observables, moves and techniques.</p>
 
 <h3>
-<a name="designer-templates" class="anchor" href="#designer-templates"><span class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a name="why-does-it-exist" class="anchor" href="#why-does-it-exist"><span class="octicon octicon-link"></span></a>Why does it exist?</h3>
 
-<p>We've crafted some handsome templates for you to use. Go ahead and continue to layouts to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved if it remained markdown format.</p>
-
-<h3>
-<a name="rather-drive-stick" class="anchor" href="#rather-drive-stick"><span class="octicon octicon-link"></span></a>Rather Drive Stick?</h3>
-
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator written by our own Tom Preston-Werner. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<p>Computational quantum mechanics involves the use of complicated algorithms and sophisticated codes to calculate properties of quantum systems.  In many situations, people end up reinventing the wheel by reimplementing algorithms or techniques that already are in existing codes.  PIMC++ is designed to alleviate this problem.  It is designed to be sufficiently general to be of use for a wide variety of Path Integral calculations, optimized for high performance calculations (both in terms of speed and parallelization) to allow for quick results, and written in an object oriented way to facillitate fast prototyping and addition of new algorithms and techniques.  The goal is for this to become a community-wide code that speeds up the rate of research and that PIMC++ will grow from trhough the contributions of the community.  A similar vision for ground state calculations is manifested in the code QMCPack.</p>
 
 <h3>
-<a name="authors-and-contributors" class="anchor" href="#authors-and-contributors"><span class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<a name="a-note-about-community-involvement" class="anchor" href="#a-note-about-community-involvement"><span class="octicon octicon-link"></span></a>A note about community involvement</h3>
 
-<p>You can <a href="https://github.com/blog/821" class="user-mention">@mention</a> a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor's GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>PIMC++ has been designed with the goal of being a community-wide code.  Not only does this mean that it is open to users throughout the community but also that community members can contribute to the development of the code.  This is useful to the general quantum Monte Carlo community (by developing and maintaining a single code have a wide variety of research-level features in it) and it is useful to you as a student as an excellent learning opportunity.</p>
+
+<p>There are many areas in which PIMC++ will benefit from contributions, including things we haven't even thought of yet! So feel free to talk with us if you have ideas, applications, or if you would like to be involved but feel like you need more information first.</p>
 
 <h3>
-<a name="support-or-contact" class="anchor" href="#support-or-contact"><span class="octicon octicon-link"></span></a>Support or Contact</h3>
+<a name="getting-started-user" class="anchor" href="#getting-started-user"><span class="octicon octicon-link"></span></a>Getting started (user)</h3>
 
-<p>Having trouble with Pages? Check out the documentation at <a href="http://help.github.com/pages">http://help.github.com/pages</a> or contact <a href="mailto:support@github.com">support@github.com</a> and we’ll help you sort it out.</p>
-        </section>
+<p>Getting and Installing PIMC++</p>
 
-        <footer>
-          PIMC++ is maintained by <a href="https://github.com/etano">etano</a><br>
-          This page was generated by <a href="http://pages.github.com">GitHub Pages</a>. Tactile theme by <a href="http://twitter.com/jasonlong">Jason Long</a>.
-        </footer>
+<ul>
+<li>Downloading: Get the latest release from <a href="https://github.com/etano/pimcpp">github</a>
+</li>
+<li>[[Installing]]</li>
+<li>[[User Guide]]</li>
+<li>[[Developer's Guide]]</li>
+<li>Tutorials
 
-        
-      </div>
+<ol>
+<li>[[Particle in a Box]]</li>
+<li>[[Bulk helium|Liquid helium]]</li>
+<li>[[H2| Hydrogen Molecule]]</li>
+</ol>
+</li>
+<li>[[PIMC++ applications]]</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/etano">etano</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
     </div>
+    <script src="javascripts/scale.fix.js"></script>
+    
   </body>
 </html>
