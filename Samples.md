@@ -19,22 +19,19 @@ look at the simplest example of a bisection move.
 Consider a single, free particle at three consecutive time slices along
 a path, \\(r\_1\\), \\(r\_2\\), and \\(r\_3\\). In this move, we will keep \\(r\_1\\) and
 \\(r\_3\\) fixed, and will update the position of \\(r\_2\\). We wish to do this
-optimally, so that it samples the right distribution given by\
+optimally, so that it samples the right distribution given by
 
 \\(\pi(r\_2) = \rho\_0(r\_1, r\_2; \tau) \rho\_0(r\_2,r\_3;   \tau),\\)
 
-\
- where \\(\rho\_0\\) is the free-particle density matrix given by\
+where \\(\rho\_0\\) is the free-particle density matrix given by
 
 \\(\rho\_0(r,r';\tau) = (4\pi\lambda\tau)^{-\frac{3}{2}} \exp   \left[\frac{-(r-r')^2}{4\lambda\tau}\right]\\)
 
-\
- Writing this product explicitly, we have\
+Writing this product explicitly, we have
 
 \\(\pi(r\_2) = (4\pi\lambda\tau)^{-3} \exp   \left[-\frac{(r\_1-r\_2)^2 +   (r\_3-r\_2)^2}{4\lambda\tau}\right]\\)
 
-\
- Expanding the squares and grouping the \\(r\_2\\)-dependent terms, we have\
+Expanding the squares and grouping the \\(r\_2\\)-dependent terms, we have
 
 \\(\pi(r\_2) = (4\pi\lambda\tau)^{-3}   \exp\left[-\frac{(r\_1-r\_3)^2}{4\lambda\tau}\right]   \exp\left[-\frac{(r\_2 - \bar{r})^2}{2\lambda\tau}\right],\\)
 

@@ -60,5 +60,4 @@ unpack directory\
  make install\
  \
  In Fedora the gsl libraries do not come with a .pc file. It is
-necessary to add the --with-gsl-libs flag during configuration.\
-
+necessary to add the --with-gsl-libs flag during configuration.

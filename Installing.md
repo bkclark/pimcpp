@@ -179,5 +179,4 @@ else you think is relevant.
 
 Listed by system specs\
  [Ubuntu on 64-bit Intel Core 2 Quad](quad)\
- [Fedora Core 7 on 32-bit AMD with GNU compilers](FC7)\
-
+ [Fedora Core 7 on 32-bit AMD with GNU compilers](FC7)
