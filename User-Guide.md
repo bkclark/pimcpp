@@ -1,3 +1,7 @@
+---
+title: User-Guide
+---
+
 The general workflow of Path Integral Monte Carlo involves the
 following:
 
