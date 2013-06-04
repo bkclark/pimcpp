@@ -33,9 +33,9 @@ sudo make install
 Check out and install PIMC++: svn co
 svn+ssh://esler.physics.uiuc.edu/home/svn/repos/PIMC++/trunk/ PIMC++/
 autoreconf --install ./configure --prefix=/usr --enable-mpi
-CXXFLAGS=-DMPICH\_IGNORE\_CXX\_SEEK CXX="distcc mpicxx" CC=mpicc
+CXXFLAGS=-DMPICH\\_IGNORE\\_CXX\\_SEEK CXX="distcc mpicxx" CC=mpicc
 F77=mpif77 make -j8 export
-LD\_LIBRARY\_PATH="/usr/lib:/opt/intel/mkl/9.1/lib/em64t/"
+LD\\_LIBRARY\\_PATH="/usr/lib:/opt/intel/mkl/9.1/lib/em64t/"
 
 Not for PIMC++ but useful cmake distcc
 
@@ -59,7 +59,7 @@ warnings that it can't find the 32 bit libraries)\
  The Intel Math Kernel Libraries (mkl) can also be installed this way.\
  Once installed, it is necessary to add the bin directories to the
 \$PATH environment variable and the lib directories to
-\$LD\_LIBRARY\_PATH.\
+\$LD\\_LIBRARY\\_PATH.\
  Also, ensure that you are using the intel compilers at all times (\$CXX
 = icpc, \$CC=icc, \$F77=ifort).\
  \
@@ -127,9 +127,9 @@ Common/\
 PIMC++/\
  autoreconf --install\
  ./configure --prefix=/usr --enable-mpi
-CXXFLAGS=-DMPICH\_IGNORE\_CXX\_SEEK CXX="distcc mpic++" CC=mpicc
+CXXFLAGS=-DMPICH\\_IGNORE\\_CXX\\_SEEK CXX="distcc mpic++" CC=mpicc
 F77=mpif77\
  make -j8\
- export LD\_LIBRARY\_PATH="/usr/lib:/opt/intel/mkl/9.1/lib/em64t/"\
+ export LD\\_LIBRARY\\_PATH="/usr/lib:/opt/intel/mkl/9.1/lib/em64t/"\
 
 * * * * *

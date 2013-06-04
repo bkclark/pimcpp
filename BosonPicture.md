@@ -5,8 +5,7 @@ title: BosonPicture
 
 Below we see a cartoon of three closed loops (i.e particles) in 2
 dimensions. The numbers represent different points in imaginary time
-(i.e \<amsmath\>\\tau\</amsmath\>,\<amsmath\>2\\tau\</amsmath\>, and
-\<amsmath\>3\\tau\</amsmath\>.) For distinguishable particles in path
+(i.e \\(\tau\\),\\(2\tau\\), and \\(3\tau\\).) For distinguishable particles in path
 integral monte carlo, you sample over all the positions (of all the
 beads) of these closed loops.
 ![Image:1perm.png](1perm.png "Image:1perm.png")
@@ -29,8 +28,7 @@ quantum system (as opposed to just zero point motion). Whenever the
 particles are close enough such that they can permute onto each other
 without stretching their connection (springs) out too much, then
 statistics becomes important. The length scale for a spring's
-displacement from equilibrium is \<amsmath\>\\sqrt{4 \\lambda
-\\tau}\</amsmath\>, which should be compared with the average
-interparticle separation, \<amsmath\>r\_s\</amsmath\>, which is defined
-by \<amsmath\>\\frac{4}{3}\\pi r\_s\^3 = \\frac{V}{N}\</amsmath\>, where
-the total system volume and particle number are used.
+displacement from equilibrium is \\(\sqrt{4 \lambda   \tau}\\), which should
+be compared with the average interparticle separation, \\(r\_s\\), which is
+defined by \\(\frac{4}{3}\pi r\_s^3 = \frac{V}{N}\\), where the total system
+volume and particle number are used.

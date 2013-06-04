@@ -31,13 +31,13 @@ title: HeliumSuperfluidInput-this
      {
        int NumImages=0;
        int MaxLevels = 2;
-       Array<string,1> PairActionFiles(1) = ["He4_cut.PairAction"];
+       Array<string,1> PairActionFiles(1) = ["He4\_cut.PairAction"];
 
      }
 
      Section (Observables)
      {
-       string OutFileBase = "Helium_05";
+       string OutFileBase = "Helium\_05";
        Section (Observable)
          {
            string Type = "Energy";

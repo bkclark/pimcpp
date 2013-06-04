@@ -57,6 +57,5 @@ make a significant difference in speed. They include:
     inefficient since you'll be ignoring other slices. For Bosons, there
     is a large upfront cost that is amortized over. Consequently higher
     numbers here help efficiency significantly. Heuristically, this
-    should be between \<amsmath\>N\</amsmath\> and
-    \<amsmath\>N\^2\</amsmath\>.
+    should be between \\(N\\) and \\(N^2\\).
 

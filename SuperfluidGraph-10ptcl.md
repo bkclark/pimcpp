@@ -3,4 +3,4 @@ layout: base
 title: SuperfluidGraph-10ptcl
 ---
 
-![here](SuperfluidGraph_10ptcl.png "here")
+![here](SuperfluidGraph\_10ptcl.png "here")

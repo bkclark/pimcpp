@@ -15,6 +15,6 @@ number of paths that wrap around the box to the left minus the number of
 paths that wrap around the box to the right. (Take note that having a
 winding number goes beyond simply having winding paths. There must be a
 net flux of paths in one direction). We can relate the superfluid
-fraction \<amsmath\>\\frac{\\rho\_s}{\\rho}\</amsmath\> with the average
-winding number squared (times an appropriate constant)
-\<amsmath\>\\frac{\\left\<W\^2\\right\>}{2\\lambda\\beta N}\</amsmath\>.
+fraction \\(\frac{\rho\_s}{\rho}\\) with the average winding number squared
+(times an appropriate constant)
+\\(\frac{\left<W^2\right>}{2\lambda\beta N}\\).

@@ -16,30 +16,30 @@ section and then one needs to call the observable in the algorithm.
 
 Table of Contents
 
--   -   [Defining the observable](#Defining_the_observable)
+-   -   [Defining the observable](#Defining\_the\_observable)
     -   [Inserting the observable into the
-        algorithm](#Inserting_the_observable_into_the_algorithm)
+        algorithm](#Inserting\_the\_observable\_into\_the\_algorithm)
     -   [Telling the observables to write to the output
-        file](#Telling_the_observables_to_write_to_the_output_file)
+        file](#Telling\_the\_observables\_to\_write\_to\_the\_output\_file)
     -   [Paramaters](#Paramaters)
 
--   [List of Observables](#List_of_Observables)
+-   [List of Observables](#List\_of\_Observables)
     -   [Autocorrelation](#Autocorrelation)
     -   [Energy](#Energy)
     -   [Forces](#Forces)
     -   [Grids](#Grids)
-    -   [Pair Correlation Function](#Pair_Correlation_Function)
+    -   [Pair Correlation Function](#Pair\_Correlation\_Function)
     -   [n(r)](#nr)
-    -   [Particle Average Location](#Particle_Average_Location)
+    -   [Particle Average Location](#Particle\_Average\_Location)
     -   [PathDump](#PathDump)
-    -   [Permutation Counting](#Permutation_Counting)
+    -   [Permutation Counting](#Permutation\_Counting)
     -   [Pressure](#Pressure)
-    -   [Structure Factor](#Structure_Factor)
-    -   [Superfluid Fraction](#Superfluid_Fraction)
-    -   [Time Analysis](#Time_Analysis)
-    -   [Vacancy Location](#Vacancy_Location)
+    -   [Structure Factor](#Structure\_Factor)
+    -   [Superfluid Fraction](#Superfluid\_Fraction)
+    -   [Time Analysis](#Time\_Analysis)
+    -   [Vacancy Location](#Vacancy\_Location)
     -   [Weight](#Weight)
-    -   [Winding Number](#Winding_Number)
+    -   [Winding Number](#Winding\_Number)
 
 Defining the observable
 ----------------------------------------------------------------------------------------------------------------
@@ -52,7 +52,7 @@ within the overall section *Observables*
        Section (Observable)
        {
          string Type="Energy";
-         string Name="He-He_Energy";
+         string Name="He-He\_Energy";
        }
        Section (Observable)
        {
@@ -129,7 +129,7 @@ it works on. Inside its observable block, there might be
      Section (Observable)
        {
          string Type="PairCorrelation";
-         string Name="He-He3_PC";
+         string Name="He-He3\_PC";
          string Species1="He";
          string Species2="He3";
        }
@@ -260,7 +260,7 @@ observables, but it is not an observable *per se*.
 Pair Correlation Function
 --------------------------------------------------------------------------------------------------------------------
 
-The pair correlation function calculates \<amsmath\>g(r)\</amsmath\>
+The pair correlation function calculates \\(g(r)\\)
 
 *Example Input:*
 
@@ -358,8 +358,7 @@ Structure Factor
 --------------------------------------------------------------------------------------------------
 
 This observable computes the Structure Factor
-\<amsmath\>\\frac{1}{\\sqrt{N\_a
-N\_b}}\\rho\_{k,a}\\rho\_{-k,b}\</amsmath\> between species A and B
+\\(\frac{1}{\sqrt{N\_a N\_b}}\rho\_{k,a}\rho\_{-k,b}\\) between species A and B
 
 Example input:
 
@@ -388,7 +387,7 @@ Example input:
 -   **Species1** and **Species2**: The names of the respective species
     used in calculating the structure factor.
 -   **Array\<double,2\>\</double,2\>
-    AdditionalkVecs(number\_of\_k\_vecs,NDIM):** This is a list of
+    AdditionalkVecs(number\\_of\\_k\\_vecs,NDIM):** This is a list of
     additional kvectors that are to be included beyond those that are
     defined by the kCutoff.
 
@@ -398,8 +397,7 @@ Superfluid Fraction
 --------------------------------------------------------------------------------------------------------
 
 The superfluid fraction calculates
-\<amsmath\>\\frac{\\rho\_s}{\\rho}=\\frac{\\left\<W\^2\\right\>}{2\\lambda\\beta
-N}\</amsmath\>
+\\(\frac&#123;\rho\_s&#125;&#123;\rho&#125;&#61;\frac&#123;\left&lt;W^2\right&gt;&#125;&#123;2\lambda\beta   N&#125;\\)
 
 *Example Input*:
 
@@ -415,7 +413,7 @@ N}\</amsmath\>
 
 -   **Type:** SuperfluidFraction
 -   **Name:** User specified and consistent throughout input file.
--   **Array\<string,1\>\</string,1\> SpeciesList(num\_of\_species):**
+-   **Array\<string,1\>\</string,1\> SpeciesList(num\\_of\\_species):**
     List of species to calculate the superfluid fraction on (currently
     this doesn't work. It calculates it on the entire system independent
     of this variable)

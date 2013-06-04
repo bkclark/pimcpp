@@ -93,12 +93,11 @@ two particles:
 
 We will now look at this file in detail. The second and third line
 specify the type of this density matrix (in this case He4) and its
-respective lambda (\<amsmath\>\\lambda =
-\\frac{\\hbar\^2}{2m}\</amsmath\>). The third line specifies the grid we
-are putting our potential on. The first number after "GRID" specifies
-the number of points on our grid. The word "LINEAR" specifies that it
-will be a linear grid and the remaining two numbers specify the range of
-the grid (from 0.2 to 8.0). The next line
+respective lambda (\\(\lambda =   \frac{\hbar^2}{2m}\\)). The third line
+specifies the grid we are putting our potential on. The first number
+after "GRID" specifies the number of points on our grid. The word
+"LINEAR" specifies that it will be a linear grid and the remaining two
+numbers specify the range of the grid (from 0.2 to 8.0). The next line
 
      SQUARER 10. 4 3 3 30 14 
 
@@ -109,9 +108,9 @@ squarings done to reach the lowest temperature).
 
 We will look at each of these in turn. **Lowest Temperature Reached**:
 This is (the inverse of) the lowest tau in the file and would typically
-be the time step \<amsmath\>\\tau\</amsmath\> that you intend to be
-using in the simulation (or possibly a little lower so you can do a
-convergence study in time step).
+be the time step \\(\tau\\) that you intend to be using in the simulation
+(or possibly a little lower so you can do a convergence study in time
+step).
 
 **Number of tau kept in file:** It is important to keep at least as many
 tau as there are levels in your BisectionBlock move (the BisectionBlock

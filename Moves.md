@@ -12,14 +12,14 @@ written when the algorithm reaches the WriteData section)
 
 Table of Contents
 
--   [Defining the move](#Defining_the_move)
+-   [Defining the move](#Defining\_the\_move)
     -   [Inserting the move into the
-        algorithm](#Inserting_the_move_into_the_algorithm)
-    -   [List of Moves](#List_of_Moves)
-    -   [Bisection Block](#Bisection_Block)
-    -   [Center of Mass Move](#Center_of_Mass_Move)
-    -   [Displace Move](#Displace_Move)
-    -   [Shift Move](#Shift_Move)
+        algorithm](#Inserting\_the\_move\_into\_the\_algorithm)
+    -   [List of Moves](#List\_of\_Moves)
+    -   [Bisection Block](#Bisection\_Block)
+    -   [Center of Mass Move](#Center\_of\_Mass\_Move)
+    -   [Displace Move](#Displace\_Move)
+    -   [Shift Move](#Shift\_Move)
 
 Defining the move
 ====================================================================================================

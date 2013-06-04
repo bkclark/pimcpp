@@ -52,7 +52,7 @@ and install.\
  automake (http://www.gnu.org/software/automake/\#downloading)\
  libtool (http://www.gnu.org/software/libtool/)\
  pkg-config (http://pkgconfig.freedesktop.org/releases/)\
- You will need to define the environment variable PKG\_CONFIG\_PATH; see
+ You will need to define the environment variable PKG\\_CONFIG\\_PATH; see
 the next section.\
  \
  **Install Libraries**\
@@ -64,12 +64,12 @@ under /usr (so the executables will be in /usr/bin, libraries in
 /usr/lib, etc.), always invoke the configure script with\
  ./configure --prefix=/usr\
  If you install libraries under /usr, you will want to set the
-**PKG\_CONFIG\_PATH** variable like so:\
- export PKG\_CONFIG\_PATH=/usr/lib/pkgconfig\
+**PKG\\_CONFIG\\_PATH** variable like so:\
+ export PKG\\_CONFIG\\_PATH=/usr/lib/pkgconfig\
  **If this variable is not set correctly, pkg-config will not be able to
 find the libraries you installed and you will get problems.**\
  Make sure the path where your libraries are installed (e.g. /usr/lib)
-is included in **LD\_LIBRARY\_PATH**.\
+is included in **LD\\_LIBRARY\\_PATH**.\
  \
  blitz++:
 [http://www.oonumerics.org/blitz/download/](http://www.oonumerics.org/blitz/download/)\

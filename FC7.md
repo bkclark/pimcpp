@@ -35,9 +35,9 @@ newly build MPI compilers.\
  For the path visualization libraries you will also need the following
 packages.\
  GLE-tubing and extrusion
-library[http://sourceforge.net/project/showfiles.php?group\_id=5539&package\_id=5580&release\_id=147184](http://sourceforge.net/project/showfiles.php?group_id=5539&package_id=5580&release_id=147184)\
+library[http://sourceforge.net/project/showfiles.php?group\\_id=5539&package\\_id=5580&release\\_id=147184](http://sourceforge.net/project/showfiles.php?group\_id=5539&package\_id=5580&release\_id=147184)\
  REVEL-video encoding
-library[http://sourceforge.net/project/showfiles.php?group\_id=118631&package\_id=129179](http://sourceforge.net/project/showfiles.php?group_id=118631&package_id=129179)\
+library[http://sourceforge.net/project/showfiles.php?group\\_id=118631&package\\_id=129179](http://sourceforge.net/project/showfiles.php?group\_id=118631&package\_id=129179)\
  XVid-xvidcore
 libraries[http://www.xvid.org/Downloads.43.0.html](http://www.xvid.org/Downloads.43.0.html)\
  \
@@ -48,7 +48,7 @@ unpack directory\
  make\
  sudo make install\
  \
- Make sure your PKG\_CONFIG\_PATH points to all the locations the
+ Make sure your PKG\\_CONFIG\\_PATH points to all the locations the
 "lib".pc files live.\
  \
  **Installing PIMC-Common**\

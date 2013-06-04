@@ -24,11 +24,9 @@ electrons and protons. In our simulation, we will allow our proton to be
 infinitely massive because the quantum effects will be irrelevant on the
 energy scales we will be dealing with. Therefore, we will add a Species
 Proton (underneath the System section). Because it is infinitely
-massive, the proton will be given a \<amsmath\>
-\\lambda=\\frac{\\hbar\^2}{2m}\</amsmath\> of 0. PIMC++ knows that
-particles with \<amsmath\>\\lambda=0.0\</amsmath\> are classical and may
+massive, the proton will be given a \\(\lambda=\frac{\hbar^2}{2m}\\) of 0.
+PIMC++ knows that particles with \\(\lambda=0.0\\) are classical and may
 treat them specially. We will also add a Species electron (also
-underneath the System section). It will have
-\<amsmath\>\\lambda=0.5\</amsmath\>. PIMC++ has no units built in and we
-must simply use consistent units throughout. For a hydrogen molecule it
-is convenient to work in Bohr or something.
+underneath the System section). It will have \\(\lambda=0.5\\). PIMC++ has
+no units built in and we must simply use consistent units throughout.
+For a hydrogen molecule it is convenient to work in Bohr or something.

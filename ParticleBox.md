@@ -18,16 +18,14 @@ software design will be explored in more detail later, so do not worry
 about understanding every aspect right away.
 
 Specifically, we will calculate the energy of a single particle in a box
-of size \<amsmath\>10\~\\AA\</amsmath\> at a temperature of
-\<amsmath\>1.666K\</amsmath\>. For consistency with the Helium
-simulations we'll do, we're working in a system of units in which energy
-is in Kelvin, length is in \<amsmath\>\\AA\</amsmath\>, and
-\<amsmath\>\\hbar=1\</amsmath\>. In these units, the free particle mass
-will be \<amsmath\>0.5\~K\^{-1}\\AA\^{-2}\</amsmath\>, which corresponds
-to \<amsmath\>4.034\*10\^{-26}\~kg\</amsmath\>.\
+of size \\(10~\AA\\) at a temperature of \\(1.666K\\). For consistency with the
+Helium simulations we'll do, we're working in a system of units in which
+energy is in Kelvin, length is in \\(\AA\\), and \\(\hbar=1\\). In these units,
+the free particle mass will be \\(0.5~K^{-1}\AA^{-2}\\), which corresponds
+to \\(4.034*10^{-26}~kg\\).\
  In this simple case, it will be possible to compare the simulation with
 the [analytical result](Particle%20in%20a%20Box). If you do this, you
-should get an energy of \<amsmath\>2.51\~K\</amsmath\>.
+should get an energy of \\(2.51~K\\).
 
 We will first describe how the input file is organized and how important
 aspects of the simulation are controlled. The first input file looks
@@ -35,7 +33,7 @@ like this:\
  You can view a fully annotated version of this file [here](annotated)
 in order to see more detail about input syntax and options.
 
-`Section (Parallel) { int ProcsPerClone = 1; } Section (System) { int NumTimeSlices=12; Array<double,1> Box(3) = [10.0,10.0,10.0]; Array<bool, 1 > IsPeriodic(3) = [true,true,true]; Section (Particles) { Section (Species) { string Name="free"; string Type="free"; double lambda=1.0; string Statistics="BOLTZMANNON"; int NumParticles=1; int NumDim=3; string InitPaths="BCC"; } } } Section (Action) { int NumImages=0; int MaxLevels = 2; Array<string,1> PairActionFiles(1) = ["zero.PairAction"]; } Section (Observables) { string OutFileBase = "SingleParticle"; Section (Observable) { string Type = "Energy"; string Name = "Energy"; string Description="Total Energy"; int Frequency=1; } } Section (Moves){ Section (Move) { string Type="BisectionBlock"; string Name="BisectionBlock"; string PermuteType="NONE"; string Species="free"; int NumLevels=2; int StepsPerBlock=2; } Section (Move) { string Type="ShiftMove"; string Name="Shift"; } } Section (Algorithm) { Section (Loop){ int Steps=1000; Section (Loop){ int Steps=50; Section (Move) { string Name = "BisectionBlock"; } Section (Observe) { string Name = "Energy"; } Section (Move) { string Name = "Shift"; } } Section (WriteData){} } }`
+\\(Section (Parallel) { int ProcsPerClone = 1; } Section (System) { int NumTimeSlices=12; Array<double,1> Box(3) = [10.0,10.0,10.0]; Array<bool, 1 > IsPeriodic(3) = [true,true,true]; Section (Particles) { Section (Species) { string Name="free"; string Type="free"; double lambda=1.0; string Statistics="BOLTZMANNON"; int NumParticles=1; int NumDim=3; string InitPaths="BCC"; } } } Section (Action) { int NumImages=0; int MaxLevels = 2; Array<string,1> PairActionFiles(1) = ["zero.PairAction"]; } Section (Observables) { string OutFileBase = "SingleParticle"; Section (Observable) { string Type = "Energy"; string Name = "Energy"; string Description="Total Energy"; int Frequency=1; } } Section (Moves){ Section (Move) { string Type="BisectionBlock"; string Name="BisectionBlock"; string PermuteType="NONE"; string Species="free"; int NumLevels=2; int StepsPerBlock=2; } Section (Move) { string Type="ShiftMove"; string Name="Shift"; } } Section (Algorithm) { Section (Loop){ int Steps=1000; Section (Loop){ int Steps=50; Section (Move) { string Name = "BisectionBlock"; } Section (Observe) { string Name = "Energy"; } Section (Move) { string Name = "Shift"; } } Section (WriteData){} } }\\)
 
 *Helpful editing tip for input files:* The input files are inspired by
 C++ syntax. If you turn on C++ syntax highlighting in your editor
@@ -53,10 +51,10 @@ simulation.\
     Contains number of time slices, tau, box-size, and the particle
     Section.
     -   Particle Section: Contains a section for each Species.
-        -   Species Section: Contains lambda (\<amsmath\>
-            \\lambda=\\frac{\\hbar\^2}{2m}\</amsmath\>), statistics,
-            number of particles, etc. A Species can be an element, ion,
-            molecule, or any object with uniform physical properties.
+        -   Species Section: Contains lambda (
+            \\(\lambda=\frac{\hbar^2}{2m}\\)), statistics, number of
+            particles, etc. A Species can be an element, ion, molecule,
+            or any object with uniform physical properties.
 
 -   Moves: Defines the moves of your Monte Carlo
 -   Observables: Defines what properties of the system you are measuring
@@ -70,20 +68,17 @@ simulation.\
 
 **A note about units:** PIMC++ has no intrinsic units and any system of
 units can be used by specifying consistent values in the input file.
-\<amsmath\>\\beta = M\\tau = (k\_B T)\^{-1} \</amsmath\>, where
-\<amsmath\>M\</amsmath\> is the number of time slices.
-\<amsmath\>\\beta\</amsmath\> has units of inverse energy and
-establishes the temperature scale. For the tutorial, input files will
-use units of Kelvin and Angstrom with \<amsmath\>\\hbar = 1\</amsmath\>.
+\\(\beta = M\tau = (k\_B T)^{-1}\\) , where \\(M\\) is the number of time slices.
+\\(\beta\\) has units of inverse energy and establishes the temperature
+scale. For the tutorial, input files will use units of Kelvin and
+Angstrom with \\(\hbar = 1\\).
 
 Be sure to understand which lines of the input file establish that you
-are simulating a particle of mass \<amsmath\>0.5\</amsmath\>,
-temperature \<amsmath\>1.66K\</amsmath\> and box
-\<amsmath\>10\\times10\\times10\~\\AA\</amsmath\>.\
- The mass is defined through lambda
-(\<amsmath\>\\lambda=\\frac{\\hbar\^2}{2m}\</amsmath\>) (Section:
-System/Species/Particle). The temperature is defined implicitly by
-\<amsmath\>\\frac{1}{NumTimeSlices\*tau}\</amsmath\> with NumTimeSlices
+are simulating a particle of mass \\(0.5\\), temperature \\(1.66K\\) and box
+\\(10\times10\times10~\AA\\).\
+ The mass is defined through lambda (\\(\lambda=\frac{\hbar^2}{2m}\\))
+(Section: System/Species/Particle). The temperature is defined
+implicitly by \\(\frac{1}{NumTimeSlices*tau}\\) with NumTimeSlices
 (Section:System) and tau (Section: System) specified in the input.
 
 In order to use the software for the lab, several environment variables
@@ -94,7 +89,7 @@ need to be set up. This can be done by typing
 Now, you should run
 
     cd /tmp
-    setup_pimc++
+    setup\_pimc++
     cd PIMCpp
 
 Now that that is done, let's run PIMC++ with the input file above.
@@ -156,23 +151,22 @@ Let us take note of the following information in the html summary.
 -   Observable Information: We have measured the **Energy** observable
     in this simulation. Notice the energy table with the different
     components of the energy and their respective variance, error and
-    autocorrelation time. We see that the energy is close to
-    \<amsmath\>2.5\~K\</amsmath\> as anticipated above. Of course, as we
-    lower the temperature, we would see quantum effects becoming more
-    important as the energy approaches the ground state for a single
-    particle in a box. (Note: there is a subtlety to getting the correct
-    energy if your box is small compared to
-    \<amsmath\>\\sqrt{4\\lambda\\tau}\</amsmath\> in PIMC++ caused by an
-    approximation to the kinetic action. This can be skipped on the
-    first pass through the tutorial, but experts can explore this
-    [NumImage approximation](NumImage%20approximation) here ) Although a
-    summary of the energy is convenient, it is often useful to be able
-    to see a trace plot of the energy (for example to choose an
-    equilibration time). We can get such detailed information by
-    clicking on the ["Detailed HTML Page"](detailedHTMLPicture) at the
-    top of index.html. Do that now. This page also allows us to see that
-    the data was output 1000 times. By examining the Algorithm section
-    of our input file, we see that the data gets written every time a
+    autocorrelation time. We see that the energy is close to \\(2.5~K\\) as
+    anticipated above. Of course, as we lower the temperature, we would
+    see quantum effects becoming more important as the energy approaches
+    the ground state for a single particle in a box. (Note: there is a
+    subtlety to getting the correct energy if your box is small compared
+    to \\(\sqrt{4\lambda\tau}\\) in PIMC++ caused by an approximation to the
+    kinetic action. This can be skipped on the first pass through the
+    tutorial, but experts can explore this [NumImage
+    approximation](NumImage%20approximation) here ) Although a summary
+    of the energy is convenient, it is often useful to be able to see a
+    trace plot of the energy (for example to choose an equilibration
+    time). We can get such detailed information by clicking on the
+    ["Detailed HTML Page"](detailedHTMLPicture) at the top of
+    index.html. Do that now. This page also allows us to see that the
+    data was output 1000 times. By examining the Algorithm section of
+    our input file, we see that the data gets written every time a
     WriteData is encountered in the algorithm (nb: this is NOT true for
     the PathDump observable which is special!). Looking at the number of
     iterations given for each of the Loop sections, we see that

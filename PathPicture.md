@@ -3,7 +3,7 @@ layout: base
 title: PathPicture
 ---
 
-![Image:PIMCPyTutorial\_path1.png](PIMCPyTutorial_path1.png "Image:PIMCPyTutorial_path1.png")
+![Image:PIMCPyTutorial\\_path1.png](PIMCPyTutorial\_path1.png "Image:PIMCPyTutorial\_path1.png")
 
 1.  The Kinetic Action happens on springs (the straight lines) that
     attatch beads.
