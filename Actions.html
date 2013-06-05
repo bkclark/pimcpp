@@ -57,34 +57,104 @@
 <p>PIMC++ supports a number of Actions that can be turned on and off
 throughout the simulation.</p>
 <p>PIMC++ samples the stationary distribution</p>
-<p>where S is the action. A typical simulation of PIMC++ uses a Kinetic
+<div class="math">
+\[\mathcal{Z} = \int dR_{0}\dots dR_{M} \exp{(-\sum_{m=0}^{M}\mathcal{S_{m}})}\]</div>
+<p>where <span class="math">\(\mathcal{Z}\)</span> is the <span class="math">\(N\)</span>-body density matrix, <span class="math">\(M\)</span> is the number of time slice divisions,
+and <span class="math">\(\mathcal{S_{m}}\)</span> is the action on slice <span class="math">\(m\)</span>. A typical simulation of PIMC++ uses a Kinetic
 Action, a Potential Action (usually a pair action of some sort) and
-possibly a nodal action. Other actions may be used through the code that
+possibly a Nodal Action. Other actions may be used through the code that
 are not being sampled in the stationary distribution but are being used
 in some other manner. For example, an action might be used at a higher
 level in a multistage move to approximate the higher levels.</p>
 <p>A typical run of PIMC++ requires certain paramaters set. These
-paramaters are set in the Actions section (At some point I think we
-would like to have hiearchal sections for kinetic action, potential
-action, etc.)</p>
-<p>Kinetic Action Paramaters: NumImages: The kinetic action formally is</p>
-<p>where k,k&#8217; index&#8217;s the k,k&#8217; image of particle i,j. This paramater
-defines whether the sum is only over images in the first box (=0), the
-nearest 27 boxes (=1), etc. Typically this can be 0 unless</p>
-<p>is on the order of the box size. Potential Action Paramaters: Array
-PairActionFiles(numPairActions): Specifies the PairActionFiles. The full
+paramaters are set in the Actions section.</p>
+<p>Example input:</p>
+<div class="highlight-python"><pre>Section (Actions)
+{
+  int NumImages = 1;
+  int MaxLevels = 5;
+  Array&lt;string,1&gt; PairActionFiles(1) = ["sq.PairAction"];
+
+  Section (Action)
+  {
+    string Name = "ShortRange";
+    string Type = "ShortRange";
+  }
+
+  Section (Action)
+  {
+    string Name = "DavidLongRange";
+    string Type = "DavidLongRange";
+    double kCutoff = 4.86077676958;
+  }
+}</pre>
+</div>
+<div class="section" id="kinetic-action">
+<h2>Kinetic Action<a class="headerlink" href="#kinetic-action" title="Permalink to this headline">¶</a></h2>
+<p>The kinetic action formally is</p>
+<div class="math">
+\[\mathcal{K_{m}} = \frac{ND}{2}\log{4\pi\lambda\tau} + \sum_{n} [-\frac{R_{m}-R_{m+1}+nL}{4\lambda\tau}]\]</div>
+<p>where <span class="math">\(n\)</span> is a vector of integer values and <span class="math">\(L\)</span> is the box length.</p>
+<div class="section" id="numimages">
+<h3>NumImages<a class="headerlink" href="#numimages" title="Permalink to this headline">¶</a></h3>
+<p>This paramater defines whether the sum is only over images in the first box (=0), the
+nearest 27 boxes (=1), etc. Typically this can be 0 unless <span class="math">\(\lambda\tau\)</span> is on the order of the box size <span class="math">\(L\)</span>.</p>
+</div>
+</div>
+<div class="section" id="potential-action">
+<h2>Potential Action<a class="headerlink" href="#potential-action" title="Permalink to this headline">¶</a></h2>
+<p>The potential action formally is</p>
+<div class="math">
+\[\mathcal{U_{m}} \equiv \mathcal{S_{m}} - \mathcal{K_{m}}\]</div>
+<p>and can have a variety of formulations. In the simplest formulation, the &#8220;primitive approximation&#8221;,</p>
+<div class="math">
+\[\mathcal{U_{m}} = \frac{\tau}{2} [V(R_{m})+V(R_{m+1})]\]</div>
+<p>where <span class="math">\(V\)</span> is the potential. However, this approximation comes with errors which go like <span class="math">\(\tau^{2}\)</span>.</p>
+<p>A more precise approach is to solve the 2-body problem exactly, and then compose the full N-body action as a product of 2-body ones.
+This is called the &#8220;pair product&#8221; approximation, and it is what is used most often in PIMC++.</p>
+<div class="section" id="array-string-1-pairactionfiles-numpairactions">
+<h3>Array&lt;string,1&gt; PairActionFiles(numPairActions)<a class="headerlink" href="#array-string-1-pairactionfiles-numpairactions" title="Permalink to this headline">¶</a></h3>
+<p>Specifies the PairActionFiles. The full
 path must be given to these files. The PairAction files that can be used
 in PIMC++ include those from squarer++ and those from David Ceperely&#8217;s
 squarer. To use the latter requires writing a PairAction file that wraps
 the dm files from this squarer. See below for a description to
-accomplish this. MaxLevels: Specifies the total number of levels that
+accomplish this.</p>
+<p>Example PairAction file:</p>
+<div class="highlight-python"><pre>Section (Fits)
+{
+  string Type="DavidFit";
+  int NumOffDiagonalTerms = 3;
+  Section (Particle1)
+  {
+    string Name = "e";
+    double lambda =0.0625;
+    int Ndim = 3;
+  }
+  Section (Particle2)
+  {
+    string Name = "e";
+    double lambda =0.0625;
+    int Ndim = 3;
+  }
+  string Daviddmfile = "sq.h5";
+}</pre>
+</div>
+<div class="admonition-todo admonition" id="index-0">
+<p class="first admonition-title">Todo</p>
+<p class="last">Explain the Squarer process in detail</p>
+</div>
+</div>
+<div class="section" id="maxlevels">
+<h3>MaxLevels<a class="headerlink" href="#maxlevels" title="Permalink to this headline">¶</a></h3>
+<p>Specifies the total number of levels that
 are read in from the density matrix file. This must be less then (or
-equal to) the total number of levels in teh density matrix. It also must
+equal to) the total number of levels in the density matrix. It also must
 be more then the number of levels that you are using in bisection (which
-is why more then onle level is read in). The highest level that is read
-in is the value of tau tbeing used. Wrapping David Ceperley&#8217;s squarer dm
-files in a PairAction files such that they can be used.</p>
-<p>(details to come)</p>
+is why more then one level is read in). The highest level that is read
+in is the largest value of tau being used.</p>
+</div>
+</div>
 </div>
 
 
@@ -93,6 +163,22 @@ files in a PairAction files such that they can be used.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Actions</a><ul>
+<li><a class="reference internal" href="#kinetic-action">Kinetic Action</a><ul>
+<li><a class="reference internal" href="#numimages">NumImages</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#potential-action">Potential Action</a><ul>
+<li><a class="reference internal" href="#array-string-1-pairactionfiles-numpairactions">Array&lt;string,1&gt; PairActionFiles(numPairActions)</a></li>
+<li><a class="reference internal" href="#maxlevels">MaxLevels</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="System.html"
                         title="previous chapter">System</a></p>

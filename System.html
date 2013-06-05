@@ -59,85 +59,128 @@ system on which the simulation is performing. They include things such
 as the number of time slices, the time step, information about the
 species, the box, etc.</p>
 <p>They are all included in the section <strong>System</strong></p>
-<p><em>Example input:</em></p>
-<div class="line-block">
-<div class="line"><tt class="docutils literal"><span class="pre">Section&nbsp;(System)</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">{</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;int&nbsp;NumTimeSlices=80;&nbsp;&nbsp;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;double&nbsp;tau=0.025;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Array</span></tt><tt class="docutils literal"><span class="pre">&nbsp;Box(3)=[11.01,&nbsp;&nbsp;12.713,&nbsp;&nbsp;11.98];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Array</span></tt><tt class="docutils literal"><span class="pre">&nbsp;IsPeriodic(3)=[true,true,true];</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Section&nbsp;(Particles)</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;{</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Species)</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name=&quot;He&quot;;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type=&quot;He&quot;;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;lambda=6.059615;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Statistics=&quot;BOSON&quot;;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;NumParticles=48;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;NumDim=3;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;InitPaths=&quot;BCC&quot;;</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
-<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+<p>Example input:</p>
+<div class="highlight-python"><pre>Section (System)
+{
+  int NumTimeSlices=80;
+  double tau=0.025;
+  Array Box(3)=[11.01,12.713,11.98];
+  Array IsPeriodic(3)=[true,true,true];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name="He";
+      string Type="He";
+      double lambda=6.059615;
+      string Statistics="BOSON";
+      int NumParticles=48;
+      int NumDim=3;
+      string InitPaths="BCC";
+    }
+  }
+}</pre>
 </div>
-<p>At the level of &#8216;&#8217;&#8216;System &#8216;&#8217;&#8216;(i.e. not at a lower level in the
-hierarchy) the parameters are:</p>
-<p><strong>NumTimeSlices</strong>: Specifies the number of time slices for the system.
+<div class="section" id="numtimeslices">
+<h2>NumTimeSlices<a class="headerlink" href="#numtimeslices" title="Permalink to this headline">¶</a></h2>
+<p>Specifies the number of time slices for the system.
 The beta of the system is defined as tau*NumTimeSlices</p>
-<p><strong>tau</strong>: Specifies the time step (in the trotter breakup) for the
+</div>
+<div class="section" id="tau">
+<h2>tau<a class="headerlink" href="#tau" title="Permalink to this headline">¶</a></h2>
+<p>Specifies the time step (in the Trotter breakup) for the
 simulation.</p>
-<p><strong>Array IsPeriodic(3)</strong>: Specifies which dimensions the system is
+</div>
+<div class="section" id="array-isperiodic-3">
+<h2>Array IsPeriodic(3)<a class="headerlink" href="#array-isperiodic-3" title="Permalink to this headline">¶</a></h2>
+<p>Specifies which dimensions the system is
 periodic in. Currently an entirely periodic box is well tested and a box
 with no periodicity should largely work. A box that is periodic in only
 some dimensions is not well implemented right this second but could be
 without too much difficulty.</p>
-<p><strong>Array Box(3)</strong>: Specifies the size of the box for the system. Must be
+</div>
+<div class="section" id="array-box-3">
+<h2>Array Box(3)<a class="headerlink" href="#array-box-3" title="Permalink to this headline">¶</a></h2>
+<p>Specifies the size of the box for the system. Must be
 the number of dimensions of the entire system.</p>
+</div>
+<div class="section" id="particles">
+<h2>Particles<a class="headerlink" href="#particles" title="Permalink to this headline">¶</a></h2>
 <p>The <strong>System</strong> section, contains a section <strong>Particles</strong> that defines
 parameters associated with the particles.</p>
 <p>The <strong>Particles</strong> section defines a <strong>Species</strong> section for each species
 in the simulation.</p>
 <p>Each <strong>Species</strong> in the simulation is set up in a section <strong>Species</strong>
-inside the section <em>&#8216;Particles</em> which is inside the section <strong>System</strong></p>
-<p>Example input: Section (Species) { string Name=&#8221;He&#8221;; string Type=&#8221;He&#8221;;
-double lambda=6.059615; string Statistics=&#8221;BOSON&#8221;; int NumParticles=48;
-int NumDim=3; string InitPaths=&#8221;BCC&#8221;; }</p>
+inside the section <strong>Particles</strong> which is inside the section <strong>System</strong></p>
+<p>Example input:</p>
+<div class="highlight-python"><pre>Section (Species) {
+  string Name="He";
+  string Type="He";
+  double lambda=6.059615;
+  string Statistics="BOSON";
+  int NumParticles=48;
+  int NumDim=3;
+  string InitPaths="BCC";
+}</pre>
+</div>
 <p>The paramaters that are required to define a species are:</p>
-<p><em>Paramaters:</em> <strong>Type:</strong> Specifies the type of the species. This is used
+<div class="section" id="type">
+<h3>Type<a class="headerlink" href="#type" title="Permalink to this headline">¶</a></h3>
+<p>Specifies the type of the species. This is used
 to look up its Pair Action and must correspond to the corresponding name
 inside the PairAction file.</p>
-<p><strong>Name:</strong> This is a user-supplied name that will be used to reference
-the species. lambda: Equal to \hbar^2/2m.</p>
-<p><strong>Statistics:</strong> string variable indicating the statistics of the
+</div>
+<div class="section" id="name">
+<h3>Name<a class="headerlink" href="#name" title="Permalink to this headline">¶</a></h3>
+<p>This is a user-supplied name that will be used to reference
+the species. lambda: Equal to <tt class="docutils literal"><span class="pre">\hbar^2/2m</span></tt>.</p>
+</div>
+<div class="section" id="statistics">
+<h3>Statistics<a class="headerlink" href="#statistics" title="Permalink to this headline">¶</a></h3>
+<p>String variable indicating the statistics of the
 particle. Choice of &#8220;Boson&#8221;, &#8220;Fermion&#8221; or &#8220;Boltzmannon&#8221;. Currently using
 the &#8220;Fermion&#8221; flag turns on some of the nodal actions. None of the other
 flags currently do anything. Maybe we should check if the Boson flag is
 on before allowing permutations to happen.</p>
-<p><strong>NumParticles:</strong> How many particles of this type are being used in the
+</div>
+<div class="section" id="numparticles">
+<h3>NumParticles<a class="headerlink" href="#numparticles" title="Permalink to this headline">¶</a></h3>
+<p>How many particles of this type are being used in the
 simulation.</p>
-<p><strong>NumDim:</strong> The dimensionality of this particle. Lower dimensions then
+</div>
+<div class="section" id="numdim">
+<h3>NumDim<a class="headerlink" href="#numdim" title="Permalink to this headline">¶</a></h3>
+<p>The dimensionality of this particle. Lower dimensions then
 the number of dimensions of the simulation will allow things such as
 strings and planes as particles but this currently does not work.</p>
-<p><strong>InitPaths:</strong> string used to specify how to initialize the particles.
+</div>
+<div class="section" id="initpaths">
+<h3>InitPaths<a class="headerlink" href="#initpaths" title="Permalink to this headline">¶</a></h3>
+<p>String used to specify how to initialize the particles.
 Choices are:</p>
 <ol class="arabic simple">
-<li><strong>BCC:</strong> Sets up the particles in a BCC lattice</li>
-<li><strong>FIXED:</strong> Allows you to specifiy the intial conditions of all the
+<li><strong>BCC</strong>: Sets up the particles in a BCC lattice</li>
+<li><strong>FIXED</strong>: Allows you to specifiy the intial conditions of all the
 particles. All time slices will start at the same initial condition.
 Using this paramater requires the use of the paramater</li>
-<li><strong>Array Positions(numParticles,NDIM):</strong> Specifies the particle
+<li><strong>Array Positions(numParticles,NDIM)</strong>: Specifies the particle
 locations.</li>
-<li><strong>FILE:</strong> Allows you to specify a file from which the last
+<li><strong>RESTART</strong>: Allows you to specify a file from which the last
 configuration in the PathDump of the file will be read. Using this
 flag requires the user of the paramater<ol class="arabic">
-<li><strong>string File=&#8221;fileName&#8221;:</strong> Specifies the BASE (no .0.h5) of the
-filename to be read. If cloning is being used it will attempt to
-read fileName.n.h5 for the n&#8217;th clone.</li>
+<li><strong>string File=&#8221;fileName&#8221;</strong>: Specifies the BASE of the filename to be read. For example, if
+<strong>File=&#8221;out&#8221;</strong>, then out.n.m.h5 will be read, where n is the last run, and m is the mth clone.</li>
+<li><strong>bool ParallelFileRead (optional, default=true)</strong>: If running in parallel, you
+can choose to restart each clone from its own previous file <strong>true</strong> or a single file <strong>false</strong>.</li>
+<li><strong>int MaxNClones (optional)</strong>: If <strong>ParallelFileRead=true</strong>, then you may set
+the maximum number of previous clone files from which to restart. For example,
+if there were 3 previous configurations (out.0.0.h5, out.0.1.h5, and out.0.2.h5), but you wanted
+to run 5 new instantiations, you should specify <strong>MaxNClones=3</strong>.</li>
 </ol>
 </li>
 </ol>
+</div>
+</div>
 </div>
 
 
@@ -146,6 +189,26 @@ read fileName.n.h5 for the n&#8217;th clone.</li>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">System</a><ul>
+<li><a class="reference internal" href="#numtimeslices">NumTimeSlices</a></li>
+<li><a class="reference internal" href="#tau">tau</a></li>
+<li><a class="reference internal" href="#array-isperiodic-3">Array IsPeriodic(3)</a></li>
+<li><a class="reference internal" href="#array-box-3">Array Box(3)</a></li>
+<li><a class="reference internal" href="#particles">Particles</a><ul>
+<li><a class="reference internal" href="#type">Type</a></li>
+<li><a class="reference internal" href="#name">Name</a></li>
+<li><a class="reference internal" href="#statistics">Statistics</a></li>
+<li><a class="reference internal" href="#numparticles">NumParticles</a></li>
+<li><a class="reference internal" href="#numdim">NumDim</a></li>
+<li><a class="reference internal" href="#initpaths">InitPaths</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
   <h4>Previous topic</h4>
   <p class="topless"><a href="Input.html"
                         title="previous chapter">Input File</a></p>
