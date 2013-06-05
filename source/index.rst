@@ -1,17 +1,16 @@
-.. PIMC++ documentation master file, created by
-   sphinx-quickstart on Tue Jun  4 15:31:56 2013.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
-Welcome to PIMC++'s documentation!
-==================================
+PIMC++ Documentation
+====================
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-
+   Getting Started <Getting-Started>
+   Input <Input>
+   Analysis
+   Tutorials
+   Contact
 
 Indices and tables
 ==================

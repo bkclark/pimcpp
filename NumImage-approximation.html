@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p>For a free particle, the value of the density matrix can be shown to be
+<span class="math">\(C \exp\left(\frac{-d^2}{4\lambda\tau}\right)\)</span> where <span class="math">\(d\)</span> is
+the distance between two particles at adjacent slices. In a periodic
+box, this is no longer the case. Instead, the density matrix should be
+periodic i.e <span class="math">\(\sum_i C \exp[- d(r(0);r_i(\tau))]^2\)</span>where the
+index <span class="math">\(i\)</span> is the sum over all the periodic boxes. In the situation
+where the box length <span class="math">\(l \gg \sqrt{4 \lambda \tau}\)</span> the former
+approximation is a good one. When this is not the case, then the kinetic
+density matrix will be incorrect and you will get wrong answers.</p>
+<p>To remove this issue, there is a NumImage (Section: Actions) variable in
+the input. By setting this variable to 1, it will sum over the images in
+the nearest neighbor boxes (all 26 of them). Of course, doing so
+significantly slows down the calculation of the kinetic action in the
+code and should only be used when you are doing a calculation where it
+is critical. To see this effect in action, start making the free
+particle box iteratively smaller and compare against the analytical
+answer of a free particle in box. Eventually you will find a
+disagreement. Then increase NumImages and see the disagreement vanish.
+Complete this exercise by lowering the temperature (increasing
+<span class="math">\(\beta\)</span>) so that the system is confined to its ground state.</p>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/NumImage-approximation.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

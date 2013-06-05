@@ -1,0 +1,196 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Installing on 64-bit Ubuntu (quad core) with gnu compilers &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="installing-on-64-bit-ubuntu-quad-core-with-gnu-compilers">
+<h1>Installing on 64-bit Ubuntu (quad core) with gnu compilers<a class="headerlink" href="#installing-on-64-bit-ubuntu-quad-core-with-gnu-compilers" title="Permalink to this headline">¶</a></h1>
+<p>add adept-manager software:</p>
+<div class="line-block">
+<div class="line">using adept-manager get: autoconf</div>
+<div class="line">automake libtool libhdf5-mpich-dev (mpich-compatible hdf5 library)</div>
+</div>
+<p>libmpich-mpd1.0c2 libmpich1.0-dev libmpich1.0c2 mpich-bin mpich-mpd-bin</p>
+<p>blitz++ (must also move blitz.pc to /usr/lib/pkgconfig) fftw3-dev</p>
+<p>g77 libgsl0-dev svn</p>
+<p><strong>Installing spring tarball:</strong> ./configure &#8211;prefix=/usr make sudo make
+install</p>
+<p>Check out Common: svn co
+svn+ssh://esler.physics.uiuc.edu/home/svn/repos/Common/trunk/ Common/</p>
+<p>autoreconf &#8211;install</p>
+<p>(For distcc compilation modify quad.conf with distcc in front of CXX)
+./quad.conf</p>
+<p>make or make -j8 if using distcc</p>
+<p>sudo make install</p>
+<p>Check out and install PIMC++: svn co
+svn+ssh://esler.physics.uiuc.edu/home/svn/repos/PIMC++/trunk/ PIMC++/
+autoreconf &#8211;install ./configure &#8211;prefix=/usr &#8211;enable-mpi
+CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK CXX=&#8221;distcc mpicxx&#8221; CC=mpicc
+F77=mpif77 make -j8 export
+LD_LIBRARY_PATH=&#8221;/usr/lib:/opt/intel/mkl/9.1/lib/em64t/&#8221;</p>
+<p>Not for PIMC++ but useful cmake distcc</p>
+</div>
+<hr class="docutils" />
+<div class="section" id="installing-on-64-bit-ubuntu-quad-core-with-intel-fortran-compilers">
+<h1>Installing on 64-bit Ubuntu (quad core) with Intel Fortran compilers<a class="headerlink" href="#installing-on-64-bit-ubuntu-quad-core-with-intel-fortran-compilers" title="Permalink to this headline">¶</a></h1>
+<div class="line-block">
+<div class="line"><br /></div>
+<div class="line">The key here is <strong>not</strong> to rely on package manager software to deliver</div>
+</div>
+<p>libraries because they will likely be built with GNU compilers.
+| The only guaranteed way to avoid this is to do the following steps.
+| <strong>Install Intel C++ and Fortran compilers</strong>
+| These can be downloaded free for non-commercial use from Intel:
+| <a class="reference external" href="http://www.intel.com/cd/software/products/asmo-na/eng/340679.htm">http://www.intel.com/cd/software/products/asmo-na/eng/340679.htm</a>
+| On ubuntu, the best way to do this is to run the script (ignore the
+warnings that it can&#8217;t find the 32 bit libraries)
+| The Intel Math Kernel Libraries (mkl) can also be installed this way.
+| Once installed, it is necessary to add the bin directories to the
+$PATH environment variable and the lib directories to
+$LD_LIBRARY_PATH.
+| Also, ensure that you are using the intel compilers at all times ($CXX
+= icpc, $CC=icc, $F77=ifort).
+| <strong>Get make utilities</strong>
+| Using adept-manager get:
+| autoconf
+| automake
+| libtool
+| if you have not installed these already (it&#8217;s fine if they&#8217;re built
+with GNU).
+| <strong>Install an MPI Implementation</strong>
+| We have had problems with MPICH2, although it is probably fine if you
+can get it working. Open-MPI is known to work on this platform and with
+this software.
+| Install according to standard procedure, being sure to build with
+<strong>Intel compilers</strong>!
+| <strong>Install Libraries</strong>
+| Download source for the following and install, compiling with your
+newly build MPI compilers.
+| <strong>Note</strong>: To be sure that your MPI compilers (mpic++, mpicc, mpif77)
+wrap the Intel compilers, do
+| mpic++ &#8211;version
+| blitz++: <a class="reference external" href="http://www.oonumerics.org/blitz/download/">http://www.oonumerics.org/blitz/download/</a>
+| sprng-2.0: <a class="reference external" href="http://esler.physics.uiuc.edu/downloads/sprng-2.0.tar.gz">http://esler.physics.uiuc.edu/downloads/sprng-2.0.tar.gz</a>
+| hdf5: <a class="reference external" href="http://hdf.ncsa.uiuc.edu/HDF5/release/obtain5.html">http://hdf.ncsa.uiuc.edu/HDF5/release/obtain5.html</a>
+| fftw3: <a class="reference external" href="http://www.fftw.org/download.html">http://www.fftw.org/download.html</a>
+| gsl: <a class="reference external" href="http://directory.fsf.org/GNUsl.html">http://directory.fsf.org/GNUsl.html</a>
+| Generally, installation of each of these packages goes like this:
+| Unpack the tarball (tar -zxvf myPackage.tar.gz) and cd into the newly
+unpack directory
+| ./configure &#8211;prefix=/usr
+| make
+| sudo make install
+|  After installing blitz there will be a file blitz-uninstall.pc
+(usually in /usr/lib/pkgconfig/). This has to be removed (it confuses
+pkg-config because it thinks those flags are relevant when being asked
+for blitz)
+| Get svn if you don&#8217;t have that already (package manager should be able
+to do that)
+| Check out Common:
+| svn co svn+ssh://esler.physics.uiuc.edu/home/svn/repos/Common/trunk/
+Common/
+| autoreconf &#8211;install
+| (For distcc compilation modify quad.conf with distcc in front of CXX)
+| ./quad.conf
+| make or make -j8 if using distcc
+| sudo make install
+| Check out and install PIMC++:
+| svn co svn+ssh://esler.physics.uiuc.edu/home/svn/repos/PIMC++/trunk/
+PIMC++/
+| autoreconf &#8211;install
+| ./configure &#8211;prefix=/usr &#8211;enable-mpi
+CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK CXX=&#8221;distcc mpic++&#8221; CC=mpicc
+F77=mpif77
+| make -j8
+| export LD_LIBRARY_PATH=&#8221;/usr/lib:/opt/intel/mkl/9.1/lib/em64t/&#8221;</p>
+<hr class="docutils" />
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Installing on 64-bit Ubuntu (quad core) with gnu compilers</a></li>
+<li><a class="reference internal" href="#installing-on-64-bit-ubuntu-quad-core-with-intel-fortran-compilers">Installing on 64-bit Ubuntu (quad core) with Intel Fortran compilers</a></li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Quad.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>System &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="Input File" href="Input.html" />
+    <link rel="next" title="Actions" href="Actions.html" />
+    <link rel="prev" title="Input File" href="Input.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Actions.html" title="Actions"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Input.html" title="Input File"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Input.html" accesskey="U">Input File</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="system">
+<h1>System<a class="headerlink" href="#system" title="Permalink to this headline">¶</a></h1>
+<p>There are a number of different paramaters used to define the physical
+system on which the simulation is performing. They include things such
+as the number of time slices, the time step, information about the
+species, the box, etc.</p>
+<p>They are all included in the section <strong>System</strong></p>
+<p><em>Example input:</em></p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">Section&nbsp;(System)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;int&nbsp;NumTimeSlices=80;&nbsp;&nbsp;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;double&nbsp;tau=0.025;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Array</span></tt><tt class="docutils literal"><span class="pre">&nbsp;Box(3)=[11.01,&nbsp;&nbsp;12.713,&nbsp;&nbsp;11.98];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Array</span></tt><tt class="docutils literal"><span class="pre">&nbsp;IsPeriodic(3)=[true,true,true];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Section&nbsp;(Particles)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Species)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name=&quot;He&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type=&quot;He&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;lambda=6.059615;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Statistics=&quot;BOSON&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;NumParticles=48;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;NumDim=3;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;InitPaths=&quot;BCC&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+<p>At the level of &#8216;&#8217;&#8216;System &#8216;&#8217;&#8216;(i.e. not at a lower level in the
+hierarchy) the parameters are:</p>
+<p><strong>NumTimeSlices</strong>: Specifies the number of time slices for the system.
+The beta of the system is defined as tau*NumTimeSlices</p>
+<p><strong>tau</strong>: Specifies the time step (in the trotter breakup) for the
+simulation.</p>
+<p><strong>Array IsPeriodic(3)</strong>: Specifies which dimensions the system is
+periodic in. Currently an entirely periodic box is well tested and a box
+with no periodicity should largely work. A box that is periodic in only
+some dimensions is not well implemented right this second but could be
+without too much difficulty.</p>
+<p><strong>Array Box(3)</strong>: Specifies the size of the box for the system. Must be
+the number of dimensions of the entire system.</p>
+<p>The <strong>System</strong> section, contains a section <strong>Particles</strong> that defines
+parameters associated with the particles.</p>
+<p>The <strong>Particles</strong> section defines a <strong>Species</strong> section for each species
+in the simulation.</p>
+<p>Each <strong>Species</strong> in the simulation is set up in a section <strong>Species</strong>
+inside the section <em>&#8216;Particles</em> which is inside the section <strong>System</strong></p>
+<p>Example input: Section (Species) { string Name=&#8221;He&#8221;; string Type=&#8221;He&#8221;;
+double lambda=6.059615; string Statistics=&#8221;BOSON&#8221;; int NumParticles=48;
+int NumDim=3; string InitPaths=&#8221;BCC&#8221;; }</p>
+<p>The paramaters that are required to define a species are:</p>
+<p><em>Paramaters:</em> <strong>Type:</strong> Specifies the type of the species. This is used
+to look up its Pair Action and must correspond to the corresponding name
+inside the PairAction file.</p>
+<p><strong>Name:</strong> This is a user-supplied name that will be used to reference
+the species. lambda: Equal to \hbar^2/2m.</p>
+<p><strong>Statistics:</strong> string variable indicating the statistics of the
+particle. Choice of &#8220;Boson&#8221;, &#8220;Fermion&#8221; or &#8220;Boltzmannon&#8221;. Currently using
+the &#8220;Fermion&#8221; flag turns on some of the nodal actions. None of the other
+flags currently do anything. Maybe we should check if the Boson flag is
+on before allowing permutations to happen.</p>
+<p><strong>NumParticles:</strong> How many particles of this type are being used in the
+simulation.</p>
+<p><strong>NumDim:</strong> The dimensionality of this particle. Lower dimensions then
+the number of dimensions of the simulation will allow things such as
+strings and planes as particles but this currently does not work.</p>
+<p><strong>InitPaths:</strong> string used to specify how to initialize the particles.
+Choices are:</p>
+<ol class="arabic simple">
+<li><strong>BCC:</strong> Sets up the particles in a BCC lattice</li>
+<li><strong>FIXED:</strong> Allows you to specifiy the intial conditions of all the
+particles. All time slices will start at the same initial condition.
+Using this paramater requires the use of the paramater</li>
+<li><strong>Array Positions(numParticles,NDIM):</strong> Specifies the particle
+locations.</li>
+<li><strong>FILE:</strong> Allows you to specify a file from which the last
+configuration in the PathDump of the file will be read. Using this
+flag requires the user of the paramater<ol class="arabic">
+<li><strong>string File=&#8221;fileName&#8221;:</strong> Specifies the BASE (no .0.h5) of the
+filename to be read. If cloning is being used it will attempt to
+read fileName.n.h5 for the n&#8217;th clone.</li>
+</ol>
+</li>
+</ol>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Input.html"
+                        title="previous chapter">Input File</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Actions.html"
+                        title="next chapter">Actions</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/System.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Actions.html" title="Actions"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Input.html" title="Input File"
+             >previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Input.html" >Input File</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

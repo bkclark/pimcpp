@@ -1,0 +1,526 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Observables &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="Input File" href="Input.html" />
+    <link rel="next" title="Defining the move" href="Moves.html" />
+    <link rel="prev" title="Actions" href="Actions.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Moves.html" title="Defining the move"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Actions.html" title="Actions"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Input.html" accesskey="U">Input File</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="observables">
+<h1>Observables<a class="headerlink" href="#observables" title="Permalink to this headline">¶</a></h1>
+<p>To add an observable to your calculation, there are three steps:</p>
+<ol class="arabic simple">
+<li>Define the observable.</li>
+<li>Tell the Algorithms section when to evaluate the observable.</li>
+<li>Tell the Algorithms section when to write out the observable. Note:
+ALL observables (except for PathDumps) are written out at the same
+time.</li>
+</ol>
+<p>To begin with, one needs to define the observable in the observables
+section and then one needs to call the observable in the algorithm.</p>
+<div class="section" id="defining-the-observable">
+<h2>Defining the observable<a class="headerlink" href="#defining-the-observable" title="Permalink to this headline">¶</a></h2>
+<p>All observables are defined in their respective section <em>Observable</em>
+within the overall section <em>Observables</em></p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">Section(Observables)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type=&quot;Energy&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name=&quot;He-He_Energy&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;...</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+</div>
+<div class="section" id="inserting-the-observable-into-the-algorithm">
+<h2>Inserting the observable into the algorithm<a class="headerlink" href="#inserting-the-observable-into-the-algorithm" title="Permalink to this headline">¶</a></h2>
+<p>A sample algorithm looks like:</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">Section&nbsp;(Algorithm)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;Section&nbsp;(Loop){&nbsp;//Start&nbsp;Accumulating&nbsp;observables</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Steps=3000000000;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Loop){</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Steps=100;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Move)&nbsp;{string&nbsp;Name=&quot;BisectionMoveForHelium&quot;;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Loop){</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Steps=10;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Move)&nbsp;{string&nbsp;Name=&quot;Displace&quot;;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Move)&nbsp;{string&nbsp;Name=&quot;CenterOfMass&quot;;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;Vacancy&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;PathDump&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;StructureFactor&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;TimeAnalysis&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;CycleCount&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Move)&nbsp;{string&nbsp;Name&nbsp;=&nbsp;&quot;Shift&quot;;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(WriteData){}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">}</span></tt></div>
+</div>
+<p>To add your move to the algorithm, you must place in a line like:</p>
+<p><tt class="docutils literal"><span class="pre">&nbsp;Section&nbsp;(Observe)&nbsp;{string&nbsp;Name=&quot;Vacancy&quot;;}</span></tt></p>
+<p>where the name is the name you have chosen for your observable.</p>
+</div>
+<div class="section" id="telling-the-observables-to-write-to-the-output-file">
+<h2>Telling the observables to write to the output file<a class="headerlink" href="#telling-the-observables-to-write-to-the-output-file" title="Permalink to this headline">¶</a></h2>
+<p>All observables (except PathDump) are written when the following line is
+reached in the algorithm: Section (WriteData){}</p>
+</div>
+<div class="section" id="paramaters">
+<h2>Paramaters<a class="headerlink" href="#paramaters" title="Permalink to this headline">¶</a></h2>
+<p>All observables have (at minimum) the variables <em>Type</em>, <em>Name</em>, and
+<em>Frequency</em> which must be specified. The variable <em>Type</em> tells the code
+which observable to use (i.e. energy, paircorrelation, etc). You must
+use a string picked from the list of observables. The variable <em>Name</em> is
+a name you choose for the observable to be used later on when you call
+it in the algorithm. For example, your Name might be
+&#8220;EnergyForTheUpElectrons&#8221;. The variable <em>Frequency</em> tells the observable
+how often it accumulates (NOT writes) its running average. Every
+Frequency number of iterations through the algorithm, the observable is
+accumulated to the running average.</p>
+<p>All observables also have a number of other paramaters that need not be
+specified. They are:</p>
+<ol class="arabic simple">
+<li>Description: A description of the observable that gets placed in the
+output file solely for the sake of the user to read.</li>
+</ol>
+<p>Many observables have other paramaters. For example, the pair
+correlation function has an observable that indicates what two species
+it works on. Inside its observable block, there might be</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type=&quot;PairCorrelation&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name=&quot;He-He3_PC&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Species1=&quot;He&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Species2=&quot;He3&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;}</span></tt></div>
+</div>
+<p>In cases where you are just editing the input to an observable instead
+of adding one, you will need only to change the paramaters of the
+observable.</p>
+</div>
+<div class="section" id="list-of-observables">
+<h2>List of Observables<a class="headerlink" href="#list-of-observables" title="Permalink to this headline">¶</a></h2>
+<p>Note: All observables include a paramater Name that is user specified.</p>
+<div class="section" id="autocorrelation">
+<h3>Autocorrelation<a class="headerlink" href="#autocorrelation" title="Permalink to this headline">¶</a></h3>
+<p>This is a specialized observable to compute the dipole-dipole
+autocorrelation time for molecules such as water. It will be generalized
+for other systems. However, at present, using this observable is not
+recommended for any system other than rigid five-site water models.</p>
+<p><em>Example input:</em> Section (Observable) { string Type = &#8220;AutoCorr&#8221;; string
+Name = &#8220;AutoCorrelation&#8221;; int Frequency=1250; int dumpFrequency=50; //
+#steps = freq*dumpFreq int numSlots=50; // should ensure dumpFrequency
+&gt;= numSlots</p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Grid)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;type&nbsp;=&nbsp;&quot;Linear&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+</div>
+<p><strong>Paramaters:</strong></p>
+<p><strong>Type:</strong> AutoCorr</p>
+<p><strong>Frequency:</strong> As for all observables, Frequency gives the interval of
+Monte Carlo steps between measurements of the instantaneous dipole
+moments of the molecules.</p>
+<p><strong>dumpFrequency:</strong> Specifies the number of measurements to accumulate
+(not the number of MC steps) before the autocorrelation time is
+computed. So, the number of MC steps over which the autocorrelation time
+is computed will be Frequency*dumpFrequency.</p>
+<p><strong>numSlots:</strong> Specifies the number of bins in which dipole moments are
+accumulated. So the maximum possible autocorrelation time (in MC steps)
+is given by Frequency*numSlots. It is practically important to set
+dumpFrequency&gt;numSlots</p>
+</div>
+<div class="section" id="energy">
+<h3>Energy<a class="headerlink" href="#energy" title="Permalink to this headline">¶</a></h3>
+<p>The energy observable calculates the energy by evaluating the average
+beta derivative of the action.</p>
+<p>Example input: Input Paramaters: Type: Energy</p>
+<p>ComputeEnergies: This Array of strings is an optional parameter used to
+specify additional Action objects that can compute a system energy but
+are not computed by default. If the strings specified are recognized as
+valid Action objects, they will be computed whenever the Energy
+observable is called and will be included in the sum of all energies
+reported as Total in the [output file]. Currently, the supported Action
+objects that can be specified are:</p>
+<p>[ST2WaterClass]</p>
+<p>[QMCSamplingClass]</p>
+<p>[IonIonActionsClass]</p>
+<p>[CEIMCActionClass]</p>
+</div>
+<div class="section" id="forces">
+<h3>Forces<a class="headerlink" href="#forces" title="Permalink to this headline">¶</a></h3>
+<p>This observable generates a distribution of the force on a given
+species. It has not been widely tested and should be regarded as under
+development. <em>Example input:</em> Section (Observable) { string Type =
+&#8220;Forces&#8221;; string Name = &#8220;ForceOnNa&#8221;; int Frequency = 10; string Species
+= &#8220;Na&#8221;; } <em>Input Parameters:</em></p>
+<p><strong>Type:</strong> Forces</p>
+<p><strong>Species:</strong> Specify the species on which to compute forces</p>
+</div>
+<div class="section" id="grids">
+<h3>Grids<a class="headerlink" href="#grids" title="Permalink to this headline">¶</a></h3>
+<p>Grid is a separate Section that is contained within a number of
+observables, but it is not an observable <em>per se</em>.</p>
+<p><em>Example input:</em></p>
+<div class="highlight-python"><pre>Section (Grid)
+      {
+        string Type = "Linear";
+        double start = 0.0;
+        int NumPoints = 100;
+      }</pre>
+</div>
+<p><em>Input Paramaters:</em></p>
+<ul class="simple">
+<li><strong>Type:</strong> Linear</li>
+<li><strong>start:</strong> An optional parameter specifying the start of the grid
+(default is 0.0)</li>
+<li><strong>end:</strong> An optional parameter specifying the end of the grid
+(default is the box size for a periodic system)</li>
+<li><strong>NumPoints:</strong> A required parameter specifying the number of grid
+points (i.e. the resolution) of the grid</li>
+</ul>
+</div>
+<div class="section" id="pair-correlation-function">
+<h3>Pair Correlation Function<a class="headerlink" href="#pair-correlation-function" title="Permalink to this headline">¶</a></h3>
+<p>The pair correlation function calculates <span class="math">\(g(r)\)</span></p>
+<p><em>Example Input:</em></p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type&nbsp;=&nbsp;&quot;PairCorrelation&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name&nbsp;=&nbsp;&quot;HeHePC&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Species1&nbsp;=&nbsp;&quot;He&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Species2&nbsp;=&nbsp;&quot;He&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Description=&quot;Helium-Helium&nbsp;Pair&nbsp;Correlation&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Frequency=2;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Section&nbsp;(Grid)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type&nbsp;=&nbsp;&quot;Linear&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;start&nbsp;=&nbsp;0.0;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;NumPoints&nbsp;=&nbsp;100;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt> <em>``Input`` ``Paramaters:``</em></div>
+</div>
+<ul class="simple">
+<li><strong>Type:</strong> PairCorrelation</li>
+<li><strong>Species1:</strong> One species to be used in pair correlation function</li>
+<li><strong>Species2:</strong> Second species to be used in pair correlation function.</li>
+<li><strong>Description:</strong> Description of the observable</li>
+<li><strong>Grid Section:</strong> See section in observables on defining
+<a class="reference external" href="#Grids">Grids</a></li>
+<li>&#8216;&#8217;&#8216;Frequency: &#8216;&#8217;&#8217; Observable accumulated every Frequency number of
+times it is called in the algorithm.</li>
+<li>&#8216;&#8217;&#8216;Name: &#8216;&#8217;&#8217; User specified and consistent throughout input file.</li>
+</ul>
+</div>
+<div class="section" id="n-r">
+<h3>n(r)<a class="headerlink" href="#n-r" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="particle-average-location">
+<h3>Particle Average Location<a class="headerlink" href="#particle-average-location" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="pathdump">
+<h3>PathDump<a class="headerlink" href="#pathdump" title="Permalink to this headline">¶</a></h3>
+<p>Every Frequency steps, the particle paths and the permutations are
+written to the output file in .h5 format. If you wish to restart from an
+old configuration, it is important that you have included a PathDump in
+your simulation (otherwise there will be no data from which to restart)</p>
+<p><strong>Example Input:</strong></p>
+<div class="highlight-python"><pre>Section (Observable)
+{
+    string Type="PathDump";
+    string Name="PathDump";
+    int Frequency=2;
+}</pre>
+</div>
+<p><em>Input Parameters:</em></p>
+<ul class="simple">
+<li><strong>Type:</strong> PathDump</li>
+<li><strong>Name:</strong> User defined that is consistent throughout the algorithm</li>
+<li>&#8216;&#8217;&#8216;Frequency: &#8216;&#8217;&#8217; DIFFERENT then all other observables. Every
+frequency number of times pathdump is called in the algorithm it
+WRITES to a file. All other observables, accumulate every frequency
+number of calls but only write at a WriteBlock. PathDump does nothing
+at a WriteBlock.</li>
+<li>&#8216;&#8217;&#8216;AllClones: &#8216;&#8217;&#8217; boolean variable. If True, then all the parallel
+clones will dump the path. If False, then only the 0&#8217;th clone will
+dump the path.</li>
+</ul>
+</div>
+<div class="section" id="permutation-counting">
+<h3>Permutation Counting<a class="headerlink" href="#permutation-counting" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="pressure">
+<h3>Pressure<a class="headerlink" href="#pressure" title="Permalink to this headline">¶</a></h3>
+<p><em>Example input:</em></p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type&nbsp;=&nbsp;&quot;Pressure&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name&nbsp;=&nbsp;&quot;Pressure&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Description=&quot;Total&nbsp;Pressure&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Frequency=2;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;Prefactor=138.065;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</span></tt></div>
+</div>
+<p><em>Input Paramaters:</em> <strong>Type:</strong> Pressure <strong>Prefactor:</strong> This is a number
+that the pressure can be multiplied by. Typically this is chosen to
+change the pressure into more sane units. the number 138.065 changes the
+pressure into bars.</p>
+<p><em>Output Paramaters:</em> <strong>ShortRangePressure:</strong> Specifies the component of
+the pressure that comes from the shrot range ...</p>
+</div>
+<div class="section" id="structure-factor">
+<h3>Structure Factor<a class="headerlink" href="#structure-factor" title="Permalink to this headline">¶</a></h3>
+<p>This observable computes the Structure Factor
+<span class="math">\(\frac{1}{\sqrt{N_a N_b}}\rho_{k,a}\rho_{-k,b}\)</span> between species A
+and B</p>
+<p>Example input:</p>
+<div class="highlight-python"><pre>Section (Observable)
+     {
+       string Type="StructureFactor";
+       string Name="HeliumStructureFactor";
+       double kCutoff=5.0;
+       int Frequency=1;
+       string Species1="Helium4";
+       string Species2="Helium4";
+
+     }</pre>
+</div>
+<p><em>Input Paramaters:</em></p>
+<ul class="simple">
+<li>&#8216;&#8217;&#8216;Type: &#8216;&#8217;&#8217; StructureFactor</li>
+<li>&#8216;&#8217;&#8216;Name: &#8216;&#8217;&#8217; Anything user defined that is consistent throughout the
+input</li>
+<li>&#8216;&#8217;&#8216;kCutoff: &#8216;&#8217;&#8217; maximum k that should be included in the structure
+factor. If the long range action is being used, this MUST be the same
+cutoff as used in the long range action. If you wish to include other
+k-vectors, use the AdditionalkVecs variable (see below)</li>
+<li>&#8216;&#8217;&#8216;Frequency: &#8216;&#8217;&#8217; Observable accumulated every Frequency number of
+times it is called in the algorithm</li>
+<li><strong>Species1</strong> and <strong>Species2</strong>: The names of the respective species
+used in calculating the structure factor.</li>
+<li>&#8216;&#8217;&#8216;Array AdditionalkVecs(number_of_k_vecs,NDIM): &#8216;&#8217;&#8217; This is a
+list of additional kvectors that are to be included beyond those that
+are defined by the kCutoff.</li>
+</ul>
+<p>&#8216;&#8217;Output Paramaters: &#8216;&#8217;</p>
+</div>
+<div class="section" id="superfluid-fraction">
+<h3>Superfluid Fraction<a class="headerlink" href="#superfluid-fraction" title="Permalink to this headline">¶</a></h3>
+<p>The superfluid fraction calculates
+<span class="math">\(\frac{\rho_s}{\rho}=\frac{\left&lt;W^2\right&gt;}{2\lambda\beta N}\)</span></p>
+<p><em>Example Input</em>:</p>
+<div class="highlight-python"><pre>Section (Observable)
+{
+   string Type="SuperfluidFraction";
+   string Name="SuperfluidFraction";
+   Array&lt;string,1&gt; SpeciesList(1)=["He"];
+   int Frequency=1;
+}</pre>
+</div>
+<p><em>Input Paramaters:</em></p>
+<ul class="simple">
+<li><strong>Type:</strong> SuperfluidFraction</li>
+<li><strong>Name:</strong> User specified and consistent throughout input file.</li>
+<li>&#8216;&#8217;&#8216;Array SpeciesList(num_of_species): &#8216;&#8217;&#8217; List of species to
+calculate the superfluid fraction on (currently this doesn&#8217;t work. It
+calculates it on the entire system independent of this variable)</li>
+<li><strong>Frequency:</strong> Observable accumulated every Frequency number of times
+it is called in the algorithm</li>
+</ul>
+<p><em>Output Paramaters:</em></p>
+</div>
+<div class="section" id="time-analysis">
+<h3>Time Analysis<a class="headerlink" href="#time-analysis" title="Permalink to this headline">¶</a></h3>
+<p>The time analysis measures how long spend in different sections of the
+code. (note: if you suspend you&#8217;re code, this observable will give
+extremely erroneous results (the time measurements are depending on the
+wallclock time)</p>
+<p><em>Example Input:</em></p>
+<div class="highlight-python"><pre>Section (Observable)
+{
+  string Type="TimeAnalysis";
+  string Name="TimeAnalysis";
+  int Frequency=1;
+}</pre>
+</div>
+<p><em>Input Paramaters:</em></p>
+<ul class="simple">
+<li><strong>Type:</strong> TimeAnalysis</li>
+<li><strong>Name:</strong> User specified and consistent throughout input file.</li>
+<li><strong>Frequency:</strong> Needs to be specified but not actually used</li>
+</ul>
+</div>
+<div class="section" id="vacancy-location">
+<h3>Vacancy Location<a class="headerlink" href="#vacancy-location" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="weight">
+<h3>Weight<a class="headerlink" href="#weight" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="winding-number">
+<h3>Winding Number<a class="headerlink" href="#winding-number" title="Permalink to this headline">¶</a></h3>
+<p><em>Example input:</em></p>
+<div class="line-block">
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;Section&nbsp;(Observable)</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;{</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Type=&quot;WindingNumber&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Name=&quot;WindingNumber&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Array</span></tt><tt class="docutils literal"><span class="pre">&nbsp;SpeciesList(1)&nbsp;=&nbsp;[&quot;He&quot;];</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;string&nbsp;Description=&quot;Winding&nbsp;Number&quot;;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;Frequency=2;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;int&nbsp;dumpFrequency=20;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;double&nbsp;kCutoff=2.55;</span></tt></div>
+<div class="line"><tt class="docutils literal"><span class="pre">&nbsp;&nbsp;&nbsp;}</span></tt></div>
+</div>
+<p><em>Input Paramaters:</em></p>
+<p><strong>Type:</strong> WindingNumber</p>
+<p><em>Output Paramaters:</em></p>
+<p><tt class="docutils literal"><span class="pre">Specifies&nbsp;the&nbsp;component&nbsp;of&nbsp;the&nbsp;pressure&nbsp;that&nbsp;comes&nbsp;from&nbsp;the&nbsp;shrot&nbsp;range&nbsp;...</span></tt></p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Observables</a><ul>
+<li><a class="reference internal" href="#defining-the-observable">Defining the observable</a></li>
+<li><a class="reference internal" href="#inserting-the-observable-into-the-algorithm">Inserting the observable into the algorithm</a></li>
+<li><a class="reference internal" href="#telling-the-observables-to-write-to-the-output-file">Telling the observables to write to the output file</a></li>
+<li><a class="reference internal" href="#paramaters">Paramaters</a></li>
+<li><a class="reference internal" href="#list-of-observables">List of Observables</a><ul>
+<li><a class="reference internal" href="#autocorrelation">Autocorrelation</a></li>
+<li><a class="reference internal" href="#energy">Energy</a></li>
+<li><a class="reference internal" href="#forces">Forces</a></li>
+<li><a class="reference internal" href="#grids">Grids</a></li>
+<li><a class="reference internal" href="#pair-correlation-function">Pair Correlation Function</a></li>
+<li><a class="reference internal" href="#n-r">n(r)</a></li>
+<li><a class="reference internal" href="#particle-average-location">Particle Average Location</a></li>
+<li><a class="reference internal" href="#pathdump">PathDump</a></li>
+<li><a class="reference internal" href="#permutation-counting">Permutation Counting</a></li>
+<li><a class="reference internal" href="#pressure">Pressure</a></li>
+<li><a class="reference internal" href="#structure-factor">Structure Factor</a></li>
+<li><a class="reference internal" href="#superfluid-fraction">Superfluid Fraction</a></li>
+<li><a class="reference internal" href="#time-analysis">Time Analysis</a></li>
+<li><a class="reference internal" href="#vacancy-location">Vacancy Location</a></li>
+<li><a class="reference internal" href="#weight">Weight</a></li>
+<li><a class="reference internal" href="#winding-number">Winding Number</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Actions.html"
+                        title="previous chapter">Actions</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Moves.html"
+                        title="next chapter">Defining the move</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Observables.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Moves.html" title="Defining the move"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Actions.html" title="Actions"
+             >previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Input.html" >Input File</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
