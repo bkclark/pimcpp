@@ -19,4 +19,3 @@ Fully-correlated simulations of quantum systems in continuous space at finite te
 * Run `mkdir build && cd build && cmake ..`.
 * Run `make` (use `-j` for distributed compiling if possible). Built libraries are put in `$PROJECTDIR/bin/`.
 
-

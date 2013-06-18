@@ -16,31 +16,25 @@
 
 #include "DavidPAClass.h"
 
+
 void DavidPAClass::ReadParams(IOSectionClass &in)
 {
 
 }
+
 
 void DavidPAClass::WriteBetaIndependentInfo (IOSectionClass &out)
 {
 
 }
 
-// void DavidPAClass::Error (Rho &rho, double &Uerror, double &dUerror)
-// {
-
-// }
-
-// void DavidPAClass::DoFit (Rho &rho)
-// {
-
-// }
 
 void DavidPAClass::WriteFit(IOSectionClass &out)
 {
 
 
 }
+
 
 double DavidPAClass::dUdRTimesSigma(double r,int level)
 {
@@ -77,6 +71,7 @@ double DavidPAClass::d2UdR2TimesSigma(double r,int level)
   return d2UdR2TimesSigmaSpline(level)(r);
 }
 
+
 double DavidPAClass::d2UdR2TimesSigma_movers(double r,int level)
 {
   if (r>d2UdR2TimesSigmaSpline_movers(level).grid->End){
@@ -101,6 +96,7 @@ double DavidPAClass::U (double q, double z, double s2, int level)
 
 }
 
+
 double DavidPAClass::V(double r)
 {
   if (r>ukj(0).grid->End){
@@ -111,6 +107,7 @@ double DavidPAClass::V(double r)
   }
   return ukj(0)(0,r);
 }
+
 
 double DavidPAClass::dU(double q, double z, double s2, int level)
 {
@@ -124,15 +121,15 @@ double DavidPAClass::dU(double q, double z, double s2, int level)
 
 
 }
+
+
 bool DavidPAClass::IsLongRange()
 {
   return false;
 }
 
 
-void
-DavidPAClass::Derivs (double q, double z, double s2, int level,
-		      double &d_dq, double &d_dz)
+void DavidPAClass::Derivs (double q, double z, double s2, int level, double &d_dq, double &d_dz)
 {
   level += TauPos;
   
@@ -188,9 +185,8 @@ DavidPAClass::Derivs (double q, double z, double s2, int level,
   }
 }
 
-void
-DavidPAClass::DerivsFD (double q, double z, double s2, int level,
-			 double &d_dq, double &d_dz)
+
+void DavidPAClass::DerivsFD (double q, double z, double s2, int level, double &d_dq, double &d_dz)
 {
   double s = sqrt(s2);
   double epsilon = 1.0e-6;
@@ -206,9 +202,8 @@ DavidPAClass::DerivsFD (double q, double z, double s2, int level,
   d_dz = (zplus - zminus)/(2.0*epsilon);
 }
 
-void
-DavidPAClass::Derivs (double q, double z, double s2, int level,
-		      double &d_dq, double &d_dz, double &d_ds)
+
+void DavidPAClass::Derivs (double q, double z, double s2, int level, double &d_dq, double &d_dz, double &d_ds)
 {
   level += TauPos;
   
@@ -264,9 +259,8 @@ DavidPAClass::Derivs (double q, double z, double s2, int level,
   }
 }
 
-void
-DavidPAClass::DerivsFD (double q, double z, double s2, int level,
-			double &d_dq, double &d_dz, double &d_ds)
+
+void DavidPAClass::DerivsFD (double q, double z, double s2, int level, double &d_dq, double &d_dz, double &d_ds)
 {
   double s = sqrt(s2);
   double epsilon = 1.0e-6;
@@ -285,11 +279,11 @@ DavidPAClass::DerivsFD (double q, double z, double s2, int level,
   d_ds = (splus - sminus)/(2.0*epsilon);
 }
 
+
 /// Calculate the U(s,q,z) value when given s,q,z and the level 
 /*! \f[\frac{u_0(r;\tau)+u_0(r';\tau)}{2}+\sum_{k=1}^n 
   \sum_{j=1}^k u_{kj}(q;\tau)z^{2j}s^{2(k-j)}\f]   */
-void DavidPAClass::calcUsqz(double s,double q,double z,int level,
-			    double &U, double &dU, double &V)
+void DavidPAClass::calcUsqz(double s, double q, double z, int level, double &U, double &dU, double &V)
 {
   //level=level+(NumTau-(TauPos+1));
   level=level+TauPos;
@@ -467,11 +461,11 @@ void DavidPAClass::calcUsqz(double s,double q,double z,int level,
 //   }
 }
 
+
 /// Calculate the U(s,q,z) value when given s,q,z and the level 
 /*! \f[\frac{u_0(r;\tau)+u_0(r';\tau)}{2}+\sum_{k=1}^n 
   \sum_{j=1}^k u_{kj}(q;\tau)z^{2j}s^{2(k-j)}\f]   */
-void DavidPAClass::calcUsqzFast(double s,double q,double z,int level,
-				double &U)
+void DavidPAClass::calcUsqzFast(double s, double q, double z, int level, double &U)
 {
   level=level+TauPos;
   double rmin = ukj(level).grid->Start;
@@ -516,8 +510,7 @@ void DavidPAClass::calcUsqzFast(double s,double q,double z,int level,
 }
 
 
-double 
-DavidPAClass::UDiag_exact(double q,int level)
+double DavidPAClass::UDiag_exact(double q,int level)
 {
   level=level+TauPos;
   double rmin = ukj(level).grid->Start;
@@ -536,9 +529,7 @@ DavidPAClass::UDiag_exact(double q,int level)
 }
 
 
-
-double
-DavidPAClass::Udiag (double q, int level)
+double DavidPAClass::Udiag (double q, int level)
 {
   level=level+TauPos;
   // This is the endpoint action   
@@ -550,8 +541,8 @@ DavidPAClass::Udiag (double q, int level)
     return UdiagSpline(level)(q);
 }
 
-double
-DavidPAClass::dUdiag_fast (double q, int level)
+
+double DavidPAClass::dUdiag_fast (double q, int level)
 {
   level=level+TauPos;
   // This is the endpoint action   
@@ -562,7 +553,6 @@ DavidPAClass::dUdiag_fast (double q, int level)
   else
     return dUdiagSpline(level)(q);
 }
-
 
 
 void DavidPAClass::ReadSamplingTable(string fileName)
@@ -616,8 +606,6 @@ void DavidPAClass::ReadSamplingTable(string fileName)
   }
   ///We've read the dUdR and now will read the d2UdR2
 
-
-
   Array<double,2> tempd2UdR2;
   Array<double,2> tempd2UdR2_movers;
   in.ReadVar("d2UdR2_nonmovers",tempd2UdR2);
@@ -632,15 +620,12 @@ void DavidPAClass::ReadSamplingTable(string fileName)
     d2UdR2TimesSigmaSpline(level-startLevel).Init(theGrid,tempd2UdR2(level,Range::all()));
     d2UdR2TimesSigmaSpline_movers(level-startLevel).Init(theGrid,tempd2UdR2_movers(level,Range::all()));
   }
-  
-  
 
-
-  
   in.CloseSection();
   in.CloseFile();
   verr<<"Left the sampling table"<<endl;
 }
+
 
 void DavidPAClass::ReadDavidSquarerFile(string DMFile)
 {
@@ -919,6 +904,7 @@ void DavidPAClass::ReadDavidSquarerFile(string DMFile)
   ///  cerr<<"TauPos is "<<TauPos<<endl;
 }
 
+
 void DavidPAClass::ReadLongRangeHDF5(IOSectionClass &in)
 {
 
@@ -934,7 +920,6 @@ void DavidPAClass::ReadLongRangeHDF5(IOSectionClass &in)
   assert(in.ReadVar("mass2",LongRangeMass2));
   assert(in.ReadVar("ndim",LongRangeDim));
 }
-
 
 
 void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
@@ -1193,6 +1178,7 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   // PrintVals(0.0,3.0,0.1)
 }
 
+
 void DavidPAClass::PrintVals(double begin, double end, double dx)
 {
   double x = begin;
@@ -1202,20 +1188,6 @@ void DavidPAClass::PrintVals(double begin, double end, double dx)
   }
 }
 
-// double DavidPAClass::Udiag(double q, int level)
-// {
-//   level=level+TauPos;
-//   double rmin = ukj(level).grid->Start;
-  
-//   if (q > ukj(level).grid->End)
-//     q = ukj(level).grid->End;
-
-//   // This is the endpoint action   
-//   if (q < rmin) 
-//     return 5000.0;
-  
-//   return ukj(level)(1,q); 
-// }
 
 double DavidPAClass::Udiag_p(double q, int level)
 {
@@ -1232,6 +1204,7 @@ double DavidPAClass::Udiag_p(double q, int level)
   
   return ukj(level).Deriv(1,q); 
 }
+
 
 double DavidPAClass::Udiag_pp(double q, int level)
 {
