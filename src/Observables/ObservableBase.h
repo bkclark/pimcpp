@@ -38,68 +38,7 @@ class ObservableClass : public EventClass
 {
  protected:
 
-  template <typename Container> // we can make this generic for any container [1]
-  struct container_hash {
-    std::size_t operator()(Container const& c) const {
-      double tot = 0;
-      double sqtot = 0;
-      for (int i = 0; i < c.size(); i++) {
-        tot += c[i];
-        sqtot += c[i]*c[i];
-      }
-      double value = sqtot/tot;
-      return (size_t)*(const unsigned int *)&value;
-    }
-  };
-
-  class CompareVecInt
-  {
-    public:
-      bool operator() (const vector<int> &a, const vector<int> &b) {
-        for (int i = 0; i<a.size(); i++)
-          if (a[i] != b[i])
-            return (a[i] > b[i]);
-        return (a[0]>b[0]);
-      }
-  };
-
-  //vector< vector<int> > PossPerms;
-  //std::tr1::unordered_map<vector<int>,int,container_hash< vector<int> > > PossPerms;
-  //std::tr1::unordered_map<vector<int>,int,container_hash< vector<int> > >::const_iterator PossPermsIterator;
-  std::map<vector<int>,int,CompareVecInt> PossPerms;
-  std::map<vector<int>,int,CompareVecInt>::const_iterator PossPermsIterator;
-  Array<bool,1> CountedAlready;
-  Array<int,1> TotalPerm;
-  void SetupPermSectors(int n, int MaxNSectors=0);
-  void GetPermInfo(vector<int> &ThisPerm, int &PermSector, int &PermNumber);
-
   bool TrackSign;
-
-  struct CompareVectors
-  {
-    inline bool operator() (const vector<int> &a, const vector<int> &b) {
-      //int amax = *max_element(a.begin(),a.end());
-      //int bmax = *max_element(b.begin(),b.end());
-      //if (amax == bmax)
-      //  return b.size() < a.size();
-      //else
-      //  return amax < bmax;
-      double atot = 0;
-      double asqtot = 0;
-      for (int i=0; i<a.size(); i++) {
-        atot += a[i];
-        asqtot += a[i]*a[i];
-      }
-      double btot = 0;
-      double bsqtot = 0;
-      for (int i=0; i<b.size(); i++) {
-        btot += b[i];
-        bsqtot += b[i]*b[i];
-      }
-      return (bsqtot/btot) > (asqtot/atot);
-
-    }
-  };
 
   /// Statistics
   void GetStats(vector<double>& xs, double& mean, double& err, double& N);
