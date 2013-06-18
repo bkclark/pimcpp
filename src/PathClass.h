@@ -26,7 +26,7 @@
 #include <vector>
 #include <algorithm>
 #include <numeric>
-#include <tr1/unordered_map>
+#include <map>
 
 //#include <fftw3.h>
 
@@ -39,7 +39,7 @@ using namespace IO;
 ///is that the processor owns its first but not its last slice.
 class PathClass
 {
-private:  
+private:
 
   /// Path stores the position of all the particles at all time
   /// slices.  The order for access is timeslice, particle
@@ -49,10 +49,8 @@ private:
   Array<int,1> SpeciesNumber;
   Array<SpeciesClass *,1> SpeciesArray;
   int MyNumSlices;
-  //Current works in Serial
 
 
-  
   ////////////////////////
   /// Class References ///
   ////////////////////////
@@ -64,10 +62,9 @@ private:
   void LeviFlight (Array<dVec,1> &vec, double lambda);
   void ReadOld(string fileName, bool replicate);
   void ReadSqueeze(IOSectionClass &in,string fileName, bool replicate);
-  void Restart(IOSectionClass &in,string fileName,bool replicate,
-	       SpeciesClass &species);
+  void Restart(IOSectionClass &in,string fileName,bool replicate,SpeciesClass &species);
   void Tile(IOSectionClass &in,string fileName,bool replicate);
-  
+
   ////////////////////////////////
   /// Boundary conditions stuff //
   ////////////////////////////////
@@ -196,8 +193,8 @@ public:
       }
   };
 
-  std::map<vector<int>,int,CompareVecInt> PossPerms;
-  std::map<vector<int>,int,CompareVecInt>::const_iterator PossPermsIterator;
+  map<vector<int>,int,CompareVecInt> PossPerms;
+  map<vector<int>,int,CompareVecInt>::const_iterator PossPermsIterator;
   Array<bool,1> CountedAlready;
   Array<int,1> TotalPerm;
   bool SetupPermFirstTime;
