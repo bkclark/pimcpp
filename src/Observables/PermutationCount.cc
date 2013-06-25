@@ -96,7 +96,7 @@ void PermutationCountClass::Accumulate()
   if (PathData.Path.Communicator.MyProc() == 0) {
     SectorCount.push_back(PermSector);
     for (vector<int>::size_type j=0; j != Cycles.size(); j++)
-      CycleCount(Cycles[j]) += 1;
+      CycleCount(Cycles[j]-1) += 1;
   }
 }
 
