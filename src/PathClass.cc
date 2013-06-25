@@ -173,6 +173,7 @@ void PathClass::Read (IOSectionClass &inSection)
   StoreNodeDet = false;
   UseNodeImportance = false;
   kVecsSetup = false;
+  LongRange = false;
   DavidLongRange = false;
   SetupPermFirstTime = true;
 
@@ -911,9 +912,10 @@ void PathClass::ShiftData(int slicesToShift)
     ShiftNodeDist(slicesToShift);
   if (StoreNodeDet)
     ShiftNodeDet(slicesToShift);
-  if (LongRange)
+  if (LongRange) {
     // ShiftRho_kData(slicesToShift);
     UpdateRho_ks();
+  }
   OpenLink.AcceptCopy(); ///the open link has changed and you want to accept it
   RefSlice += slicesToShift;
   while (RefSlice >= TotalNumSlices)
