@@ -15,14 +15,14 @@
 /////////////////////////////////////////////////////////////
 
 // #include "../MPI/Communication.h"
-#include "FreeNodalActionClass.h"
+#include "ParametrizedFreeNodalActionClass.h"
 #include "../PathDataClass.h"
 #include "../MatrixOps/MatrixOps.h"
 #include "ctime"
 #include "sys/time.h"
 
 
-FreeNodalActionClass::FreeNodalActionClass (PathDataClass &pathData, int speciesNum) :
+ParametrizedFreeNodalActionClass::ParametrizedFreeNodalActionClass (PathDataClass &pathData, int speciesNum) :
   NodalActionClass (pathData), Path (pathData.Path), SpeciesNum (speciesNum)
 {
   int N = Path.Species(speciesNum).LastPtcl - Path.Species(speciesNum).FirstPtcl+1;
@@ -32,14 +32,16 @@ FreeNodalActionClass::FreeNodalActionClass (PathDataClass &pathData, int species
   SavePath.resize(N);
   NumLineDists = NumGradDists = 0;
   nSingular = 0;
+  Param1 = 1.0;
+  Param2 = 0.0;
 }
 
 
-double FreeNodalActionClass::ActionImageSum (double L, double lambdaBeta,  double disp)
+double ParametrizedFreeNodalActionClass::ActionImageSum (double L, double lambdaBeta,  double disp)
 {
   int numImages = 10;
   double sum = 0.0;
-  double fourLambdaBetaInv = (lambdaBeta!=0.0) ?  1.0/(4.0*lambdaBeta) : 0.0;
+  double fourLambdaBetaInv = (lambdaBeta!=0.0) ? ((Param1 * 1.0/(4.0*lambdaBeta)) + Param2) : 0.0;
   // If the images won't contributed anything, let's not worry
   // about image sums.
   if ((disp*disp*fourLambdaBetaInv) > 50.0)
@@ -52,7 +54,7 @@ double FreeNodalActionClass::ActionImageSum (double L, double lambdaBeta,  doubl
 }
 
 
-double FreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double disp)
+double ParametrizedFreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double disp)
 {
   double kmax = sqrt (50.0/lambdaBeta);
   double kInc = 2.0*M_PI/L;
@@ -67,7 +69,7 @@ double FreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double dis
 }
 
 
-void FreeNodalActionClass::Init()
+void ParametrizedFreeNodalActionClass::Init()
 {
   FirstDistTime = 1;
   FirstDetTime = 1;
@@ -102,7 +104,7 @@ void FreeNodalActionClass::Init()
 }
 
 
-void FreeNodalActionClass::SetupFreeActions()
+void ParametrizedFreeNodalActionClass::SetupFreeActions()
 {
   const int nPoints = 1000;
   // Setup grids
@@ -131,7 +133,7 @@ void FreeNodalActionClass::SetupFreeActions()
 }
 
 
-double FreeNodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
+double ParametrizedFreeNodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -165,7 +167,7 @@ double FreeNodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
 }
 
 
-double FreeNodalActionClass::Det (int slice)
+double ParametrizedFreeNodalActionClass::Det (int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -199,7 +201,7 @@ double FreeNodalActionClass::Det (int slice)
 }
 
 
-bool FreeNodalActionClass::IsPositive (int slice)
+bool ParametrizedFreeNodalActionClass::IsPositive (int slice)
 {
   int myStartSlice, myEndSlice;
   int myProc = PathData.Path.Communicator.MyProc();
@@ -215,7 +217,7 @@ bool FreeNodalActionClass::IsPositive (int slice)
 }
 
 
-void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath)
+void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -285,7 +287,7 @@ void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &g
 }
 
 
-void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient)
+void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradient)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -355,7 +357,7 @@ void FreeNodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &g
 }
 
 
-void FreeNodalActionClass::GradientDetFD (int slice, double &det, Array<dVec,1> &gradient)
+void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Array<dVec,1> &gradient)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -439,7 +441,7 @@ void FreeNodalActionClass::GradientDetFD (int slice, double &det, Array<dVec,1> 
 
 
 /// This simply returns the 1st Newton-Raphson estimate of the nodal distance
-double FreeNodalActionClass::NodalDist (int slice)
+double ParametrizedFreeNodalActionClass::NodalDist (int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -465,7 +467,7 @@ double FreeNodalActionClass::NodalDist (int slice)
 /// method.  If this method says we're far from the nodes, we go with
 /// that.  If it says we're close, call LineSearchDist to get a more
 /// accurate value.
-double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
+double ParametrizedFreeNodalActionClass::HybridDist (int slice, double lambdaTau)
 {
   //if (((NumGradDists+NumLineDists)%1000000) == 999999) {
   //  cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
@@ -498,7 +500,7 @@ double FreeNodalActionClass::HybridDist (int slice, double lambdaTau)
 
 
 /// Returns the shortest distance between particles
-double FreeNodalActionClass::MaxDist(int slice)
+double ParametrizedFreeNodalActionClass::MaxDist(int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -518,7 +520,7 @@ double FreeNodalActionClass::MaxDist(int slice)
 
 
 /// Does a bisection line-search in the direction of the gradient
-double FreeNodalActionClass::LineSearchDist (int slice)
+double ParametrizedFreeNodalActionClass::LineSearchDist (int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -591,7 +593,7 @@ double FreeNodalActionClass::LineSearchDist (int slice)
 
 
 
-double FreeNodalActionClass::NewtonRaphsonDist (int slice)
+double ParametrizedFreeNodalActionClass::NewtonRaphsonDist (int slice)
 {
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
@@ -663,7 +665,7 @@ double FreeNodalActionClass::NewtonRaphsonDist (int slice)
 }
 
 
-void FreeNodalActionClass::Read (IOSectionClass &in)
+void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 {
   TimeSpent = 0.0;
   SetupFreeActions();
@@ -684,12 +686,9 @@ void FreeNodalActionClass::Read (IOSectionClass &in)
 }
 
 
-double FreeNodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, int SpeciesNum)
+double ParametrizedFreeNodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, int SpeciesNum)
 {
- // cout << "HD: " << HybridDist(slice,lambda*levelTau) << " NR: " << NewtonRaphsonDist(slice) << " MD: " << MaxDist(slice) << " ND: " << NodalDist(slice) << endl;
-  if (PathData.Path.NumParticles() == 1)
-    return 1e100;
-
+  //cout << "HD: " << HybridDist(slice,lambda*levelTau) << " NR: " << NewtonRaphsonDist(slice) << " MD: " << MaxDist(slice) << " ND: " << NodalDist(slice) << endl;
   double dist;
   if ((GetMode()==NEWMODE||FirstDistTime)||!PathData.Path.StoreNodeDist)
     if (UseHybridDist)
@@ -708,7 +707,7 @@ double FreeNodalActionClass::GetNodeDist(int slice, double lambda, double levelT
 }
 
 
-double FreeNodalActionClass::SingleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+double ParametrizedFreeNodalActionClass::SingleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
   if (PathData.Path.Equilibrate||UseNoDist)
     return SimpleAction(startSlice,endSlice,changePtcls,level);
@@ -720,7 +719,7 @@ double FreeNodalActionClass::SingleAction (int startSlice, int endSlice, const A
 
 
 /// Return essentially 0 or infinity
-double FreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+double ParametrizedFreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
   struct timeval start, end;
   struct timezone tz;
@@ -780,7 +779,7 @@ double FreeNodalActionClass::SimpleAction (int startSlice, int endSlice, const A
 }
 
 
-double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+double ParametrizedFreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
   struct timeval start, end;
   struct timezone tz;
@@ -864,7 +863,7 @@ double FreeNodalActionClass::NodeImportanceAction (int startSlice, int endSlice,
 }
 
 
-double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+double ParametrizedFreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
   struct timeval start, end;
   struct timezone tz;
@@ -948,7 +947,7 @@ double FreeNodalActionClass::PreciseAction (int startSlice, int endSlice, const 
 }
 
 
-double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
+double ParametrizedFreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
 {
   if (PathData.Path.Equilibrate||UseNoDist)
     return 0.0;
@@ -1026,25 +1025,25 @@ double FreeNodalActionClass::d_dBeta (int slice1, int slice2, int level)
 }
 
 
-NodeType FreeNodalActionClass::Type()
+NodeType ParametrizedFreeNodalActionClass::Type()
 {
   return FREE_PARTICLE;
 }
 
 
-bool FreeNodalActionClass::IsGroundState()
+bool ParametrizedFreeNodalActionClass::IsGroundState()
 {
   return (false);
 }
 
 
-void FreeNodalActionClass::WriteInfo (IOSectionClass &out)
+void ParametrizedFreeNodalActionClass::WriteInfo (IOSectionClass &out)
 {
   out.WriteVar ("Type", "FREE_PARTICLE");
 }
 
 
-string FreeNodalActionClass::GetName()
+string ParametrizedFreeNodalActionClass::GetName()
 {
   return "FreeNodal";
 }

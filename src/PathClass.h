@@ -446,7 +446,7 @@ inline bool PathClass::HasFermions(const Array<int,1>& activeParticles)
   bool HasFermion=false;
   for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
     int ptcl=activeParticles(ptclIndex);
-    HasFermion = HasFermion || ParticleSpecies(ptcl).GetParticleType();
+    HasFermion = HasFermion || (ParticleSpecies(ptcl).GetParticleType() == FERMION);
   }
   return HasFermion;
 }
