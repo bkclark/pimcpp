@@ -60,10 +60,13 @@ void EnergyClass::Accumulate()
 
   // Permutation Counting
   if(CountPerms) {
-    int PermSector, PermNumber;
-    vector<int> ThisPerm;
-    GetPermInfo(ThisPerm,PermSector,PermNumber);
+    vector<int> Cycles;
+    int PermSector;
+    PathData.Path.GetPermInfo(Cycles,PermSector);
     if (Path.Communicator.MyProc() == 0) {
+      if (completeSum == 0) {
+        cout << PermSector << " " << localSum << endl;
+      }
       PermEnergy.push_back(completeSum);
       SectorCount.push_back(PermSector);
     }
@@ -223,12 +226,12 @@ void EnergyClass::Read(IOSectionClass & in)
     int MaxNSectors;
     if(!in.ReadVar("MaxNSectors", MaxNSectors))
       MaxNSectors = 0; // 0 -> Track all sectors
-    SetupPermSectors(N,MaxNSectors);
-    int PermSector, PermNumber;
-    vector<int> ThisPerm;
-    GetPermInfo(ThisPerm,PermSector,PermNumber);
+    PathData.Path.SetupPermSectors(N,MaxNSectors);
+    vector<int> Cycles;
+    int PermSector;
+    PathData.Path.GetPermInfo(Cycles,PermSector);
     if (PathData.Path.Communicator.MyProc() == 0)
-      cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PossPerms.size()-1 << endl;
+      cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PathData.Path.PossPerms.size()-1 << endl;
   }
 
   // Other Energies

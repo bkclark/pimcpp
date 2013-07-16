@@ -37,6 +37,7 @@
 //#include "EAMClass.h"
 #include "NodalActionClass.h"
 #include "FreeNodalActionClass.h"
+#include "ParametrizedFreeNodalActionClass.h"
 
 // #include "GroundStateNodalActionClass.h"
 

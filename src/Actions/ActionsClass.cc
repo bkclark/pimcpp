@@ -41,6 +41,7 @@
 #include "EAMClass.h"
 #include "NodalActionClass.h"
 #include "FreeNodalActionClass.h"
+#include "ParametrizedFreeNodalActionClass.h"
 #include "SHONodalActionClass.h"
 #include "Sal.h"
 // #include "GroundStateNodalActionClass.h"
@@ -391,6 +392,13 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
       nodeAction -> Read(in);
       NodalActions(species) = nodeAction;
       ActionList.push_back(nodeAction);
+    } else if (type == "PARAMETRIZEDFREE") {
+      assert (in.ReadVar("Species", speciesString));
+      int species = PathData.Path.SpeciesNum(speciesString);
+      ParametrizedFreeNodalActionClass &nodeAction = *(new ParametrizedFreeNodalActionClass (PathData, species));
+      nodeAction.Read(in);
+      NodalActions(species) = &nodeAction;
+      ActionList.push_back(&nodeAction);
     }
 
     // Whether or not to track the nodal distance to save time

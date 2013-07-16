@@ -46,7 +46,10 @@ void PermutationCountClass::WriteBlock()
     }
 
     /// CycleCount
-    double norm = 1.0 / ((double) NumSamples);
+    int NumCycles = 0;
+    for (int i = 0; i < CycleCount.size(); i++)
+      NumCycles += CycleCount(i);
+    double norm = 1.0 / ((double) NumCycles);
     for (int i = 0; i < CycleCount.size(); i++)
       CycleCount(i) = Prefactor * CycleCount(i) * norm;
     CycleCountVar.Write(CycleCount);
@@ -67,32 +70,18 @@ void PermutationCountClass::Read(IOSectionClass &in)
     MaxNSectors = 0; // 0 -> Track all sectors
 
   // Setup Permutation Sectors
-  SetupPermSectors(PathData.Path.NumParticles(),MaxNSectors);
+  PathData.Path.SetupPermSectors(PathData.Path.NumParticles(),MaxNSectors);
   CycleCount.resize(PathData.Path.NumParticles());
   CycleCount = 0.0;
   NumSamples = 0;
 
-  // Group Permutation Sectors
-  //Array<int,2> tmpPossPerms;
-  //tmpPossPerms.resize(PossPerms.size(),CycleCount.size());
-  //for (int i=0; i<PossPerms.size(); i++) {
-  //  CycleCount = 0.0;
-  //  for (int j=0; j<PossPerms[i].size(); j++) {
-  //    CycleCount(PossPerms[i][j]-1)++;
-  //  }
-  //  for (int j=0; j<CycleCount.size(); j++) {
-  //    tmpPossPerms(i,j) = CycleCount(j);
-  //  }
-  //}
-
   /// Now write the one-time output variables
   if (PathData.Path.Communicator.MyProc()==0) {
     WriteInfo();
-    //PossPermsVar.Write(tmpPossPerms);
-    //PossPermsVar.Flush();
   }
 
 }
+
 
 void PermutationCountClass::Accumulate()
 {
@@ -101,14 +90,13 @@ void PermutationCountClass::Accumulate()
   PathData.MoveJoin(PathData.NumTimeSlices() - 1);
   NumSamples++;
 
-  int PermSector, PermNumber;
-  vector<int> ThisPerm;
-  GetPermInfo(ThisPerm,PermSector,PermNumber);
+  int PermSector;
+  vector<int> Cycles;
+  PathData.Path.GetPermInfo(Cycles, PermSector);
   if (PathData.Path.Communicator.MyProc() == 0) {
-    //SectorCount(PermSector) += 1;
     SectorCount.push_back(PermSector);
-    for (vector<int>::size_type j=0; j != ThisPerm.size(); j++)
-      CycleCount(ThisPerm[j]-1)++;
+    for (vector<int>::size_type j=0; j != Cycles.size(); j++)
+      CycleCount(Cycles[j]-1) += 1;
   }
 }
 

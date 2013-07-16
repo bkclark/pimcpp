@@ -197,6 +197,7 @@ src/Moves/PermuteTableClass.cc
 src/Actions/ExternalPotential.cc
 src/Moves/PermuteTableOnClass.cc
 src/Actions/FreeNodalActionClass.cc
+src/Actions/ParametrizedFreeNodalActionClass.cc
 src/Moves/PreSampling.cc
 src/Actions/KineticClass.cc
 src/Moves/RandomPermClass.cc

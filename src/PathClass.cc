@@ -173,7 +173,9 @@ void PathClass::Read (IOSectionClass &inSection)
   StoreNodeDet = false;
   UseNodeImportance = false;
   kVecsSetup = false;
+  LongRange = false;
   DavidLongRange = false;
+  SetupPermFirstTime = true;
 
   SetMode(OLDMODE);
   SignWeight = 1;
@@ -910,9 +912,10 @@ void PathClass::ShiftData(int slicesToShift)
     ShiftNodeDist(slicesToShift);
   if (StoreNodeDet)
     ShiftNodeDet(slicesToShift);
-  if (LongRange)
+  if (LongRange) {
     // ShiftRho_kData(slicesToShift);
     UpdateRho_ks();
+  }
   OpenLink.AcceptCopy(); ///the open link has changed and you want to accept it
   RefSlice += slicesToShift;
   while (RefSlice >= TotalNumSlices)
@@ -1432,8 +1435,8 @@ void PathClass::InitOpenPaths()
   perr<<"Initialized the open paths"<<endl;
 }
 
-void
-PathClass::WarpAtoB(dVec &pos)
+
+void PathClass::WarpAtoB(dVec &pos)
 {
   double weightSum = 0.0;
   for (int i=0; i<IonConfigs[0].size(); i++) {
@@ -1455,8 +1458,8 @@ PathClass::WarpAtoB(dVec &pos)
   pos = pos + shift;
 }
 
-void
-PathClass::WarpBtoA(dVec &pos)
+
+void PathClass::WarpBtoA(dVec &pos)
 {
   double weightSum = 0.0;
   for (int i=0; i<IonConfigs[0].size(); i++) {
@@ -1478,8 +1481,8 @@ PathClass::WarpBtoA(dVec &pos)
   pos = pos + shift;
 }
 
-void 
-PathClass::WarpPaths (int ionSpecies)
+
+void PathClass::WarpPaths (int ionSpecies)
 {
   SpeciesClass &ions = Species(ionSpecies);
   int N = ions.NumParticles;
@@ -1512,8 +1515,8 @@ PathClass::WarpPaths (int ionSpecies)
   }
 }
 
-void
-PathClass::DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB,dVec &dispA, dVec &dispB)
+
+void PathClass::DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB,dVec &dispA, dVec &dispB)
 {
   dispA = Path(sliceA, ptcl2) - Path(sliceA,ptcl1);
   dispB = Path(sliceB, ptcl2) - Path(sliceB,ptcl1);
@@ -1572,6 +1575,7 @@ PathClass::DistDispFast (int sliceA, int sliceB, int ptcl1, int ptcl2, double &d
 
 }
 
+
 void PathClass::PutInBox(dVec &v,dVec &box)
 {
   dVec boxInv;
@@ -1582,6 +1586,7 @@ void PathClass::PutInBox(dVec &v,dVec &box)
     v(i) += n*IsPeriodic(i)*box(i);
   }
 }
+
 
 void PathClass::PutInBoxFast (dVec &v)
 {
@@ -1602,3 +1607,116 @@ void PathClass::PutInBoxFast (dVec &v)
     assert(v==oldV);
   }
 }
+
+
+// Setup permutation sectors
+void PathClass::SetupPermSectors(int n, int MaxNSectors)
+{
+  if (Communicator.MyProc() == 0 && SetupPermFirstTime) {
+    SetupPermFirstTime = false;
+    cout << CloneStr << " Setting up Permutation Sectors" << endl;
+    vector<int> a;
+    a.resize(n);
+    for (int i=0; i<n; i++) {
+      a[i] = 0;
+    }
+    int k = 1;
+    int y = n-1;
+    vector< vector<int> > tmpPossPerms;
+    while (k != 0 && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
+      int x = a[k-1] + 1;
+      k -= 1;
+      while (2*x <= y) {
+        a[k] = x;
+        y -= x;
+        k += 1;
+      }
+      int l = k+1;
+      while (x <= y && (MaxNSectors > PossPerms.size() || !MaxNSectors)) {
+        a[k] = x;
+        a[l] = y;
+        vector<int> b;
+        for (vector<int>::size_type j=0; j!=k+2; j++)
+          b.push_back(a[j]);
+        tmpPossPerms.push_back(b);
+        x += 1;
+        y -= 1;
+      }
+      a[k] = x+y;
+      y = x+y-1;
+      vector<int> c;
+      for (vector<int>::size_type j=0; j!=k+1; j++)
+        c.push_back(a[j]);
+      tmpPossPerms.push_back(c);
+    }
+
+
+    //cout << CloneStr << " Putting sectors in map" << endl;
+    int nSectors = tmpPossPerms.size();
+    for (vector<int>::size_type j=0; j != nSectors; j++) {
+      //sort(tmpPossPerms[j].begin(),tmpPossPerms[j].end());
+      //for (int i = 0; i < tmpPossPerms[j].size(); i++)
+      //  cout << tmpPossPerms[j][i] << " ";
+      //cout << endl;
+      PossPerms[tmpPossPerms[j]] = j;
+    }
+  }
+
+}
+
+
+void PathClass::GetPermInfo(vector<int> &Cycles, int &PermSector)
+{
+  int N = NumParticles();
+  if (CountedAlready.size() != N) {
+    CountedAlready.resize(N);
+    TotalPerm.resize(N);
+  }
+  TotalPermutation(TotalPerm); /// Only proc 0 gets TotalPerm
+  CountedAlready = false;
+  int ptcl = 0;
+  int PermNumber = 0;
+  if (Communicator.MyProc() == 0) {
+    while (ptcl < N) {
+      if (!CountedAlready(ptcl)) {
+        int startPtcl = ptcl;
+        int roamingPtcl = ptcl;
+        int cycleLength = 0;
+        roamingPtcl = TotalPerm(roamingPtcl);
+        while (roamingPtcl != startPtcl) {
+          CountedAlready(roamingPtcl) = true;
+          cycleLength++;
+          roamingPtcl = TotalPerm(roamingPtcl);
+        }
+        Cycles.push_back(cycleLength+1);
+        PermNumber += cycleLength;
+      }
+      ptcl++;
+    }
+  } else
+    return;
+
+  //while (!Cycles.empty()) {
+  //  int cycle = Cycles.back()-1;
+  //  if (ThisPerm.find(cycle) == ThisPerm.end())
+  //    ThisPerm.insert(pair<int,int>(cycle,1));
+  //  else
+  //    ThisPerm[cycle] += 1;
+  //  Cycles.pop_back();
+  //}
+
+  sort(Cycles.begin(),Cycles.end());
+  PossPermsIterator = PossPerms.find(Cycles);
+  if (PossPermsIterator == PossPerms.end()) {
+    cerr << "Broken Permutation: " << endl;
+    for (vector<int>::size_type i=0; i != Cycles.size(); i++)
+      cerr << Cycles[i] << " ";
+    cerr << endl;
+    exit(1);
+  } else {
+    PermSector = PossPermsIterator->second;
+    return;
+  }
+}
+
+
