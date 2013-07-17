@@ -27,6 +27,10 @@ typedef enum { FREE_PARTICLE, GROUND_STATE, GROUND_STATE_FP } NodeType;
 class NodalActionClass : public ActionBaseClass
 {
 public:
+  virtual void ChangeModel(int tmpModel);
+  virtual int GetModel();
+  virtual int GetNumModels();
+
   virtual bool IsPositive (int slice) = 0;
   //  virtual double Det(int slice)       = 0;
   //  virtual Array<double,2> GetMatrix (int slice=0) = 0;

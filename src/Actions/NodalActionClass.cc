@@ -16,34 +16,33 @@
 
 #include "NodalActionClass.h"
 
-void 
-NodalActionClass::AcceptCopy (int slice1, int slice2)
+void NodalActionClass::AcceptCopy (int slice1, int slice2)
 {
   /// Base class does nothing
 }
 
-void 
-NodalActionClass::RejectCopy (int slice1, int slice2)
-{
-  /// Base class does nothing
-}
-
-
-void 
-NodalActionClass::Init()
-{
-  /// Base class does nothing
-}
-
-void
-NodalActionClass::Setk (Vec3 k)
+void NodalActionClass::RejectCopy (int slice1, int slice2)
 {
   /// Base class does nothing
 }
 
 
-void
-NodalActionClass::Update()
+void NodalActionClass::Init()
+{
+  /// Base class does nothing
+}
+
+void NodalActionClass::ChangeModel(int tmpModel){}
+int NodalActionClass::GetModel(){}
+int NodalActionClass::GetNumModels(){}
+
+void NodalActionClass::Setk (Vec3 k)
+{
+  /// Base class does nothing
+}
+
+
+void NodalActionClass::Update()
 {
   /// Base class does nothing
 }

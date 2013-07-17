@@ -34,7 +34,7 @@ private:
   /// These splines will hold the free-particle action for
   /// periodic boundary conditions.  The array is over time-slice
   /// separation from the reference slice.
-  Array<TinyVector<CubicSpline,NDIM>,1> ActionSplines;
+  Array<TinyVector<CubicSpline,NDIM>,2> ActionSplines;
   TinyVector<LinearGrid,NDIM> ActionGrids;
   double ActionImageSum (double L, double lambdaTau, double disp);
   double ActionkSum (double L, double lambdaTau, double disp);
@@ -61,7 +61,14 @@ private:
   bool FirstDistTime, FirstDetTime;
 public:
   /// Variational parameters
+  int NumModels, NumParams;
+  Array<double,2> ParamList;
+  int model;
   double Param1, Param2;
+  void ChangeModel(int tmpModel);
+  int GetModel();
+  int GetNumModels();
+
   void SetupFreeActions();
 
   void Init();

@@ -290,6 +290,7 @@ src/Observables/Time.cc
 src/MirroredClass.cc
 src/Observables/TimeHexatic.cc
 src/Observables/Centroid.cc
+src/Observables/NodalModelTime.cc
 src/Moves/CentroidMove.cc
 src/MoleculeHelper.cc
 src/Observables/TimeLindenman.cc
@@ -320,6 +321,7 @@ src/QMCWrapper.cc
 src/Moves/CouplingStage.cc
 src/SpeciesClass.cc
 src/Moves/DisplaceMove.cc
+src/Moves/NodalModelMove.cc
 src/Moves/DisplaceMoveFast.cc
 src/Moves/EmptyStage.cc
 src/Splines/CubicSpline.cc

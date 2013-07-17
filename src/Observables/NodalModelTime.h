@@ -14,38 +14,34 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#ifndef MOVE_CLASS_H
-#define MOVE_CLASS_H
+#ifndef NODALMODELTIME_H
+#define NODALMODELTIME_H
+
+#include "ObservableBase.h"
+#include "../MatrixOps/MatrixOps.h"
+
+class NodalModelTimeClass : public ObservableClass
+{
+private:
+  ObservableVecDouble1 NodalModelTimeVar;
+  Array<double,1> counts;
+  int NumSamples;
+  string Species;
+public:
+  /// This grid defines the bins.  Bin 0 is bounded by 0 on the 
+  /// bottom and grid(0) on the top.
+  void Accumulate();
+  void Read(IOSectionClass& in);
+  void WriteBlock();
+  void WriteInfo();
+  NodalModelTimeClass(PathDataClass &myPathData, IOSectionClass &ioSection) :
+    ObservableClass(myPathData,ioSection),
+    NodalModelTimeVar("Time", IOSection, myPathData.Path.Communicator)
+  {
+    NumSamples = 0;
+  }
+
+};
 
 
-#include "BisectionBlock.h"
-#include "BisectionSphereBlock.h"
-#include "CentroidMove.h"
-#include "CenterDropletMove.h"
-#include "MetaMoves.h"
-#include "PermuteTableClass.h"
-#include "RandomPermMove.h"
-#include "MultiStage.h"
-#include "PreSampling.h"
-#include "SPS.h"
-#include "IonMoveManager.h"
-#include "MoleculeMoveManager.h"
-
-#include "CorrelatedBisectionBlock.h"
-#include "CenterofMassMove.h"
-#include "RefSliceMove.h"
-#include "DisplaceMove.h"
-#include "NodalModelMove.h"
-#include "DisplaceMoveFast.h"
-#include "OpenEndMove.h"
-#include "MoleculeMove.h"
-#include "SwapMove.h"
-#include "ClusterMove.h"
-#include "StructureRejectStage.h"
-#include "CouplingMove.h"
-
-
-
-#include "WormGrow.h"
-#include "ReadPath.h"
 #endif
