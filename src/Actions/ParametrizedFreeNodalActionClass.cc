@@ -1065,7 +1065,7 @@ bool ParametrizedFreeNodalActionClass::IsGroundState()
 
 void ParametrizedFreeNodalActionClass::WriteInfo (IOSectionClass &out)
 {
-  out.WriteVar ("Type", "FREE_PARTICLE");
+  //out.WriteVar ("Type", "FREE_PARTICLE");
 }
 
 
