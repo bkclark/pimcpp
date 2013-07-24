@@ -593,9 +593,8 @@ PathClass::InitPaths (IOSectionClass &in)
     else if (InitPaths == "BCC") {
       int num = species.NumParticles;
       bool isCubic = 0;
-#if NDIM==2   
+#if NDIM==2
       isCubic = (Box[0]==Box[1]);
-      cerr << isCubic << endl;
 #endif
 #if NDIM==3
       isCubic = (Box[0]==Box[1]) && (Box[1]==Box[2]);
@@ -604,14 +603,18 @@ PathClass::InitPaths (IOSectionClass &in)
         perr << "A cubic box is current required for cubic initilization\n";
         abort();
       }
-      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/3.0)-1.0e-6);
+      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/NDIM)-1.0e-6);
       double delta = Box[0] / numPerDim;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
         int ip = (ptcl-species.FirstPtcl)/2;
         int ix, iy, iz;
+#if NDIM==2
+        ix = ip/(numPerDim);
+        iy = ip-(ix*numPerDim);
+#endif
+#if NDIM==3
         ix = ip/(numPerDim*numPerDim);
         iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
-#if NDIM==3
         iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
 #endif
         dVec r;
@@ -622,7 +625,7 @@ PathClass::InitPaths (IOSectionClass &in)
 #endif
         if (ptcl % 2)
           r += 0.5*delta;
-        //cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<endl;
+        cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<" "<<ix<<" "<<iy<<" "<<iz<<" "<<delta<<endl;
         for (int slice=0; slice<NumTimeSlices(); slice++)
           Path(slice,ptcl) = r;
       }
@@ -657,16 +660,20 @@ PathClass::InitPaths (IOSectionClass &in)
         perr << "A cubic box is current required for cubic initilization\n";
         abort();
       }
-      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/3.0)-1.0e-6);
+      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/NDIM)-1.0e-6);
       double delta = Box[0] / numPerDim;
       double eps = 1.0e-2 * delta;
       cout << eps << endl;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
         int ip = (ptcl-species.FirstPtcl)/2;
         int ix, iy, iz;
+#if NDIM==2
+        ix = ip/(numPerDim);
+        iy = ip-(ix*numPerDim);
+#endif
+#if NDIM==3
         ix = ip/(numPerDim*numPerDim);
         iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
-#if NDIM==3
         iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
 #endif
         dVec r;
