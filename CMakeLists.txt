@@ -6,24 +6,36 @@ cmake_minimum_required (VERSION 2.6)
 # Compilers
 #-------------------------------------------------------------------
 SET(CMAKE_CXX_COMPILER,"CC")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=3 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
+SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=2 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
 #SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -msse3 -O2 -finline-functions -funswitch-loops -fpredictive-commoning -fgcse-after-reload -fipa-cp-clone -DNDIM=3 -DUSE_MPI -fopenmp -Wno-write-strings -w")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
 SET(CMAKE_C_COMPILER,"cc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=3 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
+SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=2 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
 SET(CMAKE_Fortran_COMPILER,"ftn")
 SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3")
 SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 
-set(QMC_BUILD_STATIC FALSE)
+set(QMC_BUILD_STATIC TRUE)
 IF(QMC_BUILD_STATIC)
-  set(BUILD_SHARED_LIBS FALSE)
-  set(CMAKE_EXE_LINKER_FLAGS '-static')
+  # Enable static linking
+  set(BUILD_STATIC_LIBS TRUE)
+  set(LINK_SEARCH_END_STATIC TRUE)
+  set(CMAKE_EXE_LINKER_FLAGS "-static -Wl,-Bstatic")
+  set(MPI_LINK_FLAGS "-Wl,-Bstatic")
   set(LINK_SEARCH_END_STATIC TRUE)
   set(HDF5_USE_STATIC_LIBRARIES TRUE)
+
+  # Disable shared linking
+  set(BUILD_SHARED_LIBS FALSE)
+  set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+  set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
+  set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
+  set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 ENDIF(QMC_BUILD_STATIC)
 
 #-------------------------------------------------------------------
@@ -112,7 +124,11 @@ INCLUDE(${PROJECT_CMAKE}/FindSPRNG.cmake)
 IF(SPRNG_FOUND)
   SET(HAVE_SPRNG 1)
   INCLUDE_DIRECTORIES(${SPRNG_INCLUDE_DIR})
-  LINK_LIBRARIES(${SPRNG_LIBRARY} -lgmp)
+  IF(QMC_BUILD_STATIC)
+    LINK_LIBRARIES(${SPRNG_LIBRARY})
+  ELSE(QMC_BUILD_STATIC)
+    LINK_LIBRARIES(${SPRNG_LIBRARY} -lgmp)
+  ENDIF(QMC_BUILD_STATIC)
 ELSE(SPRNG_FOUND)
   MESSAGE(FATAL_ERROR "Require SPRNG. Set SPRNG_HOME")
 ENDIF(SPRNG_FOUND)
@@ -290,6 +306,7 @@ src/Observables/Time.cc
 src/MirroredClass.cc
 src/Observables/TimeHexatic.cc
 src/Observables/Centroid.cc
+src/Observables/NodalModelTime.cc
 src/Moves/CentroidMove.cc
 src/MoleculeHelper.cc
 src/Observables/TimeLindenman.cc
@@ -320,6 +337,7 @@ src/QMCWrapper.cc
 src/Moves/CouplingStage.cc
 src/SpeciesClass.cc
 src/Moves/DisplaceMove.cc
+src/Moves/NodalModelMove.cc
 src/Moves/DisplaceMoveFast.cc
 src/Moves/EmptyStage.cc
 src/Splines/CubicSpline.cc

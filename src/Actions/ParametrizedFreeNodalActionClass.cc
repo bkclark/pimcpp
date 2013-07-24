@@ -32,8 +32,6 @@ ParametrizedFreeNodalActionClass::ParametrizedFreeNodalActionClass (PathDataClas
   SavePath.resize(N);
   NumLineDists = NumGradDists = 0;
   nSingular = 0;
-  Param1 = 1.0;
-  Param2 = 0.0;
 }
 
 
@@ -116,7 +114,7 @@ void ParametrizedFreeNodalActionClass::SetupFreeActions()
   double lambdaTau = Path.tau * Path.Species(SpeciesNum).lambda;
 
   // Now, setup up actions
-  ActionSplines.resize(nSplines);
+  ActionSplines.resize(NumModels,nSplines);
   for (int spline=0; spline<nSplines; spline++) {
     double lambdaBeta = lambdaTau * (double)spline;
     for (int dim=0; dim<NDIM; dim++) {
@@ -127,7 +125,7 @@ void ParametrizedFreeNodalActionClass::SetupFreeActions()
       }
       // Since the action is periodic, the slope should be zero
       // at the boundaries
-      ActionSplines(spline)[dim].Init (&ActionGrids[dim], actionData, 0.0, 0.0);
+      ActionSplines(model,spline)[dim].Init (&ActionGrids[dim], actionData, 0.0, 0.0);
     }
   }
 }
@@ -158,7 +156,7 @@ double ParametrizedFreeNodalActionClass::Det (int slice, Array<dVec,1> &tempPath
       Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
       double action = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+        action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
       detMatrix(refPtcl-first, ptcl-first) = exp(-action);
     }
   }
@@ -192,7 +190,7 @@ double ParametrizedFreeNodalActionClass::Det (int slice)
       Path.RefDistDisp (slice, refPtcl, ptcl, dist, diff);
       double action = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+        action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
       detMatrix(refPtcl-first, ptcl-first) = exp(-action);
     }
   }
@@ -243,7 +241,7 @@ void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Arra
       Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
       double action = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+        action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
       detMatrix(refPtcl-first, ptcl-first) = exp(-action);
     }
   }
@@ -278,7 +276,7 @@ void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Arra
       Path.RefDistDisp (slice, refPtcl, ptcl-first, dist, diff, tempPath);
       dVec gradPhi;
       for (int dim=0; dim<NDIM; dim++)
-        gradPhi[dim] = -ActionSplines(sliceDiff)[dim].Deriv(diff[dim]) * detMatrix(refPtcl-first, ptcl-first);
+        gradPhi[dim] = -ActionSplines(model,sliceDiff)[dim].Deriv(diff[dim]) * detMatrix(refPtcl-first, ptcl-first);
       //dVec gradPhi = -2.0*C*diff*DetMatrix(refPtcl-first,ptcl-first);
 
       gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*cofactors(refPtcl-first, ptcl-first);
@@ -313,7 +311,7 @@ void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Arra
       Path.RefDistDisp (slice, refPtcl, ptcl, dist, diff);
       double action = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+        action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
       detMatrix(refPtcl-first, ptcl-first) = exp(-action);
     }
   }
@@ -348,7 +346,7 @@ void ParametrizedFreeNodalActionClass::GradientDet (int slice, double &det, Arra
       Path.RefDistDisp (slice, refPtcl, ptcl, dist, diff);
       dVec gradPhi;
       for (int dim=0; dim<NDIM; dim++)
-        gradPhi[dim] = -ActionSplines(sliceDiff)[dim].Deriv(diff[dim]) * detMatrix(refPtcl-first, ptcl-first);
+        gradPhi[dim] = -ActionSplines(model,sliceDiff)[dim].Deriv(diff[dim]) * detMatrix(refPtcl-first, ptcl-first);
       //dVec gradPhi = -2.0*C*diff*DetMatrix(refPtcl-first,ptcl-first);
 
       gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*cofactors(refPtcl-first, ptcl-first);
@@ -389,7 +387,7 @@ void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Ar
       Path.RefDistDisp (slice, refPtcl, ptcl, dist, diff);
       double action = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        action += ActionSplines(sliceDiff)[dim](diff[dim]);
+        action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
       DetMatrix(refPtcl-first, ptcl-first) = exp(-action);
     }
   }
@@ -413,7 +411,7 @@ void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Ar
         dVec diff = disp + delta;
         double action = 0.0;
         for (int dim=0; dim<NDIM; dim++)
-          action += ActionSplines(sliceDiff)[dim](diff[dim]);
+          action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
         DetMatrix(ref-first, ptcl-first) = exp(-action);
       }
       dplus = Determinant (DetMatrix);
@@ -422,7 +420,7 @@ void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Ar
         dVec diff = disp - delta;
         double action = 0.0;
         for (int dim=0; dim<NDIM; dim++)
-          action += ActionSplines(sliceDiff)[dim](diff[dim]);
+          action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
         DetMatrix(ref-first, ptcl-first) = exp(-action);
       }
       dminus = Determinant(DetMatrix);
@@ -431,7 +429,7 @@ void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Ar
         dVec diff = disp;
         double action = 0.0;
         for (int dim=0; dim<NDIM; dim++)
-          action += ActionSplines(sliceDiff)[dim](diff[dim]);
+          action += ActionSplines(model,sliceDiff)[dim](diff[dim]);
         DetMatrix(ref-first, ptcl-first) = exp(-action);
       }
       gradient(ptcl-first)[dim] = (dplus-dminus)/eps;
@@ -439,6 +437,24 @@ void ParametrizedFreeNodalActionClass::GradientDetFD (int slice, double &det, Ar
   }
 }
 
+
+// Change the model
+void ParametrizedFreeNodalActionClass::ChangeModel(int tmpModel)
+{
+  model = tmpModel;
+}
+
+// Return current model
+int ParametrizedFreeNodalActionClass::GetModel()
+{
+  return model;
+}
+
+// Return number of models
+int ParametrizedFreeNodalActionClass::GetNumModels()
+{
+  return NumModels;
+}
 
 /// This simply returns the 1st Newton-Raphson estimate of the nodal distance
 double ParametrizedFreeNodalActionClass::NodalDist (int slice)
@@ -668,7 +684,6 @@ double ParametrizedFreeNodalActionClass::NewtonRaphsonDist (int slice)
 void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 {
   TimeSpent = 0.0;
-  SetupFreeActions();
 
   // Decide which nodal distance function to use
   if (!in.ReadVar ("UseNoDist",UseNoDist))
@@ -681,6 +696,17 @@ void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
     UseLineSearchDist = 0;
   if (!in.ReadVar ("UseMaxDist",UseMaxDist))
     UseMaxDist = 0;
+
+  assert (in.ReadVar ("NumModels", NumModels));
+  assert (in.ReadVar ("NumParams", NumParams));
+  assert (in.ReadVar ("ParamList", ParamList));
+
+  for (int i=0; i<NumModels; i++) {
+    model = i;
+    Param1 = ParamList(i,0);
+    Param2 = ParamList(i,1);
+    SetupFreeActions();
+  }
 
   cout << "Nodal Distance Functions: " << UseHybridDist << " " << UseNewtonRaphsonDist << " " << UseLineSearchDist << " " << UseMaxDist << endl;
 }
@@ -1039,7 +1065,7 @@ bool ParametrizedFreeNodalActionClass::IsGroundState()
 
 void ParametrizedFreeNodalActionClass::WriteInfo (IOSectionClass &out)
 {
-  out.WriteVar ("Type", "FREE_PARTICLE");
+  //out.WriteVar ("Type", "FREE_PARTICLE");
 }
 
 

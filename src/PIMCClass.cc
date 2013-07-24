@@ -276,6 +276,8 @@ void PIMCClass::ReadObservables(IOSectionClass &in)
       tempObs = new WindingNumberClass(PathData,OutFile);
     else if (observeType=="Centroid")
       tempObs = new CentroidClass(PathData,OutFile);
+    else if (observeType=="NodalModelTime")
+      tempObs = new NodalModelTimeClass(PathData,OutFile);
     else if (observeType=="CycleCount")
       tempObs = new PermutationCountClass(PathData,OutFile);
     else if (observeType=="StructureFactor")
@@ -361,6 +363,8 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new RefSliceMoveClass(PathData,OutFile);
     else if (moveType=="Displace")
       move = new DisplaceMoveClass(PathData,OutFile);
+    else if (moveType=="NodalModel")
+      move = new NodalModelMoveClass(PathData,OutFile);
     else if (moveType=="DisplaceFast")
       move = new DisplaceFastMoveClass(PathData,OutFile);
     //     else if (moveType=="WaterRotate")
