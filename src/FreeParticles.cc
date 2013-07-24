@@ -250,7 +250,7 @@ void FermionClass::FillStates()
           k[2] = kPrim[2]*iz;
 #endif
           double E = lambda * dot(k,k);
-          if (n < NumParticles)
+          if (n < NumParticles) {
             if (E < Ecut) {
               bool occupied = false;
               for (int i=0; i<n; i++)
@@ -260,7 +260,10 @@ void FermionClass::FillStates()
                 n++;
               }
             }
+          }
+#if NDIM==3
         }
+#endif
         Ecut += deltaEmin;
       }
     }
