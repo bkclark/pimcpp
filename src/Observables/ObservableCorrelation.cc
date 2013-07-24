@@ -186,6 +186,8 @@ void PairCorrelationClass::Accumulate()
   TotalCounts++;
 
   double FullWeight = CalcFullWeight();
+  if (!TrackSign)
+    FullWeight = 1;
 
   if (Species1==Species2) {
     /// Note:  we make sure we don't count that last times slice
@@ -240,13 +242,9 @@ void PairCorrelationClass::Initialize()
 }
 
 
-
-
 ////////////////////////////////////////
 ///N(r) Correlation Class            ///
 ///////////////////////////////////////
-
-
 
 ///Initializes the class. The grid should always be overwritten with
 ///some other size. 

@@ -84,7 +84,7 @@ double ObservableClass::CalcFullWeight()
   }
 
   double FullWeight = exp(-FullNodeWeight)*FullSign;
-  //cout << PathData.Path.CloneStr << " FW : " << FullWeight << " " << NodeWeight << " " << FullSign << endl;
+  //cout << PathData.Path.CloneStr << " FW : " << FullWeight << " " << FullNodeWeight << " " << FullSign << endl;
   return 1.0/FullWeight;
 }
 

@@ -18,7 +18,7 @@
 #define OBSERVABLE_CORRELATION_H
 
 #include "ObservableBase.h"
-//changed something
+
 /// A pair correlation function observable.
 class PairCorrelationClass : public ObservableClass
 {
@@ -69,7 +69,6 @@ public:
 
 
 };
-
 
 
 ///Creates a histogram of the end to end distance between the head and
