@@ -15,12 +15,12 @@
 /////////////////////////////////////////////////////////////
 
 #include "../PathDataClass.h"
-#include "ExternalPotential.h"
+#include "HarmonicPotential.h"
 #include "ctime"
 #include "sys/time.h"
 
 
-void ExternalPotentialClass::Read(IOSectionClass& in)
+void HarmonicPotentialClass::Read(IOSectionClass& in)
 {
   TotalTime=0;
   TimeSpent=0;
@@ -29,27 +29,27 @@ void ExternalPotentialClass::Read(IOSectionClass& in)
 }
 
 
-ExternalPotentialClass::ExternalPotentialClass(PathDataClass &pathData)
+HarmonicPotentialClass::HarmonicPotentialClass(PathDataClass &pathData)
   : ActionBaseClass (pathData)
 {
   omega = 1.0;
 }
 
 
-double ExternalPotentialClass::dUdR(int slice, int ptcl, int level)
+double HarmonicPotentialClass::dUdR(int slice, int ptcl, int level)
 {
   return 0.0;
 }
 
 
-double ExternalPotentialClass::d2UdR2(int slice, int ptcl1, int ptcl2, int level)
+double HarmonicPotentialClass::d2UdR2(int slice, int ptcl1, int ptcl2, int level)
 {
   assert(1==2);
   return 0.0;
 }
 
 
-double ExternalPotentialClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
+double HarmonicPotentialClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
   struct timeval start, end;
   struct timezone tz;
@@ -78,7 +78,7 @@ double ExternalPotentialClass::SingleAction (int slice1, int slice2, const Array
 }
 
 
-double ExternalPotentialClass::d_dBeta (int slice1, int slice2, int level)
+double HarmonicPotentialClass::d_dBeta (int slice1, int slice2, int level)
 {
   double TotalU = 0.0;
   PathClass &Path = PathData.Path;
@@ -99,7 +99,7 @@ double ExternalPotentialClass::d_dBeta (int slice1, int slice2, int level)
 }
 
 
-string ExternalPotentialClass::GetName()
+string HarmonicPotentialClass::GetName()
 {
-  return "ExternalPotentialClass";
+  return "HarmonicPotentialClass";
 }

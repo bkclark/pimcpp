@@ -47,11 +47,3 @@ void NodalActionClass::Update()
   /// Base class does nothing
 }
 
-
-
-
-
-
-
-
-

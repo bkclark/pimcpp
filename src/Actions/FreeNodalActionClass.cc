@@ -1040,7 +1040,7 @@ bool FreeNodalActionClass::IsGroundState()
 
 void FreeNodalActionClass::WriteInfo (IOSectionClass &out)
 {
-  out.WriteVar ("Type", "FREE_PARTICLE");
+  //out.WriteVar ("Type", "FREE_PARTICLE");
 }
 
 

@@ -29,6 +29,7 @@
 #include "LongRangeRPAClass.h"
 #include "ShortRangePotClass.h"
 #include "LongRangePotClass.h"
+#include "HarmonicPotential.h"
 #include "KineticClass.h"
 #include "WaterFast.h"
 //#include "MoleculeInteractionsClass.h"
@@ -129,6 +130,8 @@ public:
   ///David's Long Range Class
   DavidLongRangeClassYk DavidLongRange;
 
+  HarmonicPotentialClass HarmonicPotential;
+
 //  // Water-related stuff
 //  MoleculeInteractionsClass MoleculeInteractions;
 //  QBoxActionClass QBoxAction;
@@ -170,24 +173,22 @@ public:
   Potential &GetPotential (int species1, int species2);
   /// Return the all the actions for this processor's segment of
   /// the path.  Must do global sum to get total action.
-  void GetActions (double& kinetic, double &duShort, double &duLong, 
-		   double &node);
+  void GetActions (double& kinetic, double &UShort, double &ULong, double &UExt, double &node);
   void GetNodalActions (double &node);
   /// This function adds to F the current forces calculated from the
   /// gradient of the action.  Note that you must do an AllSum over
   /// the clone processors to get the total.
-  void GetForces(const Array<int,1> &ptcls, 
-		 Array<dVec,1> &Fshort, Array<dVec,1> &Flong);
+  void GetForces(const Array<int,1> &ptcls, Array<dVec,1> &Fshort, Array<dVec,1> &Flong);
   /// Finite difference version for testing.
   void GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F);
 
   /// Return the all the energies for this processor's segment of
   /// the path.  Must do global sum to get total energy.
 	//void Energy(map<double>& Energies);
-  void Energy (double& kinetic, double &duShort, double &duLong, 
+  void Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
 	       double &node, double &vShort, double &vLong,
 	       double &duNonlocal);
-  void Energy (double& kinetic, double &duShort, double &duLong, 
+  void Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
 	       double &node, double &vShort, double &vLong,
 	       double &duNonlocal,double &residual);
 
@@ -235,6 +236,7 @@ public:
     DavidLongRange(pathData,PairMatrix,PairArray,PairIndex),
     LongRangeRPA(pathData, PairMatrix, PairArray),
     LongRangePot(pathData, PairMatrix),
+    HarmonicPotential(pathData),
     OpenLoopImportance(pathData),
     Kinetic(pathData),
     //KineticRotor(pathData),

@@ -25,10 +25,10 @@ class EnergyClass : public ObservableClass
 {
 
 private:
-  double TotalSum, KineticSum, dUShortSum, dULongSum, NodeSum,
+  double TotalSum, KineticSum, dUShortSum, dULongSum, dUExtSum, NodeSum,
     VShortSum, VLongSum, dUNonlocalSum,Residual;
 
-  ObservableDouble TotalVar, KineticVar, dUShortVar, dULongVar, NodeVar,
+  ObservableDouble TotalVar, KineticVar, dUShortVar, dULongVar, dUExtVar, NodeVar,
     VShortVar, VLongVar, dUNonlocalVar, ResidualVar, VTailLRVar, HistStart,
     HistEnd, NumPoints;
 
@@ -64,6 +64,7 @@ public:
       KineticVar   ("Kinetic",IOSection,myPathData.Path.Communicator),
       dUShortVar   ("dUShort",IOSection,myPathData.Path.Communicator),
       dULongVar    ("dULong", IOSection,myPathData.Path.Communicator),
+      dUExtVar     ("dUExt", IOSection,myPathData.Path.Communicator),
       NodeVar      ("Node",   IOSection,myPathData.Path.Communicator),
       VShortVar    ("VShort",IOSection,myPathData.Path.Communicator),
       VLongVar     ("VLong",IOSection,myPathData.Path.Communicator),
@@ -83,6 +84,7 @@ public:
     KineticSum = 0.0;
     dUShortSum = 0.0;
     dULongSum = 0.0;
+    dUExtSum = 0.0;
     NodeSum = 0.0;
     VShortSum = 0.0;
     VLongSum = 0.0;

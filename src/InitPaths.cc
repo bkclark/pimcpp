@@ -625,7 +625,7 @@ PathClass::InitPaths (IOSectionClass &in)
 #endif
         if (ptcl % 2)
           r += 0.5*delta;
-        cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<" "<<ix<<" "<<iy<<" "<<iz<<" "<<delta<<endl;
+        //cerr<<"My position is "<<r[0]<<" "<<r[1]<<" "<<r[2]<<" "<<ix<<" "<<iy<<" "<<iz<<" "<<delta<<endl;
         for (int slice=0; slice<NumTimeSlices(); slice++)
           Path(slice,ptcl) = r;
       }
@@ -642,6 +642,22 @@ PathClass::InitPaths (IOSectionClass &in)
           dVec temp=0.1*r * (1./sqrt(3.0*(double)ptcl*(double)ptcl));
           temp=r+temp;
           Path(slice,ptcl) =temp;
+        }
+      }
+    }
+    else if (InitPaths == "SHO") {
+      // Forming a straight line
+      int num = species.NumParticles;
+      double delta = 1.0;
+      for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+        dVec r;
+        r[0] = ptcl*delta;
+        r[1] = ptcl*delta;
+#if NDIM==3
+        r[2] = ptcl*delta;
+#endif
+        for (int slice=0; slice<NumTimeSlices(); slice++) {
+          Path(slice,ptcl) = r;
         }
       }
     }
@@ -696,6 +712,7 @@ PathClass::InitPaths (IOSectionClass &in)
 #if NDIM==3
           dr[2] = dz;
 #endif
+          cout << r[0]+dr[0] << " " << r[1]+dr[1] << " " << r[2]+dr[2] << endl;
           Path(slice,ptcl) = r + dr;
         }
       }

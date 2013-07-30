@@ -39,14 +39,14 @@ void EnergyClass::Accumulate()
   // Get the Full Weight from sign and importance sampling
   double FullWeight = CalcFullWeight();
 
-  double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal, residual;
-  PathData.Actions.Energy(kinetic, dUShort, dULong, node, vShort, vLong,
-                          dUNonlocal, residual);
-  double localSum = kinetic + dUShort + dULong + node + dUNonlocal;
+  double kinetic, dUShort, dULong, dUExt, node, vShort, vLong, dUNonlocal, residual;
+  PathData.Actions.Energy(kinetic, dUShort, dULong, dUExt, node, vShort, vLong, dUNonlocal, residual);
+  double localSum = kinetic + dUShort + dULong + dUExt + node + dUNonlocal;
   TotalSum += localSum * FullWeight;
   KineticSum += kinetic * FullWeight; /* * PathData.Path.Weight */ ;
   dUShortSum += dUShort * FullWeight; /* * PathData.Path.Weight */ ;
   dULongSum += dULong * FullWeight; /* * PathData.Path.Weight */ ;
+  dUExtSum += dUExt * FullWeight; /* * PathData.Path.Weight */ ;
   NodeSum += node * FullWeight; /* * PathData.Path.Weight */ ;
   VShortSum += vShort * FullWeight; /* * PathData.Path.Weight */ ;
   VLongSum += vLong * FullWeight; /* * PathData.Path.Weight */ ;
@@ -119,6 +119,7 @@ void EnergyClass::WriteBlock()
   KineticVar.Write(Prefactor * PathData.Path.Communicator.Sum(KineticSum) * norm);
   dUShortVar.Write(Prefactor * PathData.Path.Communicator.Sum(dUShortSum) * norm);
   dULongVar.Write(Prefactor * PathData.Path.Communicator.Sum(dULongSum) * norm);
+  dUExtVar.Write(Prefactor * PathData.Path.Communicator.Sum(dUExtSum) * norm);
   NodeVar.Write(Prefactor * PathData.Path.Communicator.Sum(NodeSum) * norm);
   VShortVar.Write(Prefactor * PathData.Path.Communicator.Sum(VShortSum) * norm);
   VLongVar.Write(Prefactor * PathData.Path.Communicator.Sum(VLongSum) * norm);
@@ -192,6 +193,7 @@ void EnergyClass::WriteBlock()
   KineticSum = 0.0;
   dUShortSum = 0.0;
   dULongSum = 0.0;
+  dUExtSum = 0.0;
   NodeSum = 0.0;
   VShortSum = 0.0;
   VLongSum = 0.0;

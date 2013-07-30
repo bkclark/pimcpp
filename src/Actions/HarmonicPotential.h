@@ -14,16 +14,16 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#ifndef EXTERNAL_POTENTIAL_CLASS_H
-#define EXTERNAL_POTENTIAL_CLASS_H
+#ifndef HARMONIC_POTENTIAL_CLASS_H
+#define HARMONIC_POTENTIAL_CLASS_H
 
 #include "ActionBase.h"
 
-/// The ExternalPotentialClass is an action class which stores the part of
+/// The HarmonicPotentialClass is an action class which stores the part of
 /// the potential pair action that is summed in real space.  If the
 /// potential is short range, it contains the whole potential action.
 /// This action, in general, contains off diagaonal contributions.
-class ExternalPotentialClass : public ActionBaseClass
+class HarmonicPotentialClass : public ActionBaseClass
 {
 protected:
   int TotalTime;
@@ -35,7 +35,7 @@ public:
   double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double d_dBeta (int slice1, int slice2, int level);
   string GetName();
-  ExternalPotentialClass (PathDataClass &pathData);
+  HarmonicPotentialClass (PathDataClass &pathData);
 };
 
 #endif

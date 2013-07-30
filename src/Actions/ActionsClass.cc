@@ -20,7 +20,7 @@
 #include "../IO/FileExpand.h"
 #include "../Blitz.h"
 // now include ActionBaseClass headers here, not in .h
-#include "ExternalPotential.h"
+#include "HarmonicPotential.h"
 #include "CummingsWaterPotential.h"
 #include "DiagonalActionClass.h"
 #include "ShortRangeClass.h"
@@ -205,8 +205,8 @@ void ActionsClass::Read(IOSectionClass &in)
     //   newAction = new ReadFromFileActionClass(PathData);
     } else if (type == "BlendActions") {
       newAction = new BlendActionsClass(PathData);
-    } else if (type == "ExternalPotential") {
-      newAction = new ExternalPotential(PathData);
+    } else if (type == "HarmonicPotential") {
+      newAction = new HarmonicPotentialClass(PathData);
     } else if (type == "Water") {
       newAction = new WaterClass(PathData);
     } else {
@@ -435,7 +435,7 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
 
 
 void
-ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, 
+ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
                       double &node, double &vShort, double &vLong,
                       double &duNonlocal)
 {
@@ -444,7 +444,7 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
 }
 
 void
-ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, 
+ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
                       double &node, double &vShort, double &vLong,
                       double &duNonlocal,
                       double &residual)
@@ -472,6 +472,8 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
     else
       dULong = LongRange.d_dBeta (0, M, 0);
   }
+  dUExt = HarmonicPotential.d_dBeta(0, M, 0);
+
   vShort = 0.0; vLong = 0.0;
   if (PathData.Path.DavidLongRange){
     dULong = DavidLongRange.d_dBeta(0,M,0);
@@ -516,7 +518,7 @@ void ActionsClass::GetNodalActions(double &node)
 }
 
 
-void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &node)
+void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &UExt, double &node)
 {
   bool doLongRange = HaveLongRange() && UseLongRange;
   Array<int,1> activePtcls(PathData.Path.NumParticles());
@@ -534,6 +536,7 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
       ULong = LongRange.Action (0, M, activePtcls, 0);
   } else if (PathData.Path.DavidLongRange)
     ULong = DavidLongRange.Action(0,M, activePtcls, 0);
+  UExt = HarmonicPotential.Action(0,M,activePtcls,0);
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
     if (NodalActions(species) != NULL)
@@ -560,6 +563,7 @@ void ActionsClass::ShiftData (int slicesToShift)
   LongRange.ShiftData(slicesToShift);
   LongRangeRPA.ShiftData(slicesToShift);
   DavidLongRange.ShiftData(slicesToShift);
+  HarmonicPotential.ShiftData(slicesToShift);
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i)!=NULL)
       NodalActions(i)->ShiftData(slicesToShift);
