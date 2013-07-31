@@ -387,11 +387,10 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     } else if (type == "SHO") {
       assert (in.ReadVar("Species", speciesString));
       int species = PathData.Path.SpeciesNum(speciesString);
-// AGGRESSIVE COMPILING ERROR (FIX)
-      SHONodalActionClass *nodeAction = (new SHONodalActionClass (PathData, species));
-      nodeAction -> Read(in);
-      NodalActions(species) = nodeAction;
-      ActionList.push_back(nodeAction);
+      SHONodalActionClass &nodeAction = *(new SHONodalActionClass (PathData, species));
+      nodeAction.Read(in);
+      NodalActions(species) = &nodeAction;
+      ActionList.push_back(&nodeAction);
     } else if (type == "PARAMETRIZEDFREE") {
       assert (in.ReadVar("Species", speciesString));
       int species = PathData.Path.SpeciesNum(speciesString);

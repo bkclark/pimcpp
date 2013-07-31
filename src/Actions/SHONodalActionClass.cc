@@ -106,56 +106,28 @@ void SHONodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gr
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
   int last = species.LastPtcl;
+
   // Fill up determinant matrix
   int myStartSlice, myEndSlice;
   int myProc = PathData.Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
-  //double t = abs(refSlice-slice) * PathData.Action.tau;
-  //double beta = PathData.Path.TotalNumSlices * PathData.Action.tau;
   int sliceDiff = abs(slice-refSlice);
   sliceDiff = min (sliceDiff, Path.TotalNumSlices-sliceDiff);
   assert (sliceDiff <= Path.TotalNumSlices);
   assert (sliceDiff > 0);
-  //t = min (t, fabs(beta-t));
-  //assert (t <= 0.500000001*beta);
-  //double lambda = species.lambda;
-  //double C = 1.0/(4.0*M_PI * lambda * t);
-
-  // HACK HACK HACK for now;  should work for serial mode.
-  //   if (Path.GetRefSlice() < Path.NumTimeSlices())
-  //     for (int ptcl=0; ptcl<Path.NumParticles(); ptcl++)
-  //       Path.RefPath(ptcl) = Path(Path.GetRefSlice(), ptcl);
-  //   Path.RefPath.AcceptCopy();
 
   bool singular = false;
   for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
     for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-      dVec diff;
-      double dist;
-      Path.RefDistDisp (slice, refPtcl, ptcl, dist, diff);
-      double action = 0.0;
-      for (int dim=0; dim<NDIM; dim++)
-	action += GetAction(refSlice,slice,sliceDiff,refPtcl,ptcl);
+      double action = GetAction(refSlice,slice,sliceDiff,refPtcl,ptcl);
       DetMatrix(refPtcl-first, ptcl-first) = exp(-action);
-//        if (fabs(DetMatrix(refPtcl-first, ptcl-first)) < 1.0e-30) {
-// 	 cerr << "detmatrix = " << DetMatrix(refPtcl-first, ptcl-first)<<endl;
-// 	 cerr << "action = " << action << endl;
-// 	 cerr << "diff = " << diff << endl;
-// 	 cerr << "slicediff = " << sliceDiff << endl;
-//        }
-//       singular = singular || 
-// 	(fabs(DetMatrix(refPtcl-first, ptcl-first)) < 1.0e-30)
-	/* || isnan (DetMatrix(refPtcl-first, ptcl-first))*/;
     }
   }
 
-//   cerr << "slice = " << slice << endl;
-//   cerr << "RefSlice = " << Path.GetRefSlice() << endl;
-//   cerr << "DetMatrix = " << endl << DetMatrix << endl;
-
-  if (singular)  
+  if (singular)
     cerr << "Singular at slice=" << slice << endl;
+
   // Compute determinant
   det = Determinant (DetMatrix);
   if (singular) {
@@ -182,7 +154,7 @@ void SHONodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gr
       for (int dim=0; dim<NDIM; dim++)
         gradPhi[dim] = GetAction(refSlice,slice,sliceDiff,refPtcl,ptcl) * DetMatrix(refPtcl-first, ptcl-first);
       //dVec gradPhi = -2.0*C*diff*DetMatrix(refPtcl-first,ptcl-first);
-      gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*Cofactors(refPtcl-first, ptcl-first);
+      gradient(ptcl-first) = gradient(ptcl-first) + gradPhi*Cofactors(refPtcl-first, ptcl-first);
     }
   }
 }
@@ -198,46 +170,13 @@ double SHONodalActionClass::NodalDist (int slice)
   int N = last-first+1;
 
   GradientDet (slice, det, GradVec);
-//   Array<dVec,1> gradFD(N);
-//   double det2;
-//   GradientDetFD (slice, det2, gradFD);
-//   assert (det2 == det);
-//   for (int i=0; i<N; i++) {
-//     fprintf (stderr, "(%1.6e %1.6e %1.6e) (%1.6e %1.6e %1.6e) \n", 
-//  	     gradFD(i)[0], gradFD(i)[1], gradFD(i)[2], 
-//  	     GradVec(i)[0], GradVec(i)[1], GradVec(i)[2]);
-//     for (int dim=0; dim<NDIM; dim++) 
-//       assert (fabs(gradFD(i)[dim] - GradVec(i)[dim]) < 1.0e-7);
-//   }
 
-  double grad2 = 0.0;    
+  double grad2 = 0.0;
   for (int i=0; i<N; i++)
     grad2 += dot (GradVec(i), GradVec(i));
 
-  
   double dist = det/sqrt(grad2);
-  //   cerr << "grad = " << GradVec << endl;
-  //   cerr << "dist = " << dist << endl;
-//   dVec delta, deltaStar;
-//   double d, dStar;
-//   deltaStar = Path.RefPath(1) - Path.RefPath(0);
-//   delta = Path(slice,1) - Path(slice,0);
-//   Path.PutInBox (deltaStar);
-//   Path.PutInBox (delta);
-//   double trueDist = dot(delta, deltaStar)/sqrt(dot(deltaStar,deltaStar));
-
-
-//   int myStartSlice, myEndSlice;
-//   int myProc = PathData.Path.Communicator.MyProc();
-//   Path.SliceRange (myProc, myStartSlice, myEndSlice);
-//   int refSlice = Path.GetRefSlice()-myStartSlice;
-//   int sliceDiff = abs(slice-refSlice);
-//   sliceDiff = min (sliceDiff, Path.TotalNumSlices-sliceDiff);
-  
-//   if (sliceDiff < -2000000000)
-//     return (trueDist);
-//   else 
-    return (dist);  
+  return (dist);
 }
 
 
@@ -254,7 +193,7 @@ double SHONodalActionClass::HybridDist (int slice, double lambdaTau)
   int N = last-first+1;
 
   GradientDet (slice, det, GradVec);
-  double grad2 = 0.0;    
+  double grad2 = 0.0;
   for (int i=0; i<N; i++)
     grad2 += dot (GradVec(i), GradVec(i));
 
@@ -264,10 +203,9 @@ double SHONodalActionClass::HybridDist (int slice, double lambdaTau)
   double gradDist = det/sqrt(grad2);
 
   if (((NumGradDists+NumLineDists)%1000000) == 999999) {
-    cerr << "Percent line searches = "
-	 << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
+    cerr << "Percent line searches = " << (double)NumLineDists/(NumGradDists+NumLineDists) << endl;
   }
-    
+
   // gradDist will almost always be a lower bound to the real
   // distance.  Therefore, if says we are far from the nodes, we
   // probably are and we can just use its value.
@@ -292,7 +230,7 @@ double SHONodalActionClass::MaxDist(int slice)
   SpeciesClass &species = Path.Species(SpeciesNum);
   int first = species.FirstPtcl;
   int last = species.LastPtcl;
-  
+
   dVec disp;
   double dist;
   double minDist = 1.0e300;
@@ -312,7 +250,7 @@ double SHONodalActionClass::LineSearchDist (int slice)
   int first = species.FirstPtcl;
   int last = species.LastPtcl;
 
-  //  double maxDist = MaxDist (slice);
+  // double maxDist = MaxDist (slice);
   double det0, det;
   int N = last-first+1;
   double retVal;
@@ -346,7 +284,7 @@ double SHONodalActionClass::LineSearchDist (int slice)
   double maxDist=sqrt(dot(PathData.Path.GetBox(),PathData.Path.GetBox()));
   while ((det*det0 > 0.0) && ((maxFactor*dist)<maxDist)) {
     maxFactor *= 2.0;
-    for (int i=0; i<N; i++) 
+    for (int i=0; i<N; i++)
       Path (slice, i+first) = SavePath(i) - maxFactor*dist*GradVec(i);
     det = Det(slice);
   }
@@ -355,20 +293,19 @@ double SHONodalActionClass::LineSearchDist (int slice)
     retVal = maxDist;
   else {
     // Now, do a bisection search for the sign change.
-    while (((maxFactor-minFactor)*dist > epsilon) 
-	   && (minFactor*dist < maxDist)) {
+    while (((maxFactor-minFactor)*dist > epsilon) && (minFactor*dist < maxDist)) {
       tryFactor = 0.5*(maxFactor+minFactor);
       for (int i=0; i<N; i++)
-	Path (slice, i+first) = SavePath(i) - tryFactor*dist*GradVec(i);
+        Path (slice, i+first) = SavePath(i) - tryFactor*dist*GradVec(i);
       det = Det (slice);
       if (det*det0 > 0.0)
-	minFactor = tryFactor;
+        minFactor = tryFactor;
       else
-	maxFactor = tryFactor;
+        maxFactor = tryFactor;
     }
     if (minFactor*dist >= maxDist)
       retVal = maxDist;
-    else 
+    else
       retVal = dist * tryFactor;
   }
 
@@ -601,18 +538,128 @@ double SHONodalActionClass::SimpleAction (int startSlice, int endSlice, const Ar
 
 double SHONodalActionClass::SingleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
-  return SimpleAction(startSlice,endSlice,changePtcls,level);
+  if (PathData.Path.Equilibrate||UseNoDist)
+    return SimpleAction(startSlice,endSlice,changePtcls,level);
+  else
+    return PreciseAction(startSlice,endSlice,changePtcls,level);
+}
+
+
+double SHONodalActionClass::PreciseAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
+{
+  struct timeval start, end;
+  struct timezone tz;
+  gettimeofday(&start, &tz);
+
+  double uNode = 0.0;
+
+  SpeciesClass &species = Path.Species(SpeciesNum);
+  double lambda = species.lambda;
+  int skip = 1<<level;
+  double levelTau = PathData.Path.tau * (double)skip;
+
+  int myStart, myEnd;
+  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  int refSlice = Path.GetRefSlice() - myStart;
+
+  int totalSlices = Path.TotalNumSlices;
+  int numSlices = (endSlice - startSlice)/skip + 1;
+  if (numSlices < 2)
+    cerr << "ERROR: numSlices < 2 in SHONodalAction" << endl;
+  double dist[numSlices];
+
+  for (int i=0; i<numSlices; i++)
+    dist[i] = 0.0;
+  bool abort = 0;
+  //#pragma omp parallel for
+  for (int slice=startSlice; slice <= endSlice; slice+=skip) {
+    bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    //#pragma omp flush (abort)
+    if (!sliceIsRef&&!abort) {
+      int i = (slice - startSlice)/skip;
+      dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+      //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
+      if (dist[i] < 0.0) {
+        //#pragma omp critical
+        //{
+          abort = 1;
+        //}
+      }
+    }
+  }
+  //#pragma omp barrier
+
+  if (abort)
+    uNode = 1.0e100;
+  else {
+    for (int slice = startSlice; slice < endSlice; slice+=skip) {
+      int i = (slice - startSlice)/skip;
+
+      bool slice1IsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+      bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
+      double dist1 = dist[i];
+      double dist2 = dist[i+1];
+
+      if (!slice1IsRef && (dist1<0.0))
+        abort = 1;
+      else if (!slice2IsRef && (dist2<0.0))
+        abort = 1;
+      else if (slice1IsRef || (dist1==0.0))
+        uNode -= log1p(-exp(-dist2*dist2/(lambda*levelTau)));
+      else if (slice2IsRef || (dist2==0.0))
+        uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
+      else
+        uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
+      if (!abort && ((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.StoreNodeDist) {
+        PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+        PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+        FirstDistTime = 0;
+      }
+    }
+  }
+
+  if (abort)
+    uNode = 1.0e100;
+
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) +
+    1.0e-6*(double)(end.tv_usec-start.tv_usec);
+
+  return uNode;
+}
+
+
+double SHONodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, int SpeciesNum)
+{
+ // cout << "HD: " << HybridDist(slice,lambda*levelTau) << " NR: " << NewtonRaphsonDist(slice) << " MD: " << MaxDist(slice) << " ND: " << NodalDist(slice) << endl;
+  if (PathData.Path.NumParticles() == 1)
+    return 1e100;
+
+  double dist;
+  if ((GetMode()==NEWMODE||FirstDistTime)||!PathData.Path.StoreNodeDist)
+    if (UseHybridDist)
+      dist = HybridDist(slice,lambda*levelTau); // Single Newton-Raphson, then Line Search
+    else if (UseNewtonRaphsonDist)
+      dist = NewtonRaphsonDist(slice); // Iterative Newton-Raphson
+    else if (UseLineSearchDist)
+      dist = LineSearchDist(slice); // Bisective Line Search
+    else if (UseMaxDist)
+      dist = MaxDist(slice); // Maximum Distance
+    else
+      dist = NodalDist(slice); // Single Newton-Raphson
+  else
+    dist = PathData.Path.NodeDist(slice,SpeciesNum);
+  return dist;
 }
 
 
 double SHONodalActionClass::d_dBeta (int slice1, int slice2, int level)
 {
-
-  if (UseNoDist)
-    return 0;
+  if (PathData.Path.Equilibrate||UseNoDist)
+    return 0.0;
 
   Array<int,1> changedPtcls(1);
-  
+
   SpeciesClass &species = Path.Species(SpeciesNum);
   double lambda = species.lambda;
   int skip = 1<<level;
@@ -623,38 +670,43 @@ double SHONodalActionClass::d_dBeta (int slice1, int slice2, int level)
   int refSlice = Path.GetRefSlice() - myStart;
   int sliceDiff1 = abs(slice1-refSlice);
   sliceDiff1 = min (sliceDiff1, PathData.Path.TotalNumSlices-sliceDiff1);
-  
-  double dist1, dist2;
 
-  bool slice1IsRef, slice2IsRef;
-  slice1IsRef = (slice1 == refSlice) || (slice1==refSlice+Path.TotalNumSlices);
-
-  if (!slice1IsRef) {
-    dist1 = HybridDist (slice1, lambda*levelTau);
-    if (dist1 < 0.0) {
-      cerr << "slice1 = " << slice1 << " refSlice = " << refSlice << endl;
-      return 1.0e100;
-    }
-  }
-  else
-    dist1 = sqrt(-1.0);
-  
   int totalSlices = Path.TotalNumSlices;
-  double uNode=0.0;
-  for (int slice=slice1; slice < slice2; slice+=skip) {
-    int sliceDiff = slice-refSlice;
-    sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices-sliceDiff);
-    slice2IsRef = (slice+skip == refSlice) || 
-      (slice+skip==refSlice+Path.TotalNumSlices);
-    if (!slice2IsRef) {
-      dist2 = HybridDist (slice+skip, lambda*levelTau);
-      if (dist2 < 0.0){
-	cerr << "slice2 = " << slice+skip << " refSlice = " << refSlice
-	     << " species = " << species.Name << endl;
-	return 1.0e100;
+  int numSlices = (slice2 - slice1)/skip + 1;
+  if (numSlices < 2)
+    cerr << "ERROR: numSlices < 2 in FreeNodalAction" << endl;
+  double dist[numSlices];
+  for (int i=0; i<numSlices; i++)
+    dist[i] = 0.0;
+  //#pragma omp parallel for
+  for (int slice=slice1; slice <= slice2; slice+=skip) {
+    bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    if (!sliceIsRef) {
+      int i = (slice - slice1)/skip;
+      dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
+      //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
+      if (dist[i] < 0.0) {
+        cerr << PathData.Path.CloneStr << " ERROR: dist = " << dist[i] << " skip = " << skip << " slice2 = " << slice+skip << " refSlice = " << refSlice << " species = " << species.Name << endl;
+        dist[i] = 0.0;
       }
     }
+  }
+  //#pragma omp barrier
 
+  double uNode = 0.0;
+  int i = 0;
+  for (int slice=slice1; slice < slice2; slice+=skip) {
+    int sliceDiff = slice - refSlice;
+    sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices - sliceDiff);
+    bool slice1IsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
+    bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
+    double dist1 = dist[i];
+    double dist2 = dist[i+1];
+    if (FirstDistTime && PathData.Path.StoreNodeDist) {
+      PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
+      PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+      FirstDistTime = 0;
+    }
     double prod;
     if (slice1IsRef || (dist1==0.0))
       prod = dist2*dist2;
@@ -665,17 +717,16 @@ double SHONodalActionClass::d_dBeta (int slice1, int slice2, int level)
 
     double prod_llt = prod/(lambda*levelTau);
     double exp_m1 = expm1 (prod_llt);
-    if (fpclassify(exp_m1)==FP_NORMAL) 
+    if (fpclassify(exp_m1)==FP_NORMAL)
       if (!isnan(exp_m1) && !isinf(exp_m1))
         if (isnormal(exp_m1))
-	  if ((!isnan(prod_llt)) && (exp_m1 != 0.0))
-	    uNode += prod_llt / (levelTau*exp_m1);
+          if ((!isnan(prod_llt)) && (exp_m1 != 0.0))
+            uNode += prod_llt / (levelTau*exp_m1);
     if (isnan(uNode))
-      cerr << "uNode broken again!\n";
-    dist1 = dist2;
-    slice1IsRef = slice2IsRef;
+      cerr << "ERROR: uNode broken again!\n";
+    i += 1;
   }
-  //  return 0.0;
+
   return uNode/(double)Path.TotalNumSlices;
 }
 
