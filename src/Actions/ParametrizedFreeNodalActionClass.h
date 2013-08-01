@@ -39,26 +39,12 @@ private:
   double ActionImageSum (double L, double lambdaTau, double disp);
   double ActionkSum (double L, double lambdaTau, double disp);
 
-  Array<double,2> DetMatrix, Cofactors;
-  Array<dVec,1> GradVec, SavePath;
-  void GradientDet (int slice, double &det, Array<dVec,1> &gradient);
-  void GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath);
-  void GradientDetFD (int slice, double &det, Array<dVec,1> &gradient);
-  double NodalDist (int slice);
-  double HybridDist(int slice, double lambdaTau);
-  /// This returns the upper bound on the distance to a node by
-  /// returning the minimum distance to particle coincidence.
-  double MaxDist(int slice);
-  /// This calculates the distance to the node along the line in the
-  /// direction of the gradient by a bisection search
-  double LineSearchDist (int slice);
-  /// This calculates the nodal distance by an iterated Newton-Raphson
-  /// approach
-  double NewtonRaphsonDist (int slice);
-  int SpeciesNum;
-  int NumGradDists, NumLineDists;
-  int nSingular;
-  bool FirstDistTime, FirstDetTime;
+  double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl);
+  double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
+  void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
+  void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
+
+  void SetupActions();
 public:
   /// Variational parameters
   int NumModels, NumParams;
@@ -68,26 +54,9 @@ public:
   void ChangeModel(int tmpModel);
   int GetModel();
   int GetNumModels();
-
-  void SetupFreeActions();
-
-  void Init();
-  double GetNodeDist (int slice, double lambda, double levelTau, int SpeciesNum);
-  bool UseHybridDist, UseNewtonRaphsonDist, UseLineSearchDist, UseMaxDist, UseNoDist;
-  double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
-  double SimpleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
-  double PreciseAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
-  double NodeImportanceAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
-  double d_dBeta (int slice1, int slice2, int level);
-  /// Returns true if the nodal restriction is satisfied for my
-  /// species at timeslice slice.  If slice is the reference slice,
-  /// returns true.
-  bool IsPositive (int slice);
-  double Det (int slice);
-  double Det (int slice, Array<dVec,1> &tempPath);
-  //  Array<double,2> GetMatrix(int slice);
   void Read (IOSectionClass &in);
-  bool IsGroundState();
+
+  //  Array<double,2> GetMatrix(int slice);
   NodeType Type();
   void WriteInfo (IOSectionClass &out);
   string GetName();

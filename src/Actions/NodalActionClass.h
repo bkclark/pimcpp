@@ -31,20 +31,59 @@ public:
   virtual int GetModel();
   virtual int GetNumModels();
 
-  virtual bool IsPositive (int slice) = 0;
+  virtual bool IsPositive (int slice);
   //  virtual double Det(int slice)       = 0;
   //  virtual Array<double,2> GetMatrix (int slice=0) = 0;
   void AcceptCopy (int slice1, int slice2);
   void RejectCopy (int slice1, int slice2);
   virtual void Init();
-  virtual bool IsGroundState() = 0;
+  virtual bool IsGroundState();
   virtual NodeType Type() = 0;
   virtual void Setk (Vec3 kVec);
   virtual void Update();
+  virtual void Read (IOSectionClass &in);
+  virtual void SetupActions();
+  virtual double GetNodeDist (int slice, double lambda, double levelTau, int SpeciesNum);
+  virtual double NodalDist (int slice);
+  virtual double HybridDist(int slice, double lambdaTau);
+  /// This returns the upper bound on the distance to a node by
+  /// returning the minimum distance to particle coincidence.
+  virtual double MaxDist(int slice);
+  /// This calculates the distance to the node along the line in the
+  /// direction of the gradient by a bisection search
+  virtual double LineSearchDist (int slice);
+  /// This calculates the nodal distance by an iterated Newton-Raphson approach
+  virtual double NewtonRaphsonDist (int slice);
+  virtual double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  virtual double SimpleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  virtual double PreciseAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  virtual double NodeImportanceAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  virtual double d_dBeta (int slice1, int slice2, int level);
+
+  virtual double Det (int slice);
+  virtual double Det (int slice, Array<dVec,1> &tempPath);
+  virtual void GradientDet (int slice, double &det, Array<dVec,1> &gradient);
+  virtual void GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath);
+  virtual void GradientDetFD (int slice, double &det, Array<dVec,1> &gradient);
+
+  virtual double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl);
+  virtual double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
+  virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
+  virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
+
+  bool UseHybridDist, UseNewtonRaphsonDist, UseLineSearchDist, UseMaxDist, UseNoDist;
+  bool FirstDistTime, FirstDetTime;
+  int SpeciesNum;
+  int nSingular;
+  int NumGradDists, NumLineDists;
+  Array<double,2> DetMatrix, Cofactors;
+  Array<dVec,1> GradVec, SavePath;
+
   NodalActionClass (PathDataClass &pathData) :
     ActionBaseClass (pathData)
   {
-
+    NumLineDists = NumGradDists = 0;
+    nSingular = 0;
   }
 };
 
