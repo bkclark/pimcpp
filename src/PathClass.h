@@ -575,11 +575,16 @@ inline PathClass::PathClass (CommunicatorClass &communicator, RandomClass &rando
 inline void PathClass::SetBox (dVec box)
 {
   Box = box;
-  for (int i=0; i<NDIM; i++){
-    BoxInv(i) = 1.0/box(i);
-    kBox(i)=2*M_PI*BoxInv(i);
+  for (int i=0; i<NDIM; i++) {
+    if (box(i) == 0) {
+      BoxInv(i) = 0;
+      kBox(i) = 0;
+    } else {
+      BoxInv(i) = 1.0/box(i);
+      kBox(i)=2*M_PI*BoxInv(i);
+    }
   }
-  
+
 }
 
 
