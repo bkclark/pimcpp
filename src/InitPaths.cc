@@ -463,60 +463,23 @@ PathClass::ReadOld(string fileName,bool replicate)
 /// FIXED:
 /// FILE:
 /// LEVIFLIGHT
-void 
-PathClass::InitPaths (IOSectionClass &in)
+void PathClass::InitPaths (IOSectionClass &in)
 {
-      //cerr<<"Printing Permutation InitPath 0"<<endl;
-      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-        //cerr<<Permutation(ptcl)<<endl;
-
-
   NowOpen=false;
   NowOpen.AcceptCopy();
-  //cerr<<"I am in mode "<<GetMode()<<endl;
-  //    cerr<<"Printing Permutation InitPath 0p"<<endl;
-  //    for (int ptcl=0;ptcl<NumParticles();ptcl++)
-        //cerr<<Permutation(ptcl)<<endl;
 
-
-
-  SetMode (NEWMODE);
-  //  cerr<<"Hello"<<endl;
-  //  assert(1==2);
-  assert(in.OpenSection ("Particles"));
-  //cerr<<"Printing Permutation InitPath 0pp"<<endl;
-  //for (int ptcl=0;ptcl<NumParticles();ptcl++)
-  //  cerr<<Permutation(ptcl)<<endl;
-  
-  SetMode(OLDMODE);
-  //cerr<<"Printing Permutation InitPath 0ppOLD"<<endl;
-  //for (int ptcl=0;ptcl<NumParticles();ptcl++)
-  //  cerr<<Permutation(ptcl)<<endl;
   SetMode(NEWMODE);
+  assert(in.OpenSection ("Particles"));
 
   int numSpecies = NumSpecies();
-//      cerr<<"Printing Permutation InitPath 0ppp"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//      cerr<<Permutation(ptcl)<<endl;
 
-  // Now initialize the Path
-//      cerr<<"Printing Permutation InitPath a"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//      cerr<<Permutation(ptcl)<<endl;
-
-  for (int speciesIndex=0; speciesIndex<numSpecies; speciesIndex++)
-  {
+  for (int speciesIndex=0; speciesIndex<numSpecies; speciesIndex++) {
     SpeciesClass &species = *SpeciesArray(speciesIndex);
     assert(in.OpenSection("Species", speciesIndex));
     string InitPaths;
-    ///    cerr<<"about to read the string"<<endl;
     in.ReadVar ("InitPaths", InitPaths);
-    ///    cerr<<"Read "<<InitPaths<<endl;
     bool replicate = false;
     in.ReadVar ("Replicate", replicate);
-//      cerr<<"Printing Permutation InitPath c"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//      cerr<<Permutation(ptcl)<<endl;
 
     if (InitPaths == "RANDOM") {
       perr << "Don't know how to do RANDOM yet.\n";
@@ -528,30 +491,35 @@ PathClass::InitPaths (IOSectionClass &in)
     else if (InitPaths == "CUBIC") {
       int num = species.NumParticles;
       bool isCubic = 0;
-#if NDIM==2   
+#if NDIM==2
       isCubic = (Box[0]==Box[1]);
-      cerr << isCubic << endl;
 #endif
-#if NDIM==3    
+#if NDIM==3
       isCubic = (Box[0]==Box[1]) && (Box[1]==Box[2]);
 #endif
       if (!isCubic) {
         perr << isCubic << " A cubic box is current required for cubic initilization\n";
         abort();
       }
-      int numPerDim = (int) ceil (pow((double)num, 1.0/3.0)-1.0e-6);
+      int numPerDim = (int) ceil (pow((double)num, 1.0/NDIM)-1.0e-6);
       double delta = Box[0] / numPerDim;
       for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+        int ip = (ptcl-species.FirstPtcl);
         int ix, iy, iz;
-        int ip = ptcl-species.FirstPtcl;
+#if NDIM==2
+        ix = ip/(numPerDim);
+        iy = ip-(ix*numPerDim);
+#endif
+#if NDIM==3
         ix = ip/(numPerDim*numPerDim);
         iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
-        dVec r;
-        r[0] = ix*delta;
-        r[1] = iy*delta;
-#if NDIM==3    
         iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
-        r[2] = iz*delta;
+#endif
+        dVec r;
+        r[0] = ix*delta-0.5*Box[0];
+        r[1] = iy*delta-0.5*Box[1];
+#if NDIM==3
+        r[2] = iz*delta-0.5*Box[2];
 #endif
         for (int slice=0; slice<NumTimeSlices(); slice++) 
           Path(slice,ptcl) = r;
@@ -661,62 +629,6 @@ PathClass::InitPaths (IOSectionClass &in)
         }
       }
     }
-    else if (InitPaths == "BCCe") {
-      // BCC lattice with slices forming a circle of radius eps around the lattice site
-      int num = species.NumParticles;
-      bool isCubic = 0;
-#if NDIM==2
-      isCubic = (Box[0]==Box[1]);
-      cerr << isCubic << endl;
-#endif
-#if NDIM==3
-      isCubic = (Box[0]==Box[1]) && (Box[1]==Box[2]);
-#endif
-      if (!isCubic) {
-        perr << "A cubic box is current required for cubic initilization\n";
-        abort();
-      }
-      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/NDIM)-1.0e-6);
-      double delta = Box[0] / numPerDim;
-      double eps = 1.0e-2 * delta;
-      cout << eps << endl;
-      for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-        int ip = (ptcl-species.FirstPtcl)/2;
-        int ix, iy, iz;
-#if NDIM==2
-        ix = ip/(numPerDim);
-        iy = ip-(ix*numPerDim);
-#endif
-#if NDIM==3
-        ix = ip/(numPerDim*numPerDim);
-        iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
-        iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
-#endif
-        dVec r;
-        r[0] = ix*delta-0.5*Box[0];
-        r[1] = iy*delta-0.5*Box[1];
-#if NDIM==3
-        r[2] = iz*delta-0.5*Box[2];
-#endif
-        if (ptcl % 2) 
-          r += 0.5*delta;
-        for (int slice=0; slice<NumTimeSlices(); slice++) {
-          double dx = eps * cos((slice/(double)NumTimeSlices())*2*M_PI);
-          double dy = eps * sin((slice/(double)NumTimeSlices())*2*M_PI);
-#if NDIM==3
-          double dz = 0.0;
-#endif
-          dVec dr;
-          dr[0] = dx;
-          dr[1] = dy;
-#if NDIM==3
-          dr[2] = dz;
-#endif
-          cout << r[0]+dr[0] << " " << r[1]+dr[1] << " " << r[2]+dr[2] << endl;
-          Path(slice,ptcl) = r + dr;
-        }
-      }
-    }
     else if (InitPaths=="ALLFIXED"){
       int myFirstSlice, myLastSlice, myProc;
       myProc = Communicator.MyProc();
@@ -750,11 +662,6 @@ PathClass::InitPaths (IOSectionClass &in)
       }
     }
     else if (InitPaths == "FIXED") {
-//      cerr<<"Printing Permutation InitPath 1"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//      cerr<<Permutation(ptcl)<<endl;
-
-
       Array<double,2> Positions;
       assert (in.ReadVar ("Positions", Positions));
       assert (Positions.rows() == species.NumParticles);
@@ -767,21 +674,8 @@ PathClass::InitPaths (IOSectionClass &in)
           for (int dim=0; dim<species.NumDim; dim++)
             pos(dim) = Positions(ptcl-species.FirstPtcl,dim);
           Path(slice,ptcl) = pos;
-        }      
+        }
       }
-//      cerr<<"Printing Permutation InitPath 2"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//        cerr<<Permutation(ptcl)<<endl;
-
-
-
-//      cerr<<"Printing Permutation InitPath 3"<<endl;
-//      for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//        cerr<<Permutation(ptcl)<<endl;
-
-
-      //      PrintRealSlices();
-      //      TestRealSlices();
     }
 //     else if (InitPaths == "WORM") {
 //       NowOpen=true;
@@ -859,17 +753,15 @@ PathClass::InitPaths (IOSectionClass &in)
           for (int dim=0; dim<species.NumDim; dim++)
             pos(dim) = Positions(ptcl-species.FirstPtcl,slice,dim);
           Path(slice,ptcl) = pos;
-        }      
+        }
         int slice=NumTimeSlices()-1;
         dVec pos;
         pos = 0.0;
         for (int dim=0; dim<species.NumDim; dim++)
           pos(dim) = Positions(ptcl-species.FirstPtcl,0,dim);
         Path(slice,ptcl) = pos;
-        
-        
       }
-    }    
+    }
     else if (InitPaths=="RESTART"){
       string pathFile;
       assert(in.ReadVar("File",pathFile));
@@ -890,8 +782,6 @@ PathClass::InitPaths (IOSectionClass &in)
       assert(in.ReadVar("File",pathFile));
       Tile(in,pathFile,replicate);
     }
-
-
     else if (InitPaths == "SQUEEZE"){
       string pathFile;
       assert(in.ReadVar("File",pathFile));
@@ -940,7 +830,6 @@ PathClass::InitPaths (IOSectionClass &in)
       perr << "Unrecognize initialization strategy " << InitPaths << endl;
       abort();
     }
-    //cerr<<Communicator.MyProc()<<" "<<species.Name<<" Init real slices"<<endl;
     InitRealSlices();
     in.CloseSection(); // Species
   }
