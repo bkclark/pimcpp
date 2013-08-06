@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>&lt;no title&gt; &mdash; PIMC++ 1.0.0 documentation</title>
+    <title>Particle in a Box &mdash; PIMC++ 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -24,7 +24,10 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" /> 
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="Tutorials" href="Tutorials.html" />
+    <link rel="next" title="&lt;no title&gt;" href="Hydrogen-Molecule.html" />
+    <link rel="prev" title="Tutorials" href="Tutorials.html" /> 
   </head>
   <body>
     <div class="related">
@@ -33,7 +36,14 @@
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
-        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="Hydrogen-Molecule.html" title="&lt;no title&gt;"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Tutorials.html" title="Tutorials"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" accesskey="U">Tutorials</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -42,19 +52,106 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="line-block">
-<div class="line">For a particle in a box with periodic boundary conditions, the</div>
+  <div class="section" id="particle-in-a-box">
+<h1>Particle in a Box<a class="headerlink" href="#particle-in-a-box" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial, we will first calculate the energy of a single particle in a box with periodic boundary conditions. Although not of physical interest, this calculation will introduce you to the PIMC++ software suite, including its input format and output analysis and processing tools.</p>
+<p>In this first exercise, you will be exposed to a great deal of terminology and syntax related to path integrals and used in PIMC++. We will alert you to important points; occasionally, links embedded in the text will take you to more detailed information about technical or expert-level topics. However, many aspects of the simulation input and software design will be explored in more detail later, so do not worry about understanding every aspect right away.</p>
+<p>Specifically, we will calculate the energy of a single particle in a box of size <span class="math">\(10 A\)</span> at a temperature of <span class="math">\(1.666 K\)</span>. For consistency with the Helium simulations we&#8217;ll do, we&#8217;re working in a system of units in which energy is in Kelvin, length is in Angstroms, and <span class="math">\(\hbar=1\)</span>. In these units, the free particle mass will be <span class="math">\(0.5 K^{-1} A^{-2}\)</span>, which corresponds to <span class="math">\(4.034*10^{-26} kg\)</span>.</p>
+<p>In this simple case, it will be possible to compare the simulation with the analytical result. If you do this, you should get an energy of <span class="math">\(2.51 K\)</span>.</p>
+<p>We will first describe how the input file is organized and how important aspects of the simulation are controlled. The first input file looks like this:</p>
+<div class="highlight-python"><pre>double tau = 0.05;
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  int NumTimeSlices=12;
+  Array&lt;double,1&gt; Box(3) = [10.0,10.0,10.0];
+  Array&lt;bool, 1 &gt; IsPeriodic(3) = [true,true,true];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name="free";
+      string Type="free";
+      double lambda=1.0;
+      string Statistics="BOLTZMANNON";
+      int NumParticles=1;
+      int NumDim=3;
+      string InitPaths="BCC";
+    }
+  }
+ }
+Section (Action)
+{
+  int NumImages=0;
+  int MaxLevels = 2;
+  Array&lt;string,1&gt; PairActionFiles(1) = ["zero.PairAction"];
+
+}
+
+Section (Observables)
+{
+  string OutFileBase = "SingleParticle";
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+     string Description="Total Energy";
+    int Frequency=1;
+  }
+}
+
+
+Section (Moves){
+  Section (Move) {
+    string Type="BisectionBlock";
+    string Name="BisectionBlock";
+    string PermuteType="NONE";
+    string Species="free";
+    int NumLevels=2;
+    int StepsPerBlock=2;
+  }
+  Section (Move)
+  {
+    string Type="ShiftMove";
+    string Name="Shift";
+  }
+}
+
+Section (Algorithm)
+{
+  Section (Loop){
+    int Steps=1000;
+    Section (Loop){
+      int Steps=50;
+      Section (Move)    { string Name = "BisectionBlock"; }
+      Section (Observe) { string Name = "Energy";         }
+      Section (Move)    { string Name = "Shift";          }
+    }
+    Section (WriteData){}
+  }
+}</pre>
 </div>
-<p>quantized energy levels in a cube of side <span class="math">\(L\)</span> are
-| <span class="math">\(E_{ijk} = \frac{4 \hbar^2 \pi^2 (i^2 + j^2 + k^2)}{2mL} = \lambda \frac{2 \pi^2(i^2 + j^2 + k^2)}{L}\)</span>
-where <span class="math">\(\lambda=\frac{\hbar^2}{2m}\)</span> and <span class="math">\(i,j,k = 0,1,2,3...\)</span>
-but <span class="math">\(i=j=k=0\)</span> is not allowed.
-|  The expectation value of the energy is
-| :math:<a href="#id1"><span class="problematic" id="id2">`</span></a>frac{1}{Z}sum_{ijk} left&lt; Psi_{ijk}|hat H exp[-beta hat H]|Psi_{ijk} right&gt; = frac{1}{Z}sum_{ijk} E_{ijk}exp[-beta E_{ijk}] `
-where
-:math:<a href="#id3"><span class="problematic" id="id4">`</span></a>Z=sum_{ijk} left&lt; Psi_{ijk}|exp[-beta E_{ijk}]|Psi_{ijk} right&gt; <a href="#id5"><span class="problematic" id="id6">`</span></a>.</p>
-<p>This sum will converge rapidly to <span class="math">\(2.51~K\)</span> and can be computed
-numerically with a few lines of Python code, for example.</p>
+<p><em>Helpful editing tip for input files:</em> The input files are inspired by C++ syntax. If you turn on C++ syntax highlighting in your editor (Meta-x c++-mode followed by Meta-x font-lock-mode in emacs), they will be colored and the braces will be matched in a friendly way.</p>
+<p><strong>A note about units:</strong> PIMC++ has no intrinsic units and any system of units can be used by specifying consistent values in the input file. <span class="math">\(\beta = M\tau = (k_B T)^{-1} `, where :math:`M\)</span> is the number of time slices. <span class="math">\(\beta\)</span> has units of inverse energy and establishes the temperature scale. For the tutorial, input files will use units of Kelvin and Angstrom with <span class="math">\(\hbar = 1\)</span>.</p>
+<p>Be sure to understand which lines of the input file establish that you are simulating a particle of mass <span class="math">\(0.5\)</span>, temperature <span class="math">\(1.66K\)</span> and box <span class="math">\(10\times10\times10~\AA\)</span>. The mass is defined through lambda (<span class="math">\(\lambda=\frac{\hbar^2}{2m}\)</span>). The temperature is defined implicitly by <span class="math">\(\frac{1}{NumTimeSlices*tau}\)</span> with NumTimeSlices and tau specified in the input.</p>
+<p>PIMC++ can be run by typing into the terminal,</p>
+<div class="highlight-python"><pre>pimc++ SingleParticle.in</pre>
+</div>
+<p>In the &#8220;Observables&#8221; section of the input file, there is variable called &#8220;OutFileBase&#8221;. This specifies the prefix of the output file(s). Because &#8220;OutFileBase&#8221; (Section: Observables) was set to &#8220;SingleParticle&#8221; in this case, the output is named &#8220;SingleParticle.0.h5&#8221;. For a serial run, the output filename will be the prefix plus &#8220;0.h5&#8221;. For a parallel run, each processor generates an output file by appending its processor number and &#8221;.h5&#8221; to the prefix. The output files are written in a portable, hierarchical file format known as <a class="reference external" href="http://hdf.ncsa.uiuc.edu/HDF5/">HDF5</a>.</p>
+<p>Let us take a look at the output we&#8217;ve generated. In order to do this, we will run the analysis script Analysis.py on the output.</p>
+<div class="highlight-python"><pre>python Analysis.py SingleParticle</pre>
+</div>
+<p>If you have a different setup where the top-level PIMC++ installation directory is PIMC++, the analysis script can be found at PIMC++/src/analysis/Analysis.py.</p>
+<p>For a particle in a box with periodic boundary conditions, the quantized energy levels in a cube of side <span class="math">\(L\)</span> are <span class="math">\(E_{ijk} = \frac{4 \hbar^2 \pi^2 (i^2 + j^2 + k^2)}{2mL} = \lambda \frac{2 \pi^2(i^2 + j^2 + k^2)}{L}\)</span> where <span class="math">\(\lambda=\frac{\hbar^2}{2m}\)</span> and <span class="math">\(i,j,k = 0,1,2,3...\)</span> but <span class="math">\(i=j=k=0\)</span> is not allowed.
+The expectation value of the energy is <span class="math">\(\frac{1}{Z}\sum_{ijk} \left&lt; \Psi_{ijk}|\hat H \exp[-\beta \hat H]|\Psi_{ijk} \right&gt; = \frac{1}{Z}\sum_{ijk} E_{ijk}\exp[-\beta E_{ijk}]\)</span> where
+<span class="math">\(Z=\sum_{ijk} \left&lt; \Psi_{ijk}|\exp[-\beta E_{ijk}]|\Psi_{ijk} \right&gt;\)</span>.</p>
+<p>This sum will converge rapidly to <span class="math">\(2.51 K\)</span> and can be computed numerically with a few lines of Python code, for example.</p>
+</div>
 
 
           </div>
@@ -62,6 +159,12 @@ numerically with a few lines of Python code, for example.</p>
       </div>
       <div class="sphinxsidebar">
         <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Tutorials.html"
+                        title="previous chapter">Tutorials</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Hydrogen-Molecule.html"
+                        title="next chapter">&lt;no title&gt;</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/Particle-in-a-Box.txt"
@@ -90,7 +193,14 @@ numerically with a few lines of Python code, for example.</p>
         <li class="right" style="margin-right: 10px">
           <a href="genindex.html" title="General Index"
              >index</a></li>
-        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+        <li class="right" >
+          <a href="Hydrogen-Molecule.html" title="&lt;no title&gt;"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Tutorials.html" title="Tutorials"
+             >previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" >Tutorials</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

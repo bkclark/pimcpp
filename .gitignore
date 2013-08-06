@@ -1,3 +1,4 @@
 *.doctree
 _sources
 *.swo
+*.swp

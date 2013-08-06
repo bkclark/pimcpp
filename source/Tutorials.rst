@@ -2,8 +2,10 @@ Tutorials
 =========
 
 .. toctree::
-   -  `Particle in a Box <Particle in a Box>`__
-   -  `Liquid helium <Bulk helium>`__
-   -  `Hydrogen Molecule <H2>`__
+   :maxdepth: 2
 
+   Particle in a Box <Particle-in-a-Box>
+   Simple Harmonic Oscillator <Simple-Harmonic-Oscillator>
+   Liquid Helium <Liquid-Helium>
+   Hydrogen Molecule <Hydrogen-Molecule>
 
