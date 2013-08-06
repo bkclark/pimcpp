@@ -1,4 +1,8 @@
+doctrees
 *.doctree
 _sources
 *.swo
 *.swp
+*.html
+*.js
+
