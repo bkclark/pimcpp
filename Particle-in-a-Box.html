@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Particle in a Box &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="Tutorials" href="Tutorials.html" />
+    <link rel="next" title="Simple Harmonic Oscillator" href="SimpleHarmonicOscillator.html" />
+    <link rel="prev" title="Tutorials" href="Tutorials.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="SimpleHarmonicOscillator.html" title="Simple Harmonic Oscillator"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Tutorials.html" title="Tutorials"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" accesskey="U">Tutorials</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="particle-in-a-box">
+<h1>Particle in a Box<a class="headerlink" href="#particle-in-a-box" title="Permalink to this headline">¶</a></h1>
+<p>In this tutorial, we calculate the energy of a single particle in a box with periodic boundary conditions. Although not of physical interest, this calculation will introduce you to the PIMC++ software suite, including its input format and output analysis and processing tools.</p>
+<p>Specifically, we will calculate the energy of a single particle in a box of size <span class="math">\(10 A\)</span> at a temperature of <span class="math">\(1.666 K\)</span>. We are working in a system of units in which energy is in Kelvin, length is in Angstroms, and <span class="math">\(\hbar=1\)</span>. In these units, the free particle mass will be <span class="math">\(0.5 K^{-1} A^{-2}\)</span>, which corresponds to <span class="math">\(4.034*10^{-26} kg\)</span>.</p>
+<p><strong>A note about units:</strong> PIMC++ has no intrinsic units and any system of units can be used by specifying consistent values in the input file. <span class="math">\(\beta = M\tau = (k_B T)^{-1} `, where :math:`M\)</span> is the number of time slices. <span class="math">\(\beta\)</span> has units of inverse energy and establishes the temperature scale. For the tutorial, input files will use units of Kelvin and Angstrom with <span class="math">\(\hbar = 1\)</span>.</p>
+<p>In this simple case, it will be possible to compare the simulation with the analytical result. If you do this, you should get an energy of <span class="math">\(2.499 K\)</span> <a class="footnote-reference" href="#analytical" id="id1">[1]</a>.</p>
+<div class="section" id="input">
+<h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
+<p>For more information on each section of the input file, please refer to the documentation for <a class="reference internal" href="Input.html"><em>Input File</em></a>.</p>
+<div class="highlight-python"><pre>Section (Output)
+{
+  string OutFileBase = "SingleParticle";
+}
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  double tau = 0.05;
+  int NumTimeSlices = 12;
+  Array&lt;double,1&gt; Box(3) = [10.0,10.0,10.0];
+  Array&lt;bool, 1&gt; IsPeriodic(3) = [true,true,true];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name = "free";
+      string Type = "free";
+      double lambda = 1.0;
+      string Statistics = "BOLTZMANNON";
+      int NumParticles = 1;
+      int NumDim = 3;
+      string InitPaths = "BCC";
+    }
+  }
+}
+
+Section (Actions)
+{
+  int NumImages = 0;
+  int MaxLevels = 2;
+  Array&lt;string,1&gt; PairActionFiles(1) = ["zero.PairAction"];
+}
+
+Section (Observables)
+{
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+    string Description = "Total Energy";
+    int Frequency = 1;
+  }
+}
+
+Section (Moves)
+{
+
+  Section (Move)
+  {
+    string Type = "BisectionBlock";
+    string Name = "BisectionBlock";
+    string PermuteType = "NONE";
+    string Species = "free";
+    int NumLevels = 2;
+    int StepsPerBlock = 2;
+  }
+
+  Section (Move)
+  {
+    string Type = "ShiftMove";
+    string Name = "Shift";
+  }
+
+}
+
+Section (Algorithm)
+{
+
+  Section (Loop){
+    int Steps = 100;
+
+    Section (Loop){
+      int Steps = 100000;
+
+      Section (Move) {string Name = "BisectionBlock";}
+      Section (Observe) {string Name = "Energy";}
+      Section (Move) {string Name = "Shift";}
+    }
+    Section (WriteData){}
+  }
+
+}</pre>
+</div>
+</div>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>PIMC++ can be run through the following line</p>
+<div class="highlight-python"><pre>pimc++ SingleParticle.in</pre>
+</div>
+<p>In the &#8220;Observables&#8221; section of the input file, there is variable called &#8220;OutFileBase&#8221;. This specifies the prefix of the output file(s). Because &#8220;OutFileBase&#8221; (Section: Observables) was set to &#8220;SingleParticle&#8221; in this case, the output is named &#8220;SingleParticle.0.h5&#8221;. For a serial run, the output filename will be the prefix plus &#8220;0.h5&#8221;. For a parallel run, each processor generates an output file by appending its processor number and &#8221;.h5&#8221; to the prefix. The output files are written in a portable, hierarchical file format known as <a class="reference external" href="http://hdf.ncsa.uiuc.edu/HDF5/">HDF5</a>.</p>
+</div>
+<div class="section" id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p>In the subdirectory pimcpp/Scripts, you will find some analysis tools for parsing output data from PIMC++. These include Analysis.py, which will give averages and errors for every observable, and more specific scripts, such as Energy.py which will output the average energy. Here, we only need the latter to compare to the analytic result.</p>
+<div class="highlight-python"><pre>python Energy.py SingleParticle.0.h5</pre>
+</div>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="analytical" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>For a particle in a box with periodic boundary conditions, the quantized energy levels in a cube of side <span class="math">\(L\)</span> are <span class="math">\(E_{ijk} = \frac{4 \hbar^2 \pi^2 (i^2 + j^2 + k^2)}{2mL} = \lambda \frac{2 \pi^2(i^2 + j^2 + k^2)}{L}\)</span> where <span class="math">\(\lambda=\frac{\hbar^2}{2m}\)</span> and <span class="math">\(i,j,k = 0,1,2,3...\)</span> but <span class="math">\(i=j=k=0\)</span> is not allowed. The expectation value of the energy is <span class="math">\(\frac{1}{Z}\sum_{ijk} \left&lt; \Psi_{ijk}|\hat H \exp[-\beta \hat H]|\Psi_{ijk} \right&gt; = \frac{1}{Z}\sum_{ijk} E_{ijk}\exp[-\beta E_{ijk}]\)</span> where <span class="math">\(Z=\sum_{ijk} \left&lt; \Psi_{ijk}|\exp[-\beta E_{ijk}]|\Psi_{ijk} \right&gt;\)</span>. This sum will converge rapidly to <span class="math">\(2.499 K\)</span> and can be computed numerically with a few lines of Python code, for example see FG.py in pimcpp/Scripts.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Particle in a Box</a><ul>
+<li><a class="reference internal" href="#input">Input</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#analysis">Analysis</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Tutorials.html"
+                        title="previous chapter">Tutorials</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="SimpleHarmonicOscillator.html"
+                        title="next chapter">Simple Harmonic Oscillator</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Particle-in-a-Box.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="SimpleHarmonicOscillator.html" title="Simple Harmonic Oscillator"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Tutorials.html" title="Tutorials"
+             >previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" >Tutorials</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

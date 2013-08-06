@@ -1,0 +1,357 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p>In this tutorial, we will first calculate the energy of a single
+particle in a box with periodic boundary conditions. Although not of
+physical interest, this calculation will introduce you to the PIMC++
+software suite, including its input format and output analysis and
+processing tools.</p>
+<p>In this first exercise, you will be exposed to a great deal of
+terminology and syntax related to path integrals and used in PIMC++. We
+will alert you to important points; occasionally, links embedded in the
+text will take you to more detailed information about technical or
+expert-level topics. However, many aspects of the simulation input and
+software design will be explored in more detail later, so do not worry
+about understanding every aspect right away.</p>
+<div class="line-block">
+<div class="line">Specifically, we will calculate the energy of a single particle in a</div>
+</div>
+<p>box of size <span class="math">\(10~\AA\)</span> at a temperature of <span class="math">\(1.666K\)</span>. For
+consistency with the Helium simulations we&#8217;ll do, we&#8217;re working in a
+system of units in which energy is in Kelvin, length is in <span class="math">\(\AA\)</span>,
+and <span class="math">\(\hbar=1\)</span>. In these units, the free particle mass will be
+<span class="math">\(0.5~K^{-1}\AA^{-2}\)</span>, which corresponds to
+<span class="math">\(4.034*10^{-26}~kg\)</span>.
+| In this simple case, it will be possible to compare the simulation
+with the <a class="reference external" href="ParticleinaBox">analytical result</a>. If you do this, you
+should get an energy of <span class="math">\(2.51~K\)</span>.</p>
+<div class="line-block">
+<div class="line">We will first describe how the input file is organized and how</div>
+</div>
+<p>important aspects of the simulation are controlled. The first input file
+looks like this:
+| You can view a fully annotated version of this file
+<a class="reference external" href="annotated">here</a> in order to see more detail about input syntax and
+options. <a href="#id1"><span class="problematic" id="id2">``</span></a>[c,N]</p>
+<blockquote>
+<div><p>double tau = 0.05;</p>
+<p>Section (Parallel)
+{</p>
+<blockquote>
+<div>int ProcsPerClone = 1;</div></blockquote>
+<p>}</p>
+<p>Section (System)
+{</p>
+<blockquote>
+<div><blockquote>
+<div><p>int NumTimeSlices=12;
+Array&lt;double,1&gt; Box(3) = [10.0,10.0,10.0];
+Array&lt;bool, 1 &gt; IsPeriodic(3) = [true,true,true];
+Section (Particles)
+{</p>
+<blockquote>
+<div><p>Section (Species)
+{</p>
+<blockquote>
+<div>string Name=&#8221;free&#8221;;
+string Type=&#8221;free&#8221;;
+double lambda=1.0;
+string Statistics=&#8221;BOLTZMANNON&#8221;;
+int NumParticles=1;
+int NumDim=3;
+string InitPaths=&#8221;BCC&#8221;;</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>Section (Action)
+{</p>
+<blockquote>
+<div>int NumImages=0;
+int MaxLevels = 2;
+Array&lt;string,1&gt; PairActionFiles(1) = [&#8220;zero.PairAction&#8221;];</div></blockquote>
+<p>}</p>
+<p>Section (Observables)
+{</p>
+<blockquote>
+<div><p>string OutFileBase = &#8220;SingleParticle&#8221;;
+Section (Observable)
+{</p>
+<blockquote>
+<div><p>string Type = &#8220;Energy&#8221;;
+string Name = &#8220;Energy&#8221;;</p>
+<blockquote>
+<div>string Description=&#8221;Total Energy&#8221;;</div></blockquote>
+<p>int Frequency=1;</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+<dl class="docutils">
+<dt>Section (Moves){</dt>
+<dd><dl class="first docutils">
+<dt>Section (Move) {</dt>
+<dd>string Type=&#8221;BisectionBlock&#8221;;
+string Name=&#8221;BisectionBlock&#8221;;
+string PermuteType=&#8221;NONE&#8221;;
+string Species=&#8221;free&#8221;;
+int NumLevels=2;
+int StepsPerBlock=2;</dd>
+</dl>
+<p>}
+Section (Move)
+{</p>
+<blockquote>
+<div>string Type=&#8221;ShiftMove&#8221;;
+string Name=&#8221;Shift&#8221;;</div></blockquote>
+<p class="last">}</p>
+</dd>
+</dl>
+<p>}</p>
+<p>Section (Algorithm)
+{</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>Section (Loop){</dt>
+<dd><p class="first">int Steps=1000;
+Section (Loop){</p>
+<blockquote>
+<div>int Steps=50;
+Section (Move)    { string Name = &#8220;BisectionBlock&#8221;; }
+Section (Observe) { string Name = &#8220;Energy&#8221;;         }
+Section (Move)    { string Name = &#8220;Shift&#8221;;          }</div></blockquote>
+<p class="last">}
+Section (WriteData){}</p>
+</dd>
+</dl>
+<p>}</p>
+</div></blockquote>
+<p>}</p>
+</div></blockquote>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a></p>
+<p><em>Helpful editing tip for input files:</em> The input files are inspired by
+C++ syntax. If you turn on C++ syntax highlighting in your editor
+(Meta-x c++-mode followed by Meta-x font-lock-mode in emacs), they will
+be colored and the braces will be matched in a friendly way.</p>
+<div class="line-block">
+<div class="line">Let&#8217;s briefly examine the input file. Notice the content is grouped by</div>
+</div>
+<p><em>Section</em>, each of which contains variables that define the input to the
+simulation.
+| In summary, the sections are :</p>
+<ul class="simple">
+<li>Parallel: Specifies how many processors over which each path is
+distributed.</li>
+<li>System: Information about the physical system to be simulated.
+Contains number of time slices, tau, box-size, and the particle
+Section.<ul>
+<li>Particle Section: Contains a section for each Species.<ul>
+<li>Species Section: Contains lambda
+(:math:` lambda=frac{hbar^2}{2m}`), statistics, number of
+particles, etc. A Species can be an element, ion, molecule, or
+any object with uniform physical properties.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Moves: Defines the moves of your Monte Carlo</li>
+<li>Observables: Defines what properties of the system you are measuring</li>
+<li>Action: The action (dimensionless energy) is used to evaluate whether
+to accept or reject a Monte Carlo move. By specifying which actions
+to use and their properties, the description of the system&#8217;s physical
+interactions is fixed (i.e. free particles, Coulomb, Lennard-Jones,
+etc.).</li>
+<li>Algorithm: Specifies the simulation sequence of events (when each
+Move and Observable is called)</li>
+</ul>
+<p><strong>A note about units:</strong> PIMC++ has no intrinsic units and any system of
+units can be used by specifying consistent values in the input file.
+<span class="math">\(\beta = M\tau = (k_B T)^{-1} `, where :math:`M\)</span> is the number of
+time slices. <span class="math">\(\beta\)</span> has units of inverse energy and establishes
+the temperature scale. For the tutorial, input files will use units of
+Kelvin and Angstrom with <span class="math">\(\hbar = 1\)</span>.</p>
+<div class="line-block">
+<div class="line">Be sure to understand which lines of the input file establish that you</div>
+</div>
+<p>are simulating a particle of mass <span class="math">\(0.5\)</span>, temperature <span class="math">\(1.66K\)</span>
+and box <span class="math">\(10\times10\times10~\AA\)</span>.
+| The mass is defined through lambda
+(<span class="math">\(\lambda=\frac{\hbar^2}{2m}\)</span>) (Section: System/Species/Particle).
+The temperature is defined implicitly by
+<span class="math">\(\frac{1}{NumTimeSlices*tau}\)</span> with NumTimeSlices (Section:System)
+and tau (Section: System) specified in the input.</p>
+<p>In order to use the software for the lab, several environment variables
+need to be set up. This can be done by typing</p>
+<div class="highlight-python"><pre>   source /afs/ictp/public/shared/smr1929/login.cshrc
+
+Now, you should run</pre>
+</div>
+<div class="highlight-python"><pre>cd /tmp
+setup_pimc++
+cd PIMCpp</pre>
+</div>
+<p>Now that that is done, let&#8217;s run PIMC++ with the input file above.
+PIMC++ can be run by typing into the terminal,</p>
+<div class="highlight-python"><pre>pimc++ SingleParticle.in</pre>
+</div>
+<p>In the &#8220;Observables&#8221; section of the input file, there is variable called
+&#8220;OutFileBase&#8221;. This specifies the prefix of the output file(s). Because
+&#8220;OutFileBase&#8221; (Section: Observables) was set to &#8220;SingleParticle&#8221; in this
+case, the output is named &#8220;SingleParticle.0.h5&#8221;. For a serial run, the
+output filename will be the prefix plus &#8220;0.h5&#8221;. For a parallel run, each
+processor generates an output file by appending its processor number and
+&#8221;.h5&#8221; to the prefix. The output files are written in a portable,
+hierarchical file format known as
+<a class="reference external" href="http://hdf.ncsa.uiuc.edu/HDF5/">HDF5</a>.</p>
+<p>Let us take a look at the output we&#8217;ve generated. In order to do this,
+we will run the analysis script Report.py on the output. On the lab
+machines, the script will be in your path and you can just enter</p>
+<div class="highlight-python"><pre>Report.py SingleParticle</pre>
+</div>
+<p>If you have a different setup where the top-level PIMC++ installation
+directory is PIMC++, the analysis script can be found at
+PIMC++/src/analysis/Report.py.</p>
+<p>This script will produce an HTML file that will give us some information
+about our run. Examine
+<a class="reference external" href="http://www.pathintegrals.info/tutorial/SingleParticle/index.html">SingleParticle/index.html</a>
+with a web browser. On the lab machines, we recommend using</p>
+<div class="highlight-python"><pre>firefox SingleParticle/index.html &amp;</pre>
+</div>
+<p>although konqueror or some other web browser should work as well.</p>
+<p>Your screen should be similar to the following:</p>
+<p>Image:pimcppAnalysis.jpg</p>
+<p>Let us take note of the following information in the html summary.</p>
+<ul class="simple">
+<li>Run information: (Upper left table) Specifies where and when it was
+run, who ran it, etc.</li>
+<li>System Data: (Upper right table) System Parameters including
+temperature, species information, etc.</li>
+<li>Move information: Table specifying acceptance ratio of moves and
+center of mass drift (add this to your input). You will notice that
+in this simulation, the acceptance ratio is 1.00. <a class="reference external" href="samples">Why is
+this?</a>. There is additional information on the bisection
+move here. You can ignore this for now. Note: There is another &#8220;move&#8221;
+in the simulation, &#8220;ShiftMove&#8221;, that isn&#8217;t in the table. It is not a
+real move, but simply rearranges the storage of the path in memory.
+(It is the same as &#8220;RelabelBeads&#8221; from yesterday&#8217;s Python tutorial.)
+Thus, it has no acceptance ratio, but it is nonethless required to
+ensure ergodicity. Go <a class="reference external" href="ImportanceofShiftMove">here</a> to
+understand the technical reason behind this.</li>
+<li>Observable Information: We have measured the <strong>Energy</strong> observable in
+this simulation. Notice the energy table with the different
+components of the energy and their respective variance, error and
+autocorrelation time. We see that the energy is close to
+<span class="math">\(2.5~K\)</span> as anticipated above. Of course, as we lower the
+temperature, we would see quantum effects becoming more important as
+the energy approaches the ground state for a single particle in a
+box. (Note: there is a subtlety to getting the correct energy if your
+box is small compared to <span class="math">\(\sqrt{4\lambda\tau}\)</span> in PIMC++ caused
+by an approximation to the kinetic action. This can be skipped on the
+first pass through the tutorial, but experts can explore this
+<a class="reference external" href="NumImageapproximation">NumImage approximation</a> here ) Although a
+summary of the energy is convenient, it is often useful to be able to
+see a trace plot of the energy (for example to choose an
+equilibration time). We can get such detailed information by clicking
+on the <a class="reference external" href="detailedHTMLPicture">&#8220;Detailed HTML Page&#8221;</a> at the top of
+index.html. Do that now. This page also allows us to see that the
+data was output 1000 times. By examining the Algorithm section of our
+input file, we see that the data gets written every time a WriteData
+is encountered in the algorithm (nb: this is NOT true for the
+PathDump observable which is special!). Looking at the number of
+iterations given for each of the Loop sections, we see that WriteData
+will be called 1000 times.</li>
+</ul>
+<p>Once you feel familiar with this introductory simulation, we can move
+towards a more interesting system:</p>
+<ul class="simple">
+<li><a class="reference external" href="Bulkhelium">Liquid helium</a></li>
+<li><a class="reference external" href="H2">Hydrogen Molecule</a></li>
+<li><a class="reference external" href="PIMC++applications">PIMC++ applications</a></li>
+</ul>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/ParticleBox.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

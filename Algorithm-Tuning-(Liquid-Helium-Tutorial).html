@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>&lt;no title&gt; &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <p>The speed of a Path Integral simulation is dependent on a number of
+factors. We would like to maximize the rate of diffusion of the system
+through configuration space (or equivalently minimize the number of
+seconds it takes to get a statistically independent sample from our
+Markov Chain). PIMC++ has a number of features built in to help you
+measure the efficiency of your simulation. Moreover, beyond a
+qualitatively different choice of move algorithms, there are a number of
+quantitative knobs that we can tune to speed up the simulation.</p>
+<p>Ways to monitor the speed of your simulation (open up your HTML analysis
+files and find where these are in the output):</p>
+<ul class="simple">
+<li>Time analysis observable (must be turned on in your input file): This
+tells you what percent of time you spend on each move and observable
+in your system. If you find that you&#8217;re spending too much time in an
+observable, turn down the <em>Frequency</em>
+(Section:Observables/Observable) at which it is being observed. For
+moves, a (provably?) good heuristic is to spend the same percentage
+of time in each move (bounds your regret against the &#8220;perfect&#8221;
+algorithm). Also, this gives you an idea of what moves you might
+optimize.</li>
+<li>Moves Acceptance ratios: Tells you the percentage that your move is
+being accepted. Low acceptance can be indicative of a move being not
+useful in your simulation (a good heurestic for low is less then
+10%). Also, it can indicate that you need to do fewer levels in a
+multi-stage move. Information on the individual stages and individual
+permutations are also supplied to allow fine-tuning of your <em>Gamma</em>
+(Section: Moves/Move (Bisection Block)) parameters and number of
+levels.</li>
+<li>Move center of mass diffusion: Indicates how far each move has helped
+the center of mass of the path diffuse. Sometimes a better indicator
+of the efficacy of a move. A low acceptance ratio may still be
+acceptable if the accepted moves push around the path significantly.
+Less useful in situations where the path center of mass is poorly
+defined (think winding paths). To use this metric as a fair
+comparison between different moves, you should divide this by the
+number by time spent in the BisectionBlock move (calculable in the
+Time Analysis observable)</li>
+</ul>
+<p>There are a number of useful knobs to turn that have the potential to
+make a significant difference in speed. They include:</p>
+<ul class="simple">
+<li>Bisection Level: The higher this is, the more the path moves at once
+but the lower your acceptance ratio</li>
+<li>Frequency: The less often you observe, the faster it is (but the
+worse your statistics may be)</li>
+<li>StepsPerBlock (Section: Moves/Move (BisectionBlock): In the
+bisectionblock, it does StepsPerBlock moves at a single set of time
+slices before continuing in the algorithm. For Boltzmannons there is
+no efficiency improvement by having a large number here (in fact, if
+it&#8217;s much more then the number of particles it might be marginally
+inefficient since you&#8217;ll be ignoring other slices. For Bosons, there
+is a large upfront cost that is amortized over. Consequently higher
+numbers here help efficiency significantly. Heuristically, this
+should be between <span class="math">\(N\)</span> and <span class="math">\(N^2\)</span>.</li>
+</ul>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/Algorithm-Tuning-(Liquid-Helium-Tutorial).txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>

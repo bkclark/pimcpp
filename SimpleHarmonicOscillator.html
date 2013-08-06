@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Simple Harmonic Oscillator &mdash; PIMC++ 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="PIMC++ 1.0.0 documentation" href="index.html" />
+    <link rel="up" title="Tutorials" href="Tutorials.html" />
+    <link rel="next" title="&lt;no title&gt;" href="Hydrogen-Molecule.html" />
+    <link rel="prev" title="Particle in a Box" href="Particle-in-a-Box.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="Hydrogen-Molecule.html" title="&lt;no title&gt;"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="Particle-in-a-Box.html" title="Particle in a Box"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" accesskey="U">Tutorials</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="simple-harmonic-oscillator">
+<h1>Simple Harmonic Oscillator<a class="headerlink" href="#simple-harmonic-oscillator" title="Permalink to this headline">¶</a></h1>
+<p>In many circumstances, a harmonic trap is imposed on a system. Here we provide a simple input for free bosons in a harmonic trap of <span class="math">\(\omega = 1\)</span>.</p>
+<p>The temperature of the system is <span class="math">\(T = 1/\beta = 1/(\tau*NumTimeSlices) = 1/2 K\)</span>. At this temperature, the energy of the system should be <span class="math">\(\sim 3.68 K\)</span> <a class="footnote-reference" href="#analytical" id="id1">[1]</a>.</p>
+<div class="section" id="input">
+<h2>Input<a class="headerlink" href="#input" title="Permalink to this headline">¶</a></h2>
+<p>The input is very similar to that of the <a class="reference internal" href="Particle-in-a-Box.html"><em>Particle in a Box</em></a> tutorial with the following exceptions:</p>
+<p>First the cell is not periodic. This is implied by <cite>IsPeriodic(3) = [false,false,false];</cite>. Because of this the Box size does not matter, so we just default it to <cite>1.0</cite>.</p>
+<p>Also, we start with <cite>2</cite> particles with bosonic statistics. This is reflected both in the <cite>Species</cite> section as well as the <cite>PermuteType</cite> and <cite>Gamma</cite> of the <cite>BisectionBlock</cite> move.</p>
+<p>Finally, we have added the action <cite>HarmonicPotential</cite> in the <cite>Actions</cite> section with a oscillator frequency of <span class="math">\(\omega = 1\)</span>.</p>
+<div class="highlight-python"><pre>Section (Output)
+{
+  string OutFileBase = "SHO";
+}
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  double tau = 0.1;
+  int NumTimeSlices = 20;
+  Array&lt;double,1&gt; Box(3) = [1.0,1.0,1.0];
+  Array&lt;bool, 1&gt; IsPeriodic(3) = [false,false,false];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name = "e";
+      string Type = "e";
+      double lambda = 0.5;
+      string Statistics = "BOSON";
+      int NumParticles = 2;
+      int NumDim = 3;
+      string InitPaths = "SHO";
+    }
+  }
+}
+
+Section (Actions)
+{
+  int NumImages = 0;
+  int MaxLevels = 3;
+  Array&lt;string,1&gt; PairActionFiles(1) = ["zero.PairAction"];
+
+  Section (Action)
+  {
+    string Name = "HarmonicPotential";
+    string Type = "HarmonicPotential";
+    string Species = "e";
+    double omega = 1.0;
+  }
+}
+
+Section (Observables)
+{
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+    string Description = "Total Energy";
+    int Frequency = 1;
+    double HistStart = 0.0;
+    double HistEnd = 1.0;
+    int HistPoints = 2;
+  }
+}
+
+Section (Moves)
+{
+
+  Section (Move)
+  {
+    string Type = "BisectionBlock";
+    string Name = "BisectionBlock";
+    string PermuteType = "TABLE";
+    Array&lt;double,1&gt; Gamma(4) = [1.0,1.0,1.0,1.0];
+    Array&lt;string,1&gt; SamplingActions(1) = ["HarmonicPotential"];
+    double epsilon = 1e-10;
+    string Species = "e";
+    int NumLevels = 3;
+    int StepsPerBlock = 2;
+  }
+
+  Section (Move)
+  {
+    string Type = "ShiftMove";
+    string Name = "Shift";
+  }
+
+}
+
+Section (Algorithm)
+{
+
+  Section (Loop){
+    int Steps = 10;
+
+    Section (Loop){
+      int Steps = 100000;
+      bool Equilibrate = false;
+
+      Section (Move) {string Name = "BisectionBlock";}
+      Section (Observe) {string Name = "Energy";}
+      Section (Move) {string Name = "Shift";}
+    }
+    Section (WriteData){}
+  }
+
+}</pre>
+</div>
+</div>
+<div class="section" id="running">
+<h2>Running<a class="headerlink" href="#running" title="Permalink to this headline">¶</a></h2>
+<p>Running is again simple with</p>
+<div class="highlight-python"><pre>pimc++ SHO.in</pre>
+</div>
+</div>
+<div class="section" id="analysis">
+<h2>Analysis<a class="headerlink" href="#analysis" title="Permalink to this headline">¶</a></h2>
+<p>Again since we only care about the energy, we can use the following:</p>
+<div class="highlight-python"><pre>python Energy.py SHO.0.h5</pre>
+</div>
+<p>which should give an answer close to <span class="math">\(\sim 3.68\)</span>. Note that the exact answer is <span class="math">\(3.68566710278\)</span>, however due to our choice of time step, PIMC++ will give an answer more like <span class="math">\(3.6849\)</span>. One can try for a better result by reducing the time step <cite>tau</cite> while increasing <cite>NumTimeSteps</cite> in order to keep <span class="math">\(\beta\)</span> fixed.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="analytical" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>Free particles in a harmonic trap represents one of the few systems that can be solved analytically through path integral integration. For a script which gives the exact result, please see pimcpp/Scripts/SHO.py</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Simple Harmonic Oscillator</a><ul>
+<li><a class="reference internal" href="#input">Input</a></li>
+<li><a class="reference internal" href="#running">Running</a></li>
+<li><a class="reference internal" href="#analysis">Analysis</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="Particle-in-a-Box.html"
+                        title="previous chapter">Particle in a Box</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="Hydrogen-Molecule.html"
+                        title="next chapter">&lt;no title&gt;</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/SimpleHarmonicOscillator.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="Hydrogen-Molecule.html" title="&lt;no title&gt;"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="Particle-in-a-Box.html" title="Particle in a Box"
+             >previous</a> |</li>
+        <li><a href="index.html">PIMC++ 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="Tutorials.html" >Tutorials</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ken Esler, Bryan Clark, Ethan Brown.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+  </body>
+</html>
