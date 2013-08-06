@@ -19,3 +19,12 @@ Fully-correlated simulations of quantum systems in continuous space at finite te
 * Run `mkdir build && cd build && cmake ..`.
 * Run `make` (use `-j` for distributed compiling if possible). Built libraries are put in `$PROJECTDIR/bin/`.
 
+## Running
+
+Basic execution is done very simply by `pimc++ InputFile.in`.
+
+## Further information
+
+For help on any subject (including creating input files), please see the [documentation](http://etano.github.io/pimcpp).
+
+
