@@ -175,7 +175,7 @@ bool TablePermuteStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &ac
     double revT = Rev->CalcReverseProb(*Forw);
 
     int len = Forw->CurrentCycle.Length;
-    if (len % 2 == 0)
+    if (len % 2 == 0 && PathData.Path.HasFermions(activeParticles))
       PathData.Path.SignWeight = PathData.Path.SignWeight*-1;
 
     double actionChange = -log(Forw->CurrentCycle.P/Forw->Gamma[len-1]);

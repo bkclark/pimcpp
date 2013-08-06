@@ -256,10 +256,13 @@ void PathClass::Read (IOSectionClass &inSection)
     assert(tempBox.size()==NDIM);
     for (int counter=0;counter<tempBox.size();counter++)
       Box(counter)=tempBox(counter)*scaleBox;
-    cerr<<"The BOX I am setting is "<<Box<<endl;
+    verr<<"The BOX I am setting is "<<Box<<endl;
     SetBox (Box);
-  } else
-    perr << "Using free boundary conditions.\n";
+  } else {
+    Box = 0;
+    SetBox (Box);
+    verr << "Using free boundary conditions.\n";
+  }
 
   // Read particle information
   assert(inSection.OpenSection("Particles"));

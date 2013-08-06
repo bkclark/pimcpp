@@ -108,12 +108,12 @@ bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activePa
   assert (slice1 == 0);
   assert (slice2 == PathData.NumTimeSlices()-1);
 
-  SetMode (NEWMODE);
-  double logSampleRatio = Sample(slice1,slice2,activeParticles);
-  logSampleRatio = PathData.Path.Communicator.AllSum (logSampleRatio);
-
   SetMode(OLDMODE);
   double oldAction = GlobalStageAction(activeParticles);
+
+  SetMode(NEWMODE);
+  double logSampleRatio = Sample(slice1,slice2,activeParticles);
+  logSampleRatio = PathData.Path.Communicator.AllSum (logSampleRatio);
 
   SetMode(NEWMODE);
   double newAction = GlobalStageAction(activeParticles);

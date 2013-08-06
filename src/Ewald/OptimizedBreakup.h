@@ -26,14 +26,14 @@ class BasisClass
 public:
   //protected:
   double r_c;
-  TinyVector<double,3> Box;
+  TinyVector<double,NDIM> Box;
   double Omega;
 public:
   /// Set the cutoff radius
   virtual void Set_rc(double rc) = 0;
   inline double Get_rc() { return r_c; }
-  inline void SetBox (TinyVector<double,3> box);
-  inline TinyVector<double,3> GetBox ();
+  inline void SetBox (TinyVector<double,NDIM> box);
+  inline TinyVector<double,NDIM> GetBox ();
   /// Returns the number of basis elements
   virtual int NumElements() = 0;
   /// Returns the basis element n evaluated in real space at r
@@ -77,13 +77,13 @@ public:
 };
 
 
-inline void BasisClass::SetBox (TinyVector<double,3> box)
+inline void BasisClass::SetBox (TinyVector<double,NDIM> box)
 {
   Box = box;
   Omega = box[0]*box[1]*box[2];
 }
 
-inline TinyVector<double,3> BasisClass::GetBox ()
+inline TinyVector<double,NDIM> BasisClass::GetBox ()
 {
   return Box;
 }
@@ -98,7 +98,7 @@ class LPQHI_BasisClass : public BasisClass
 public:
   int NumKnots;
   double delta, deltaInv;
-  TinyMatrix<double,3,6> S;
+  TinyMatrix<double,NDIM,6> S;
   /// The following are helpers to calculate the Fourier tranform of
   /// the basis functions
   inline complex<double> Eplus(int i, double k, int n);

@@ -11,8 +11,6 @@ using namespace std;
 using namespace blitz;
 typedef double pscalar;
 
-#define NDIM 3
-
 using namespace blitz;
 typedef TinyVector<pscalar,1> Vec1;
 typedef TinyVector<pscalar,2> Vec2;

@@ -39,19 +39,25 @@ void EnergyClass::Accumulate()
   // Get the Full Weight from sign and importance sampling
   double FullWeight = CalcFullWeight();
 
-  double kinetic, dUShort, dULong, node, vShort, vLong, dUNonlocal, residual;
-  PathData.Actions.Energy(kinetic, dUShort, dULong, node, vShort, vLong,
-                          dUNonlocal, residual);
-  double localSum = kinetic + dUShort + dULong + node + dUNonlocal;
-  TotalSum += localSum * FullWeight;
-  KineticSum += kinetic * FullWeight; /* * PathData.Path.Weight */ ;
-  dUShortSum += dUShort * FullWeight; /* * PathData.Path.Weight */ ;
-  dULongSum += dULong * FullWeight; /* * PathData.Path.Weight */ ;
-  NodeSum += node * FullWeight; /* * PathData.Path.Weight */ ;
-  VShortSum += vShort * FullWeight; /* * PathData.Path.Weight */ ;
-  VLongSum += vLong * FullWeight; /* * PathData.Path.Weight */ ;
-  dUNonlocalSum += dUNonlocal * FullWeight;
-  Residual += residual;
+  // Fill Energies Map
+  PathData.Actions.Energy(energies);
+
+  // Add energies to total
+  double localSum = 0.0;
+  std::list<string>::iterator labelIt;
+  for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
+    localSum += energies[*labelIt] * FullWeight;
+    ESum[*labelIt] += energies[*labelIt] * FullWeight;
+    energies[*labelIt] = 0.0;
+  }
+  TotalSum += localSum;
+
+  // Potentials
+  double vShort, vLong, vExt;
+  PathData.Actions.Potential(vShort,vLong,vExt);
+  VShortSum += vShort;
+  VLongSum += vLong;
+  VExtSum += vExt;
 
   // Energy Histogram
   double completeSum = PathData.Path.Communicator.Sum(localSum) /
@@ -70,16 +76,6 @@ void EnergyClass::Accumulate()
       PermEnergy.push_back(completeSum);
       SectorCount.push_back(PermSector);
     }
-  }
-
-  // Other Energies
-  int slice1 = 0;
-  int slice2 = PathData.Path.NumTimeSlices() - 1;
-  for (int n = 0; n < numEnergies; n++) {
-    double otherE = OtherActions[n]->d_dBeta(slice1, slice2, 0);
-    OtherSums[n] += otherE;
-    localSum += otherE;
-    TotalSum += otherE;
   }
 
 }
@@ -115,18 +111,16 @@ void EnergyClass::WriteBlock()
   int nslices = PathData.Path.TotalNumSlices;
   double norm = 1.0 / ((double) NumSamples * (double) nslices);
 
+  // Write out energies
   TotalVar.Write(Prefactor * PathData.Path.Communicator.Sum(TotalSum) * norm);
-  KineticVar.Write(Prefactor * PathData.Path.Communicator.Sum(KineticSum) * norm);
-  dUShortVar.Write(Prefactor * PathData.Path.Communicator.Sum(dUShortSum) * norm);
-  dULongVar.Write(Prefactor * PathData.Path.Communicator.Sum(dULongSum) * norm);
-  NodeVar.Write(Prefactor * PathData.Path.Communicator.Sum(NodeSum) * norm);
   VShortVar.Write(Prefactor * PathData.Path.Communicator.Sum(VShortSum) * norm);
   VLongVar.Write(Prefactor * PathData.Path.Communicator.Sum(VLongSum) * norm);
-  dUNonlocalVar.Write(Prefactor * PathData.Path.Communicator.Sum(dUNonlocalSum) * norm);
-  ResidualVar.Write(Prefactor * PathData.Path.Communicator.Sum(Residual) * norm);
-  for (int n = 0; n < numEnergies; n++) {
-    OtherVars[n]->Write(Prefactor * PathData.Path.Communicator.Sum(OtherSums[n]) * norm);
-    OtherSums[n] = 0.0;
+  VExtVar.Write(Prefactor * PathData.Path.Communicator.Sum(VExtSum) * norm);
+  double localSum = 0.0;
+  std::list<string>::iterator labelIt;
+  for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
+    EVar[*labelIt] -> Write(Prefactor * PathData.Path.Communicator.Sum(ESum[*labelIt]) * norm);
+    ESum[*labelIt] = 0.0;
   }
 
   // Permutation Counting
@@ -185,19 +179,13 @@ void EnergyClass::WriteBlock()
   Array <double,1> EnergyHistogramTemp(&(EnergyHistogram.histogram[0]), shape(EnergyHistogram.histogram.size()), neverDeleteData);
   EnergyHistogramVar.Write(EnergyHistogramTemp);
 
+  // Reset counters
   if (PathData.Path.Communicator.MyProc() == 0)
     IOSection.FlushFile();
-
   TotalSum = 0.0;
-  KineticSum = 0.0;
-  dUShortSum = 0.0;
-  dULongSum = 0.0;
-  NodeSum = 0.0;
   VShortSum = 0.0;
   VLongSum = 0.0;
-  dUNonlocalSum = 0.0;
-  Residual = 0.0;
-  //EnergyVals = 0.0;
+  VExtSum = 0.0;
   NumSamples = 0;
   EnergyHistogram.Clear();
 }
@@ -234,20 +222,6 @@ void EnergyClass::Read(IOSectionClass & in)
       cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PathData.Path.PossPerms.size()-1 << endl;
   }
 
-  // Other Energies
-  Array <string,1> EnergyStrings(0);
-  in.ReadVar("ComputeEnergies", EnergyStrings);
-  numEnergies = EnergyStrings.size();
-  OtherActions.resize(numEnergies);
-  OtherVars.resize(numEnergies);
-  OtherSums.resize(numEnergies);
-  for (int n = 0; n < numEnergies; n++) {
-    OtherActions[n] = PathData.Actions.GetAction(EnergyStrings(n));
-    cerr << "Energy observable added action with label " << EnergyStrings(n) << endl;
-    OtherVars[n] = new ObservableDouble(EnergyStrings(n), IOSection, PathData.Path.Communicator);
-    OtherSums[n] = 0.0;
-  }
-
   // Energy Histogram
   double histStart = 0.0;
   double histEnd = 1.0;
@@ -257,4 +231,12 @@ void EnergyClass::Read(IOSectionClass & in)
   in.ReadVar("HistPoints", histPoints);
   EnergyHistogram.Init(histPoints, histStart, histEnd);
   EnergyHistogramSum.resize(EnergyHistogram.histogram.size());
+
+  // Setup Energies Map
+  std::list<string>::iterator labelIt;
+  for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
+    energies.insert( std::pair<string,double>(*labelIt,0.0) );
+    ObservableDouble* tmpVar = new ObservableDouble(*labelIt,IOSection,PathData.Path.Communicator);
+    EVar.insert( std::pair<string,ObservableDouble*>(*labelIt,tmpVar) );
+  }
 }

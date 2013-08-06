@@ -223,46 +223,52 @@ void FermionClass::FillStates()
 {
   OccupiedStates.resize (NumParticles);
   double kmin = min(kPrim[0], kPrim[1]);
+#if NDIM==3
   kmin = min (kmin, kPrim[2]);
+#endif
   double deltaEmin = lambda * kmin*kmin;
-  
+
   int n = 0;
   double Ecut = deltaEmin;
   while (n < NumParticles) {
     int ixmax = (int)ceil(sqrt(Ecut/lambda)/kPrim[0]);
     int iymax = (int)ceil(sqrt(Ecut/lambda)/kPrim[1]);
+#if NDIM==3
     int izmax = (int)ceil(sqrt(Ecut/lambda)/kPrim[2]);
+#endif
     dVec k;
     State tryState;
     for (int ix=-ixmax; ix<=ixmax; ix++) {
       tryState[0] = ix;
       k[0] = kPrim[0]*ix;
       for (int iy=-iymax; iy<=iymax; iy++) {
-	tryState[1] = iy;
-	k[1] = kPrim[1]*iy;
-	for (int iz=-izmax; iz<=izmax; iz++) {
-	  tryState[2] = iz;
-	  k[2] = kPrim[2]*iz;
-	  double E = lambda * dot(k,k);
-	  if (n < NumParticles)
-	    if (E < Ecut) {
-	      bool occupied = false;
-	      for (int i=0; i<n; i++)
-		occupied = occupied || equal(tryState,OccupiedStates(i));
-	      if (!occupied) {
-		OccupiedStates(n) = tryState;
-		n++;
-	      }
-	    }
-	}
-	Ecut += deltaEmin;
+        tryState[1] = iy;
+        k[1] = kPrim[1]*iy;
+#if NDIM==3
+        for (int iz=-izmax; iz<=izmax; iz++) {
+          tryState[2] = iz;
+          k[2] = kPrim[2]*iz;
+#endif
+          double E = lambda * dot(k,k);
+          if (n < NumParticles) {
+            if (E < Ecut) {
+              bool occupied = false;
+              for (int i=0; i<n; i++)
+                occupied = occupied || equal(tryState,OccupiedStates(i));
+              if (!occupied) {
+                OccupiedStates(n) = tryState;
+                n++;
+              }
+            }
+          }
+#if NDIM==3
+        }
+#endif
+        Ecut += deltaEmin;
       }
     }
   }
 }
-
-
-
 
 
 double FermionClass::AcceptProb (int ptclToMove, State &newState)

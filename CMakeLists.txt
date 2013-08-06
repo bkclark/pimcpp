@@ -20,10 +20,22 @@ SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 
 set(QMC_BUILD_STATIC FALSE)
 IF(QMC_BUILD_STATIC)
-  set(BUILD_SHARED_LIBS FALSE)
-  set(CMAKE_EXE_LINKER_FLAGS '-static')
+  # Enable static linking
+  set(BUILD_STATIC_LIBS TRUE)
+  set(LINK_SEARCH_END_STATIC TRUE)
+  set(CMAKE_EXE_LINKER_FLAGS "-static -Wl,-Bstatic")
+  set(MPI_LINK_FLAGS "-Wl,-Bstatic")
   set(LINK_SEARCH_END_STATIC TRUE)
   set(HDF5_USE_STATIC_LIBRARIES TRUE)
+
+  # Disable shared linking
+  set(BUILD_SHARED_LIBS FALSE)
+  set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)       # remove -Wl,-Bdynamic
+  set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_C_FLAGS)         # remove -fPIC
+  set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
+  set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)    # remove -rdynamic
+  set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
 ENDIF(QMC_BUILD_STATIC)
 
 #-------------------------------------------------------------------
@@ -112,7 +124,11 @@ INCLUDE(${PROJECT_CMAKE}/FindSPRNG.cmake)
 IF(SPRNG_FOUND)
   SET(HAVE_SPRNG 1)
   INCLUDE_DIRECTORIES(${SPRNG_INCLUDE_DIR})
-  LINK_LIBRARIES(${SPRNG_LIBRARY} -lgmp)
+  IF(QMC_BUILD_STATIC)
+    LINK_LIBRARIES(${SPRNG_LIBRARY})
+  ELSE(QMC_BUILD_STATIC)
+    LINK_LIBRARIES(${SPRNG_LIBRARY} -lgmp)
+  ENDIF(QMC_BUILD_STATIC)
 ELSE(SPRNG_FOUND)
   MESSAGE(FATAL_ERROR "Require SPRNG. Set SPRNG_HOME")
 ENDIF(SPRNG_FOUND)
@@ -194,9 +210,10 @@ src/Actions/DiagonalActionClass.cc
 src/Moves/PermuteStage.cc
 src/Actions/EAMClass.cc
 src/Moves/PermuteTableClass.cc
-src/Actions/ExternalPotential.cc
+src/Actions/HarmonicPotential.cc
 src/Moves/PermuteTableOnClass.cc
 src/Actions/FreeNodalActionClass.cc
+src/Actions/ParametrizedFreeNodalActionClass.cc
 src/Moves/PreSampling.cc
 src/Actions/KineticClass.cc
 src/Moves/RandomPermClass.cc
@@ -289,6 +306,7 @@ src/Observables/Time.cc
 src/MirroredClass.cc
 src/Observables/TimeHexatic.cc
 src/Observables/Centroid.cc
+src/Observables/NodalModelTime.cc
 src/Moves/CentroidMove.cc
 src/MoleculeHelper.cc
 src/Observables/TimeLindenman.cc
@@ -319,6 +337,7 @@ src/QMCWrapper.cc
 src/Moves/CouplingStage.cc
 src/SpeciesClass.cc
 src/Moves/DisplaceMove.cc
+src/Moves/NodalModelMove.cc
 src/Moves/DisplaceMoveFast.cc
 src/Moves/EmptyStage.cc
 src/Splines/CubicSpline.cc

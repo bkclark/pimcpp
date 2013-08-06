@@ -1,0 +1,23 @@
+Section (Fits)
+{
+  string Type = "zerofit";
+
+  Section (Particle1)
+  {
+    string Name = "e";
+    double lambda = 1.0;
+    int Ndim = 3;
+  }
+
+  Section (Particle2)
+  {
+    string Name = "e";
+    double lambda = 1.0;
+    int Ndim = 3;
+  }
+
+  Section (Potential)
+  {
+
+  }
+}

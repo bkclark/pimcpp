@@ -20,7 +20,7 @@
 #include "../IO/FileExpand.h"
 #include "../Blitz.h"
 // now include ActionBaseClass headers here, not in .h
-#include "ExternalPotential.h"
+#include "HarmonicPotential.h"
 #include "CummingsWaterPotential.h"
 #include "DiagonalActionClass.h"
 #include "ShortRangeClass.h"
@@ -41,6 +41,7 @@
 #include "EAMClass.h"
 #include "NodalActionClass.h"
 #include "FreeNodalActionClass.h"
+#include "ParametrizedFreeNodalActionClass.h"
 #include "SHONodalActionClass.h"
 #include "Sal.h"
 // #include "GroundStateNodalActionClass.h"
@@ -204,8 +205,8 @@ void ActionsClass::Read(IOSectionClass &in)
     //   newAction = new ReadFromFileActionClass(PathData);
     } else if (type == "BlendActions") {
       newAction = new BlendActionsClass(PathData);
-    } else if (type == "ExternalPotential") {
-      newAction = new ExternalPotential(PathData);
+    } else if (type == "HarmonicPotential") {
+      newAction = new HarmonicPotentialClass(PathData);
     } else if (type == "Water") {
       newAction = new WaterClass(PathData);
     } else {
@@ -239,6 +240,7 @@ void ActionsClass::Read(IOSectionClass &in)
   ReadNodalActions (in);
 
 }
+
 
 void ActionsClass::ReadPairActions(IOSectionClass &in)
 {
@@ -334,8 +336,7 @@ ActionBaseClass* ActionsClass::GetAction(string name)
 
 /// Read in the nodal actions.
 /// This should only be called after the PairActions have been read.
-void
-ActionsClass::ReadNodalActions(IOSectionClass &in)
+void ActionsClass::ReadNodalActions(IOSectionClass &in)
 {
   int myProc = PathData.Path.Communicator.MyProc();
   //std::cerr << "Reading Nodal Action." << endl;
@@ -348,50 +349,43 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     in.OpenSection("NodalAction", nodeSection);
     string type, speciesString;
     assert (in.ReadVar ("Type", type));
+    assert (in.ReadVar("Species", speciesString));
+    int species = PathData.Path.SpeciesNum(speciesString);
+    NodalActionClass* nodeAction;
     if (type == "FREE") {
-      assert (in.ReadVar("Species", speciesString));
-      int species = PathData.Path.SpeciesNum(speciesString);
-      FreeNodalActionClass &nodeAction = *(new FreeNodalActionClass (PathData, species));
-      nodeAction.Read(in);
-      NodalActions(species) = &nodeAction;
-      ActionList.push_back(&nodeAction);
+      nodeAction = new FreeNodalActionClass (PathData, species);
     } else if (type == "GROUNDSTATE") {
 //       GroundStateClass &groundState = *new GroundStateClass(PathData);
 //       groundState.Read (in);
-//       NodalActions(groundState.UpSpeciesNum) = 
-//      new GroundStateNodalActionClass 
-//      (PathData, groundState, groundState.UpSpeciesNum);
-//       NodalActions(groundState.DownSpeciesNum) = 
-//      new GroundStateNodalActionClass 
-//      (PathData, groundState, groundState.DownSpeciesNum);
-//       NodalActions(groundState.IonSpeciesNum) = 
-//      new GroundStateNodalActionClass 
-//      (PathData, groundState, groundState.IonSpeciesNum);
+//       NodalActions(groundState.UpSpeciesNum) = new GroundStateNodalActionClass(PathData, groundState, groundState.UpSpeciesNum);
+//       NodalActions(groundState.DownSpeciesNum) = new GroundStateNodalActionClass(PathData, groundState, groundState.DownSpeciesNum);
+//       NodalActions(groundState.IonSpeciesNum) = new GroundStateNodalActionClass(PathData, groundState, groundState.IonSpeciesNum);
     } else if (type == "FIXEDPHASE") {
 //       FixedPhaseA = new FixedPhaseClass(PathData);
 //       FixedPhaseA->Read (in);
 //       if (PathData.Path.UseCorrelatedSampling()) {
-//      FixedPhaseB = new FixedPhaseClass(PathData);
-//        FixedPhaseB->Read (in);
-//    }  else{
-      //        FixedPhaseB =  FixedPhaseA;
-      //    }
-      // Now setup up actual actions
-//       NodalActions(FixedPhaseA->UpSpeciesNum)   = new FixedPhaseActionClass 
-//      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->UpSpeciesNum);
-//       NodalActions(FixedPhaseA->DownSpeciesNum) = new FixedPhaseActionClass 
-//      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->DownSpeciesNum);
-//       NodalActions(FixedPhaseA->IonSpeciesNum) = new FixedPhaseActionClass 
-//      (PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->IonSpeciesNum);
+//         FixedPhaseB = new FixedPhaseClass(PathData);
+//         FixedPhaseB->Read (in);
+//       } else {
+//         FixedPhaseB =  FixedPhaseA;
+//       }
+// Now setup up actual actions
+//       NodalActions(FixedPhaseA->UpSpeciesNum)   = new FixedPhaseActionClass(PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->UpSpeciesNum);
+//       NodalActions(FixedPhaseA->DownSpeciesNum) = new FixedPhaseActionClass(PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->DownSpeciesNum);
+//       NodalActions(FixedPhaseA->IonSpeciesNum) = new FixedPhaseActionClass(PathData, *FixedPhaseA, *FixedPhaseB, FixedPhaseA->IonSpeciesNum);
     } else if (type == "SHO") {
-      assert (in.ReadVar("Species", speciesString));
-      int species = PathData.Path.SpeciesNum(speciesString);
-// AGGRESSIVE COMPILING ERROR (FIX)
-      SHONodalActionClass *nodeAction = (new SHONodalActionClass (PathData, species));
-      nodeAction -> Read(in);
-      NodalActions(species) = nodeAction;
-      ActionList.push_back(nodeAction);
+      nodeAction = new SHONodalActionClass (PathData, species);
+    } else if (type == "PARAMETRIZEDFREE") {
+      nodeAction = new ParametrizedFreeNodalActionClass (PathData, species);
+    } else {
+      cerr << "ERROR: Unrecognized Nodal Action Type" << endl;
+      exit(1);
     }
+    nodeAction->Read(in);
+    NodalActions(species) = nodeAction;
+    ActionList.push_back(nodeAction);
+    ActionLabels.push_back(type);
+
 
     // Whether or not to track the nodal distance to save time
     if(!in.ReadVar ("StoreNodeDist", PathData.Path.StoreNodeDist))
@@ -420,53 +414,33 @@ ActionsClass::ReadNodalActions(IOSectionClass &in)
     if (myProc == 0)
       cout << PathData.Path.CloneStr << " UseNodeImportance: " << PathData.Path.UseNodeImportance << endl;
 
-    ActionLabels.push_back(type);
     in.CloseSection();
   }
 }
 
 
-void
-ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, 
-                      double &node, double &vShort, double &vLong,
-                      double &duNonlocal)
+void ActionsClass::Energy (map<string,double>& energies)
 {
-  double residual;
-  Energy(kinetic,dUShort,dULong,node,vShort,vLong,duNonlocal,residual);
+  int M = PathData.Path.NumTimeSlices()-1;
+  std::list<ActionBaseClass*>::iterator actionIt;
+  std::list<string>::iterator labelIt = ActionLabels.begin();
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
+    energies[*labelIt] += (*actionIt) -> d_dBeta(0,M,0);
+    //cout << *labelIt << " " << (*actionIt) -> d_dBeta(0,M,0) << endl;
+    labelIt++;
+  }
 }
 
-void
-ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, 
-                      double &node, double &vShort, double &vLong,
-                      double &duNonlocal,
-                      double &residual)
-//void ActionsClass::Energy(map<double>& Energies)
+
+void ActionsClass::Potential (double &vShort, double &vLong, double &vExt)
 {
-        //double kinetic, dUShort, dULong, node, vShort, vLong;
-  bool doLongRange = HaveLongRange() && UseLongRange;
   int M = PathData.Path.NumTimeSlices()-1;
-  kinetic = Kinetic.d_dBeta (0, M, 0);
-  if (PathData.Path.OrderN){
+  bool doLongRange = HaveLongRange() && UseLongRange;
 
-    //dUShort=0.0;
-    ///    dUShort=ShortRangeOn.d_dBeta(0,M,0);
-    dUShort=((ShortRangeOn_diagonal_class*)(GetAction("DiagonalActionOrderN")))->d_dBeta(0,M,0);
-
-    //    cerr<<"Energies: "<<dUShort<<" "<<dUShortp<<endl;
-    //residual=((ShortRangeOn_diagonal_class*)(GetAction("DiagonalActionOrderN")))->residual_energy();
-  }
-  else
-    dUShort = ShortRange.d_dBeta (0, M, 0);
-  dULong=0.0;
-  if (doLongRange){
-    if (UseRPA)
-      dULong = LongRangeRPA.d_dBeta (0, M, 0);
-    else
-      dULong = LongRange.d_dBeta (0, M, 0);
-  }
-  vShort = 0.0; vLong = 0.0;
+  vShort = 0.0;
+  vLong = 0.0;
+  vExt = 0.0;
   if (PathData.Path.DavidLongRange){
-    dULong = DavidLongRange.d_dBeta(0,M,0);
     vLong = DavidLongRange.V(0,M,0);
   }
 
@@ -476,22 +450,6 @@ ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong,
     if (doLongRange&&!PathData.Path.DavidLongRange)
       vLong  += factor * LongRangePot.V(slice);
   }
-
-  node = 0.0;
-  for (int species=0; species<PathData.Path.NumSpecies(); species++)
-    if (NodalActions(species) != NULL)
-      node += NodalActions(species)->d_dBeta(0, M, 0);
-
-  //if (UseNonlocal)
-  //  duNonlocal = Nonlocal.d_dBeta(0,M,0);
-  //else
-  //  duNonlocal = 0.0;
-  //Energies["kinetic"] = kinetic;
-  //Energies["dUShort"] = dUShort;
-  //Energies["dULong"] = dULong;
-  //Energies["node"] = node;
-  //Energies["vShort"] = vShort;
-  //Energies["vLong"] = vLong;
 }
 
 
@@ -508,7 +466,7 @@ void ActionsClass::GetNodalActions(double &node)
 }
 
 
-void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &node)
+void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &UExt, double &node)
 {
   bool doLongRange = HaveLongRange() && UseLongRange;
   Array<int,1> activePtcls(PathData.Path.NumParticles());
@@ -526,6 +484,7 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
       ULong = LongRange.Action (0, M, activePtcls, 0);
   } else if (PathData.Path.DavidLongRange)
     ULong = DavidLongRange.Action(0,M, activePtcls, 0);
+  UExt = HarmonicPotential.Action(0,M,activePtcls,0);
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
     if (NodalActions(species) != NULL)
@@ -552,6 +511,7 @@ void ActionsClass::ShiftData (int slicesToShift)
   LongRange.ShiftData(slicesToShift);
   LongRangeRPA.ShiftData(slicesToShift);
   DavidLongRange.ShiftData(slicesToShift);
+  HarmonicPotential.ShiftData(slicesToShift);
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i)!=NULL)
       NodalActions(i)->ShiftData(slicesToShift);
@@ -591,6 +551,7 @@ void ActionsClass::RejectCopy (int startSlice, int endSlice, const Array<int,1> 
   //QBoxAction.RejectCopy(startSlice, endSlice);
 }
 
+
 void ActionsClass::Init()
 {
   for (int i=0; i<NodalActions.size(); i++)
@@ -607,6 +568,7 @@ bool ActionsClass::HaveLongRange()
   return (UseLongRange && longRange);
 }
 
+
 void ActionsClass::Setk(Vec3 k)
 {
   for (int i=0; i<PathData.Path.NumSpecies(); i++) {
@@ -614,6 +576,7 @@ void ActionsClass::Setk(Vec3 k)
       NodalActions(i)->Setk(k);
   }
 }
+
 
 void ActionsClass::WriteInfo(IOSectionClass &out)
 {
@@ -717,6 +680,7 @@ void ActionsClass::UpdateNodalActions()
     if (NodalActions(i) != NULL)
       NodalActions(i)->Update();
 }
+
 
 void ActionsClass::MoveJoin (int oldJoinPos, int newJoinPos)
 {

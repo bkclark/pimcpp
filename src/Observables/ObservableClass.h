@@ -30,6 +30,7 @@
 #include "HBond.h"
 #include "ImportanceWeight.h"
 #include "JosephsonPathDump.h"
+#include "NodalModelTime.h"
 #include "ObservableCorrelation.h"
 #include "ObservableRefCorrelation.h"
 #include "ObservableDiffusion.h"
