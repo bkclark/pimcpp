@@ -59,7 +59,12 @@
 <p>Specifically, we will calculate the energy of a single particle in a box of size <span class="math">\(10 A\)</span> at a temperature of <span class="math">\(1.666 K\)</span>. For consistency with the Helium simulations we&#8217;ll do, we&#8217;re working in a system of units in which energy is in Kelvin, length is in Angstroms, and <span class="math">\(\hbar=1\)</span>. In these units, the free particle mass will be <span class="math">\(0.5 K^{-1} A^{-2}\)</span>, which corresponds to <span class="math">\(4.034*10^{-26} kg\)</span>.</p>
 <p>In this simple case, it will be possible to compare the simulation with the analytical result. If you do this, you should get an energy of <span class="math">\(2.51 K\)</span>.</p>
 <p>We will first describe how the input file is organized and how important aspects of the simulation are controlled. The first input file looks like this:</p>
-<div class="highlight-python"><pre>double tau = 0.05;
+<div class="highlight-python"><pre>bool OpenLoops = false;
+
+Section (Output)
+{
+  string OutFileBase = "ParticleInABox";
+}
 
 Section (Parallel)
 {
@@ -68,72 +73,89 @@ Section (Parallel)
 
 Section (System)
 {
-  int NumTimeSlices=12;
+  double tau = 0.05;
+  int NumTimeSlices = 12;
   Array&lt;double,1&gt; Box(3) = [10.0,10.0,10.0];
-  Array&lt;bool, 1 &gt; IsPeriodic(3) = [true,true,true];
+  Array&lt;bool, 1&gt; IsPeriodic(3) = [true,true,true];
   Section (Particles)
   {
     Section (Species)
     {
-      string Name="free";
-      string Type="free";
-      double lambda=1.0;
-      string Statistics="BOLTZMANNON";
-      int NumParticles=1;
-      int NumDim=3;
-      string InitPaths="BCC";
+      string Name = "free";
+      string Type = "free";
+      double lambda = 1.0;
+      string Statistics = "BOLTZMANNON";
+      int NumParticles = 1;
+      int NumDim = 3;
+      string InitPaths = "BCC";
     }
   }
- }
-Section (Action)
+}
+
+Section (Actions)
 {
-  int NumImages=0;
+  int NumImages = 1;
   int MaxLevels = 2;
   Array&lt;string,1&gt; PairActionFiles(1) = ["zero.PairAction"];
-
 }
 
 Section (Observables)
 {
-  string OutFileBase = "SingleParticle";
   Section (Observable)
   {
     string Type = "Energy";
     string Name = "Energy";
-     string Description="Total Energy";
-    int Frequency=1;
+    string Description = "Total Energy";
+    int Frequency = 1;
   }
+
+  Section (Observable)
+  {
+    string Type = "TimeAnalysis";
+    string Name = "TimeAnalysis";
+    int Frequency = 1;
+  }
+
 }
 
+Section (Moves)
+{
 
-Section (Moves){
-  Section (Move) {
-    string Type="BisectionBlock";
-    string Name="BisectionBlock";
-    string PermuteType="NONE";
-    string Species="free";
-    int NumLevels=2;
-    int StepsPerBlock=2;
-  }
   Section (Move)
   {
-    string Type="ShiftMove";
-    string Name="Shift";
+    string Type = "BisectionBlock";
+    string Name = "BisectionBlock";
+    string PermuteType = "NONE";
+    string Species = "free";
+    int NumLevels = 2;
+    int StepsPerBlock = 2;
   }
+
+  Section (Move)
+  {
+    string Type = "ShiftMove";
+    string Name = "Shift";
+  }
+
 }
 
 Section (Algorithm)
 {
+
   Section (Loop){
-    int Steps=1000;
+    int Steps = 100;
+
     Section (Loop){
-      int Steps=50;
-      Section (Move)    { string Name = "BisectionBlock"; }
-      Section (Observe) { string Name = "Energy";         }
-      Section (Move)    { string Name = "Shift";          }
+      int Steps = 100000;
+
+      Section (Move) {string Name = "BisectionBlock";}
+      Section (Observe) {string Name = "Energy";}
+      Section (Observe) {string Name = "TimeAnalysis";}
+      Section (Move) {string Name = "Shift";}
     }
     Section (WriteData){}
   }
+
 }</pre>
 </div>
 <p><em>Helpful editing tip for input files:</em> The input files are inspired by C++ syntax. If you turn on C++ syntax highlighting in your editor (Meta-x c++-mode followed by Meta-x font-lock-mode in emacs), they will be colored and the braces will be matched in a friendly way.</p>

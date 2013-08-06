@@ -13,7 +13,12 @@ We will first describe how the input file is organized and how important aspects
 
 ::
 
- double tau = 0.05;
+ bool OpenLoops = false;
+
+ Section (Output)
+ {
+   string OutFileBase = "ParticleInABox";
+ }
 
  Section (Parallel)
  {
@@ -22,73 +27,91 @@ We will first describe how the input file is organized and how important aspects
 
  Section (System)
  {
-   int NumTimeSlices=12;
+   double tau = 0.05;
+   int NumTimeSlices = 12;
    Array<double,1> Box(3) = [10.0,10.0,10.0];
-   Array<bool, 1 > IsPeriodic(3) = [true,true,true];
+   Array<bool, 1> IsPeriodic(3) = [true,true,true];
    Section (Particles)
    {
      Section (Species)
      {
-       string Name="free";
-       string Type="free";
-       double lambda=1.0;
-       string Statistics="BOLTZMANNON";
-       int NumParticles=1;
-       int NumDim=3;
-       string InitPaths="BCC";
+       string Name = "free";
+       string Type = "free";
+       double lambda = 1.0;
+       string Statistics = "BOLTZMANNON";
+       int NumParticles = 1;
+       int NumDim = 3;
+       string InitPaths = "BCC";
      }
-   } 
-  }
- Section (Action)
+   }
+ }
+ 
+ Section (Actions)
  {
-   int NumImages=0;
+   int NumImages = 1;
    int MaxLevels = 2;
    Array<string,1> PairActionFiles(1) = ["zero.PairAction"];
-
  }
-
+ 
  Section (Observables)
  {
-   string OutFileBase = "SingleParticle";
    Section (Observable)
    {
      string Type = "Energy";
      string Name = "Energy";
-      string Description="Total Energy";
-     int Frequency=1;
+     string Description = "Total Energy";
+     int Frequency = 1;
    }
- }   
-
-
- Section (Moves){
-   Section (Move) {
-     string Type="BisectionBlock";
-     string Name="BisectionBlock";
-     string PermuteType="NONE";
-     string Species="free";
-     int NumLevels=2;
-     int StepsPerBlock=2;
+ 
+   Section (Observable)
+   {
+     string Type = "TimeAnalysis";
+     string Name = "TimeAnalysis";
+     int Frequency = 1;
    }
+ 
+ }
+ 
+ Section (Moves)
+ {
+ 
    Section (Move)
    {
-     string Type="ShiftMove";
-     string Name="Shift";
+     string Type = "BisectionBlock";
+     string Name = "BisectionBlock";
+     string PermuteType = "NONE";
+     string Species = "free";
+     int NumLevels = 2;
+     int StepsPerBlock = 2;
    }
- }  
-
+ 
+   Section (Move)
+   {
+     string Type = "ShiftMove";
+     string Name = "Shift";
+   }
+ 
+ }
+ 
  Section (Algorithm)
  {
+ 
    Section (Loop){
-     int Steps=1000;
+     int Steps = 100;
+ 
      Section (Loop){
-       int Steps=50;
-       Section (Move)    { string Name = "BisectionBlock"; }
-       Section (Observe) { string Name = "Energy";         }
-       Section (Move)    { string Name = "Shift";          }
+       int Steps = 100000;
+ 
+       Section (Move) {string Name = "BisectionBlock";}
+       Section (Observe) {string Name = "Energy";}
+       Section (Observe) {string Name = "TimeAnalysis";}
+       Section (Move) {string Name = "Shift";}
      }
      Section (WriteData){}
    }
+ 
  }
+
 
 *Helpful editing tip for input files:* The input files are inspired by C++ syntax. If you turn on C++ syntax highlighting in your editor (Meta-x c++-mode followed by Meta-x font-lock-mode in emacs), they will be colored and the braces will be matched in a friendly way.
 
