@@ -182,15 +182,10 @@ public:
   /// Finite difference version for testing.
   void GetForcesFD(const Array<int,1> &ptcls, Array<dVec,1> &F);
 
-  /// Return the all the energies for this processor's segment of
+  /// Return the all the energies (potentials) for this processor's segment of
   /// the path.  Must do global sum to get total energy.
-	//void Energy(map<double>& Energies);
-  void Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
-	       double &node, double &vShort, double &vLong,
-	       double &duNonlocal);
-  void Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt,
-	       double &node, double &vShort, double &vLong,
-	       double &duNonlocal,double &residual);
+  void Energy (map<string,double>& energies);
+  void Potential (double &vShort, double &vLong, double &vExt);
 
   /// Read the action parameters from the input file and do the
   /// necessary initialization.  This reads the pair actions, and does
@@ -202,10 +197,8 @@ public:
   void ShiftData (int slicesToShift);
   void MoveJoin (int oldJoinPos, int newJoinPos);
 
-  void AcceptCopy (int startSlice, int endSlice,
-		   const Array<int,1> &activeParticles);
-  void RejectCopy (int startSlice, int endSlice,
-		   const Array<int,1> &activeParticles);
+  void AcceptCopy (int startSlice, int endSlice, const Array<int,1> &activeParticles);
+  void RejectCopy (int startSlice, int endSlice, const Array<int,1> &activeParticles);
   /// This should be called after the paths have been constructed to
   /// initialize any cached data;
   void Init();

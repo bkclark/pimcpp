@@ -74,8 +74,11 @@ void SpecificHeatAClass::Accumulate()
 								   *specificHeat2);
 
 
-  double kinetic, dUShort, dULong, dUExt, node, vShort, vLong, tip5p, dUNonlocal;
-  PathData.Actions.Energy (kinetic, dUShort, dULong, dUExt, node, vShort, vLong, dUNonlocal);
+  // Fill Energies Map
+  map<string,double> energies;
+  PathData.Actions.Energy(energies);
+  double kinetic = energies["Kinetic"];
+  double dUShort = energies["ShortRange"];
 
   double E=kinetic+dUShort;
   cerr<<"KE AAA"<<kinetic<<" "<<kE1<<" "<<dUShort<<" "<<srE1<<endl;

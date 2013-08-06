@@ -384,6 +384,7 @@ void ActionsClass::ReadNodalActions(IOSectionClass &in)
     nodeAction->Read(in);
     NodalActions(species) = nodeAction;
     ActionList.push_back(nodeAction);
+    ActionLabels.push_back(type);
 
 
     // Whether or not to track the nodal distance to save time
@@ -413,48 +414,33 @@ void ActionsClass::ReadNodalActions(IOSectionClass &in)
     if (myProc == 0)
       cout << PathData.Path.CloneStr << " UseNodeImportance: " << PathData.Path.UseNodeImportance << endl;
 
-    ActionLabels.push_back(type);
     in.CloseSection();
   }
 }
 
 
-void ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt, double &node, double &vShort, double &vLong, double &duNonlocal)
+void ActionsClass::Energy (map<string,double>& energies)
 {
-  double residual;
-  Energy(kinetic,dUShort,dULong,node,vShort,vLong,duNonlocal,residual);
+  int M = PathData.Path.NumTimeSlices()-1;
+  std::list<ActionBaseClass*>::iterator actionIt;
+  std::list<string>::iterator labelIt = ActionLabels.begin();
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
+    energies[*labelIt] += (*actionIt) -> d_dBeta(0,M,0);
+    //cout << *labelIt << " " << (*actionIt) -> d_dBeta(0,M,0) << endl;
+    labelIt++;
+  }
 }
 
 
-void ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, double &dUExt, double &node, double &vShort, double &vLong, double &duNonlocal, double &residual)
+void ActionsClass::Potential (double &vShort, double &vLong, double &vExt)
 {
-        //double kinetic, dUShort, dULong, node, vShort, vLong;
-  bool doLongRange = HaveLongRange() && UseLongRange;
   int M = PathData.Path.NumTimeSlices()-1;
-  kinetic = Kinetic.d_dBeta (0, M, 0);
-  if (PathData.Path.OrderN){
+  bool doLongRange = HaveLongRange() && UseLongRange;
 
-    //dUShort=0.0;
-    ///    dUShort=ShortRangeOn.d_dBeta(0,M,0);
-    dUShort=((ShortRangeOn_diagonal_class*)(GetAction("DiagonalActionOrderN")))->d_dBeta(0,M,0);
-
-    //    cerr<<"Energies: "<<dUShort<<" "<<dUShortp<<endl;
-    //residual=((ShortRangeOn_diagonal_class*)(GetAction("DiagonalActionOrderN")))->residual_energy();
-  }
-  else
-    dUShort = ShortRange.d_dBeta (0, M, 0);
-  dULong=0.0;
-  if (doLongRange){
-    if (UseRPA)
-      dULong = LongRangeRPA.d_dBeta (0, M, 0);
-    else
-      dULong = LongRange.d_dBeta (0, M, 0);
-  }
-  dUExt = HarmonicPotential.d_dBeta(0, M, 0);
-
-  vShort = 0.0; vLong = 0.0;
+  vShort = 0.0;
+  vLong = 0.0;
+  vExt = 0.0;
   if (PathData.Path.DavidLongRange){
-    dULong = DavidLongRange.d_dBeta(0,M,0);
     vLong = DavidLongRange.V(0,M,0);
   }
 
@@ -464,22 +450,6 @@ void ActionsClass::Energy (double& kinetic, double &dUShort, double &dULong, dou
     if (doLongRange&&!PathData.Path.DavidLongRange)
       vLong  += factor * LongRangePot.V(slice);
   }
-
-  node = 0.0;
-  for (int species=0; species<PathData.Path.NumSpecies(); species++)
-    if (NodalActions(species) != NULL)
-      node += NodalActions(species)->d_dBeta(0, M, 0);
-
-  //if (UseNonlocal)
-  //  duNonlocal = Nonlocal.d_dBeta(0,M,0);
-  //else
-  //  duNonlocal = 0.0;
-  //Energies["kinetic"] = kinetic;
-  //Energies["dUShort"] = dUShort;
-  //Energies["dULong"] = dULong;
-  //Energies["node"] = node;
-  //Energies["vShort"] = vShort;
-  //Energies["vLong"] = vLong;
 }
 
 
