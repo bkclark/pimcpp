@@ -34,13 +34,13 @@ def e(N,B,t,w,d,Fermi=0):
 
 def usage():
   print "Usage:  %s N B t w d (Fermi)" % os.path.basename(sys.argv[0])
+  sys.exit(2)
 
 def main(argv=None):
   if argv is None:
     argv = sys.argv
   if "-h" in argv or "--help" in argv:
     usage()
-    sys.exit(2)
 
   try:
     N = int(sys.argv[1])
