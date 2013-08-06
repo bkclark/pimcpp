@@ -1,0 +1,115 @@
+bool OpenLoops = false;
+int NEquilibrate = 0;
+
+Section (Output)
+{
+  string OutFileBase = "SHO";
+  bool Restart = true;
+}
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  double tau = 0.1;
+  int NumTimeSlices = 20;
+  Array<double,1> Box(3) = [1.0,1.0,1.0];
+  Array<bool, 1> IsPeriodic(3) = [false,false,false];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name = "e";
+      string Type = "e";
+      double lambda = 0.5;
+      string Statistics = "BOSON";
+      int NumParticles = 2;
+      int NumDim = 3;
+      string InitPaths = "SHO";
+    }
+  }
+}
+
+Section (Actions)
+{
+  int NumImages = 0;
+  int MaxLevels = 3;
+  Array<string,1> PairActionFiles(1) = ["zero.PairAction"];
+
+  Section (Action)
+  {
+    string Name = "HarmonicPotential";
+    string Type = "HarmonicPotential";
+    string Species = "e";
+    double omega = 1.0;
+  }
+}
+
+Section (Observables)
+{
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+    string Description = "Total Energy";
+    int Frequency = 1;
+    double HistStart = 0.0;
+    double HistEnd = 1.0;
+    int HistPoints = 2;
+  }
+
+  Section (Observable)
+  {
+    string Type = "TimeAnalysis";
+    string Name = "TimeAnalysis";
+    int Frequency = 1;
+  }
+
+}
+
+Section (Moves)
+{
+
+  Section (Move)
+  {
+    string Type = "BisectionBlock";
+    string Name = "BisectionBlock";
+    string PermuteType = "TABLE";
+    Array<double,1> Gamma(4) = [1.0,1.0,1.0,1.0];
+    Array<string,1> SamplingActions(1) = ["HarmonicPotential"];
+    double epsilon = 1e-10;
+    string Species = "e";
+    int NumLevels = 3;
+    int StepsPerBlock = 2;
+  }
+
+  Section (Move)
+  {
+    string Type = "ShiftMove";
+    string Name = "Shift";
+  }
+
+}
+
+Section (Algorithm)
+{
+
+  Section (Loop){
+    int Steps = 10;
+
+    Section (Loop){
+      int Steps = 100000;
+      bool Equilibrate = false;
+
+      Section (Move) {string Name = "BisectionBlock";}
+      Section (Observe) {string Name = "Energy";}
+      Section (Observe) {string Name = "TimeAnalysis";}
+      Section (Move) {string Name = "Shift";}
+    }
+    Section (WriteData){}
+  }
+
+}
