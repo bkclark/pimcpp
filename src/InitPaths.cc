@@ -521,10 +521,9 @@ void PathClass::InitPaths (IOSectionClass &in)
 #if NDIM==3
         r[2] = iz*delta-0.5*Box[2];
 #endif
-        for (int slice=0; slice<NumTimeSlices(); slice++) 
+        for (int slice=0; slice<NumTimeSlices(); slice++)
           Path(slice,ptcl) = r;
         dVec disp = r;
-        cerr << ptcl << " " << r << " " << endl;
       }
     }
     else if(InitPaths=="UniformSphere") {
