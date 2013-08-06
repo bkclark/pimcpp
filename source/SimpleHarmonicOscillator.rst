@@ -125,10 +125,23 @@ Finally, we have added the action `HarmonicPotential` in the `Actions` section w
 Running
 -------
 
+Running is again simple with
+
+::
+
+ pimc++ SHO.in
+
 
 Analysis
 --------
 
+Again since we only care about the energy, we can use the following:
+
+::
+
+ python Energy.py SHO.0.h5
+
+which should give an answer close to :math:`\sim 3.68`. Note that the exact answer is :math:`3.68566710278`, however due to our choice of time step, PIMC++ will give an answer more like :math:`3.6849`. One can try for a better result by reducing the time step `tau` while increasing `NumTimeSteps` in order to keep :math:`\beta` fixed.
 
 .. rubric:: Footnotes
 

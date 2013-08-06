@@ -18,50 +18,56 @@ Defining the observable
 All observables are defined in their respective section *Observable*
 within the overall section *Observables*
 
-| ``Section(Observables)``
-| ``{``
-| ``  Section (Observable)``
-| ``  {``
-| ``    string Type="Energy";``
-| ``    string Name="He-He_Energy";``
-| ``  }``
-| ``  Section (Observable)``
-| ``  {``
-| ``    ...``
-| ``  }``
-| ``}``
+::
+
+ Section(Observables)
+ {
+   Section (Observable)
+   {
+     string Type="Energy";
+     string Name="He-He_Energy";
+   }
+   Section (Observable)
+   {
+     ...
+   }
+ }
 
 Inserting the observable into the algorithm
 -------------------------------------------
 
 A sample algorithm looks like:
 
-| ``Section (Algorithm)``
-| ``{``
-| ``  Section (Loop){ //Start Accumulating observables``
-| ``    int Steps=3000000000;``
-| ``    Section (Loop){``
-| ``      int Steps=100;``
-| ``      Section (Move) {string Name="BisectionMoveForHelium";}``
-| ``      Section (Loop){``
-| ``        int Steps=10;``
-| ``        Section (Move) {string Name="Displace";}``
-| ``      }``
-| ``      Section (Move) {string Name="CenterOfMass";}``
-| ``      Section (Observe) {string Name = "Vacancy"; }``
-| ``      Section (Observe) {string Name = "PathDump"; }``
-| ``      Section (Observe) {string Name = "StructureFactor"; }``
-| ``      Section (Observe) {string Name = "TimeAnalysis"; }``
-| ``      Section (Observe) {string Name = "CycleCount"; }``
-| ``      Section (Move) {string Name = "Shift"; }``
-| ``    }``
-| ``    Section (WriteData){}``
-| ``  }``
-| ``}``
+::
+
+ Section (Algorithm)
+ {
+   Section (Loop){ //Start Accumulating observables
+     int Steps=3000000000;
+     Section (Loop){
+       int Steps=100;
+       Section (Move) {string Name="BisectionMoveForHelium";}
+       Section (Loop){
+         int Steps=10;
+         Section (Move) {string Name="Displace";}
+       }
+       Section (Move) {string Name="CenterOfMass";}
+       Section (Observe) {string Name = "Vacancy"; }
+       Section (Observe) {string Name = "PathDump"; }
+       Section (Observe) {string Name = "StructureFactor"; }
+       Section (Observe) {string Name = "TimeAnalysis"; }
+       Section (Observe) {string Name = "CycleCount"; }
+       Section (Move) {string Name = "Shift"; }
+     }
+     Section (WriteData){}
+   }
+ }
 
 To add your move to the algorithm, you must place in a line like:
 
-`` Section (Observe) {string Name="Vacancy";}``
+::
+
+ Section (Observe) {string Name="Vacancy";}
 
 where the name is the name you have chosen for your observable.
 
@@ -95,13 +101,15 @@ Many observables have other paramaters. For example, the pair
 correlation function has an observable that indicates what two species
 it works on. Inside its observable block, there might be
 
-| ``Section (Observable)``
-| ``  {``
-| ``    string Type="PairCorrelation";``
-| ``    string Name="He-He3_PC";``
-| ``    string Species1="He";``
-| ``    string Species2="He3";``
-| ``  }``
+::
+
+ Section (Observable)
+   {
+     string Type="PairCorrelation";
+     string Name="He-He3_PC";
+     string Species1="He";
+     string Species2="He3";
+   }
 
 In cases where you are just editing the input to an observable instead
 of adding one, you will need only to change the paramaters of the
@@ -125,11 +133,14 @@ Name = "AutoCorrelation"; int Frequency=1250; int dumpFrequency=50; //
 #steps = freq\*dumpFreq int numSlots=50; // should ensure dumpFrequency
 >= numSlots
 
-| ``       Section (Grid)``
-| ``         {``
-| ``           string type = "Linear";``
-| ``         }``
-| ``     }``
+::
+
+ Section (Grid)
+ {
+   {
+     string type = "Linear";
+   }
+ }
 
 **Paramaters:**
 
@@ -196,12 +207,12 @@ observables, but it is not an observable *per se*.
 
 ::
 
-      Section (Grid)
-            {
-              string Type = "Linear";
-              double start = 0.0;
-              int NumPoints = 100;
-            }
+ Section (Grid)
+ {
+   string Type = "Linear";
+   double start = 0.0;
+   int NumPoints = 100;
+ }
 
 *Input Paramaters:*
 
@@ -220,21 +231,25 @@ The pair correlation function calculates :math:`g(r)`
 
 *Example Input:*
 
-| `` Section (Observable)``
-| ``     {``
-| ``       string Type = "PairCorrelation";``
-| ``       string Name = "HeHePC";``
-| ``       string Species1 = "He";``
-| ``       string Species2 = "He";``
-| ``       string Description="Helium-Helium Pair Correlation";``
-| ``       int Frequency=2;``
-| ``       Section (Grid)``
-| ``         {``
-| ``           string Type = "Linear";``
-| ``           double start = 0.0;``
-| ``           int NumPoints = 100;``
-| ``         }``
-| ``     }`` *``Input`` ``Paramaters:``*
+::
+
+ Section (Observable)
+ {
+   string Type = "PairCorrelation";
+   string Name = "HeHePC";
+   string Species1 = "He";
+   string Species2 = "He";
+   string Description="Helium-Helium Pair Correlation";
+   int Frequency=2;
+   Section (Grid)
+     {
+       string Type = "Linear";
+       double start = 0.0;
+       int NumPoints = 100;
+     }
+ }
+
+*Input Paramaters:*
 
 -  **Type:** PairCorrelation
 -  **Species1:** One species to be used in pair correlation function
@@ -242,9 +257,9 @@ The pair correlation function calculates :math:`g(r)`
 -  **Description:** Description of the observable
 -  **Grid Section:** See section in observables on defining
    `Grids <#Grids>`__
--  '''Frequency: ''' Observable accumulated every Frequency number of
+-  **Frequency:** Observable accumulated every Frequency number of
    times it is called in the algorithm.
--  '''Name: ''' User specified and consistent throughout input file.
+-  **Name:** User specified and consistent throughout input file.
 
 n(r)
 ^^^^^
@@ -264,23 +279,23 @@ your simulation (otherwise there will be no data from which to restart)
 
 ::
 
-      Section (Observable)
-      {   
-          string Type="PathDump";
-          string Name="PathDump";
-          int Frequency=2;
-      }
+ Section (Observable)
+ {
+   string Type="PathDump";
+   string Name="PathDump";
+   int Frequency=2;
+ }
 
 *Input Parameters:*
 
 -  **Type:** PathDump
 -  **Name:** User defined that is consistent throughout the algorithm
--  '''Frequency: ''' DIFFERENT then all other observables. Every
+-  **Frequency:** DIFFERENT then all other observables. Every
    frequency number of times pathdump is called in the algorithm it
    WRITES to a file. All other observables, accumulate every frequency
    number of calls but only write at a WriteBlock. PathDump does nothing
    at a WriteBlock.
--  '''AllClones: ''' boolean variable. If True, then all the parallel
+-  **AllClones:** boolean variable. If True, then all the parallel
    clones will dump the path. If False, then only the 0'th clone will
    dump the path.
 
@@ -292,21 +307,25 @@ Pressure
 
 *Example input:*
 
-| `` Section (Observable)``
-| ``     {``
-| ``       string Type = "Pressure";``
-| ``       string Name = "Pressure";``
-| ``       string Description="Total Pressure";``
-| ``       int Frequency=2;``
-| ``       double Prefactor=138.065;``
-| ``     }``
+::
 
-*Input Paramaters:* **Type:** Pressure **Prefactor:** This is a number
-that the pressure can be multiplied by. Typically this is chosen to
-change the pressure into more sane units. the number 138.065 changes the
-pressure into bars.
+ Section (Observable)
+ {
+   string Type = "Pressure";
+   string Name = "Pressure";
+   string Description="Total Pressure";
+   int Frequency=2;
+   double Prefactor=138.065;
+ }
 
-*Output Paramaters:* **ShortRangePressure:** Specifies the component of
+*Input Paramaters:* 
+
+- **Type:** Pressure
+- **Prefactor:** This is a number that the pressure can be multiplied by. Typically this is chosen to change the pressure into more sane units. the number 138.065 changes the pressure into bars.
+
+*Output Paramaters:*
+
+- **ShortRangePressure:** Specifies the component of
 the pressure that comes from the shrot range ...
 
 Structure Factor
@@ -320,35 +339,33 @@ Example input:
 
 ::
 
-    Section (Observable)
-         {
-           string Type="StructureFactor";
-           string Name="HeliumStructureFactor";
-           double kCutoff=5.0;
-           int Frequency=1;
-           string Species1="Helium4";
-           string Species2="Helium4";
+ Section (Observable)
+ {
+   string Type="StructureFactor";
+   string Name="HeliumStructureFactor";
+   double kCutoff=5.0;
+   int Frequency=1;
+   string Species1="Helium4";
+   string Species2="Helium4";
 
-         }
+ }
 
 *Input Paramaters:*
 
--  '''Type: ''' StructureFactor
--  '''Name: ''' Anything user defined that is consistent throughout the
+-  **Type:** StructureFactor
+-  **Name:** Anything user defined that is consistent throughout the
    input
--  '''kCutoff: ''' maximum k that should be included in the structure
+-  **kCutoff:** maximum k that should be included in the structure
    factor. If the long range action is being used, this MUST be the same
    cutoff as used in the long range action. If you wish to include other
    k-vectors, use the AdditionalkVecs variable (see below)
--  '''Frequency: ''' Observable accumulated every Frequency number of
+-  **Frequency:** Observable accumulated every Frequency number of
    times it is called in the algorithm
 -  **Species1** and **Species2**: The names of the respective species
    used in calculating the structure factor.
--  '''Array AdditionalkVecs(number\_of\_k\_vecs,NDIM): ''' This is a
+-  **Array AdditionalkVecs(number\_of\_k\_vecs,NDIM):** This is a
    list of additional kvectors that are to be included beyond those that
    are defined by the kCutoff.
-
-''Output Paramaters: ''
 
 Superfluid Fraction
 ^^^^^
@@ -360,19 +377,19 @@ The superfluid fraction calculates
 
 ::
 
-    Section (Observable)
-    {
-       string Type="SuperfluidFraction";
-       string Name="SuperfluidFraction";
-       Array<string,1> SpeciesList(1)=["He"];
-       int Frequency=1; 
-    }
+ Section (Observable)
+ {
+   string Type="SuperfluidFraction";
+   string Name="SuperfluidFraction";
+   Array<string,1> SpeciesList(1)=["He"];
+   int Frequency=1; 
+ }
 
 *Input Paramaters:*
 
 -  **Type:** SuperfluidFraction
 -  **Name:** User specified and consistent throughout input file.
--  '''Array SpeciesList(num\_of\_species): ''' List of species to
+-  **Array SpeciesList(num\_of\_species):** List of species to
    calculate the superfluid fraction on (currently this doesn't work. It
    calculates it on the entire system independent of this variable)
 -  **Frequency:** Observable accumulated every Frequency number of times
@@ -392,12 +409,12 @@ wallclock time)
 
 ::
 
-    Section (Observable)
-    {
-      string Type="TimeAnalysis";
-      string Name="TimeAnalysis";
-      int Frequency=1;
-    }
+ Section (Observable)
+ {
+   string Type="TimeAnalysis";
+   string Name="TimeAnalysis";
+   int Frequency=1;
+ }
 
 *Input Paramaters:*
 
@@ -416,21 +433,19 @@ Winding Number
 
 *Example input:*
 
-| `` Section (Observable)``
-| ``   {``
-| ``     string Type="WindingNumber";``
-| ``     string Name="WindingNumber";``
-| ``     Array``\ \ `` SpeciesList(1) = ["He"];``
-| ``     string Description="Winding Number";``
-| ``     int Frequency=2;``
-| ``     int dumpFrequency=20;``
-| ``     double kCutoff=2.55;``
-| ``   }``
+::
+
+ Section (Observable)
+ {
+   string Type="WindingNumber";
+   string Name="WindingNumber";
+   Array SpeciesList(1) = ["He"];
+   string Description="Winding Number";
+   int Frequency=2;
+   int dumpFrequency=20;
+   double kCutoff=2.55;
+ }
 
 *Input Paramaters:*
 
-**Type:** WindingNumber
-
-*Output Paramaters:*
-
-``Specifies the component of the pressure that comes from the shrot range ...``
+- **Type:** WindingNumber

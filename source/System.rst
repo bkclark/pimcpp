@@ -129,7 +129,8 @@ InitPaths
 String used to specify how to initialize the particles.
 Choices are:
 
-#. **BCC**: Sets up the particles in a BCC lattice
+#. **CUBIC**: Sets up the particles in a cubic lattice
+#. **BCC**: Sets up the particles in a body-centered cubic lattice
 #. **FIXED**: Allows you to specifiy the intial conditions of all the
    particles. All time slices will start at the same initial condition.
    Using this paramater requires the use of the paramater

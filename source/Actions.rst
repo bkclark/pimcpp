@@ -54,7 +54,7 @@ The kinetic action formally is
 
   \mathcal{K_{m}} = \frac{ND}{2}\log{4\pi\lambda\tau} + \sum_{n} [-\frac{R_{m}-R_{m+1}+nL}{4\lambda\tau}]
 
-where :math:`n` is a vector of integer values and :math:`L` is the box length.
+where :math:`n` is a vector of integer values and :math:`L` is the box length. Currently in PIMC++, this action is implied and need not be specified in the input.
 
 NumImages
 ^^^^^^^^^
@@ -128,3 +128,8 @@ equal to) the total number of levels in the density matrix. It also must
 be more then the number of levels that you are using in bisection (which
 is why more then one level is read in). The highest level that is read
 in is the largest value of tau being used.
+
+External Potential
+^^^^^^^^^^^^^^^^^^
+
+It is also possible to apply an external potential in PIMC++. Currently the only such potential implemented is a harmonic trap. To see the details of this, go to the :doc:`SimpleHarmonicOscillator` tutorial.
