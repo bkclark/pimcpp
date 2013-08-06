@@ -14,19 +14,21 @@ Defining the move
 All moves are defined in their respective section **Move** in the
 overall section **Moves**
 
-| ``Section(Moves)``
-| ``{``
-| ``  Section (Move)``
-| ``  {``
-| ``    string Type="BisectionBlock";``
-| ``    string Name="HeliumBisection";``
-| ``    string PermuteType="NONE";``
-| ``  }``
-| ``  Section (Move)``
-| ``  {``
-| ``    ...``
-| ``  }``
-| ``}``
+::
+
+ Section(Moves)
+ {
+   Section (Move)
+   {
+     string Type="BisectionBlock";
+     string Name="HeliumBisection";
+     string PermuteType="NONE";
+   }
+   Section (Move)
+   {
+     ...
+   }
+ }
 
 All moves have (at minimum) the variables *Type* and *Name* must be
 specified. The variable *Type* tells the code which move to use (i.e.
@@ -40,28 +42,30 @@ Inserting the move into the algorithm
 
 A sample algorithm looks like:
 
-| ``Section (Algorithm)``
-| ``{``
-| ``  Section (Loop){ //Start Accumulating observables``
-| ``    int Steps=3000000000;``
-| ``    Section (Loop){``
-| ``      int Steps=100;``
-| ``      Section (Move) {string Name="BisectionMoveForHelium";}``
-| ``      Section (Loop){``
-| ``        int Steps=10;``
-| ``        Section (Move) {string Name="Displace";}``
-| ``      }``
-| ``      Section (Move) {string Name="CenterOfMass";}``
-| ``      Section (Observe) {string Name = "Vacancy"; }``
-| ``      Section (Observe) {string Name = "PathDump"; }``
-| ``      Section (Observe) {string Name = "StructureFactor"; }``
-| ``      Section (Observe) {string Name = "TimeAnalysis"; }``
-| ``      Section (Observe) {string Name = "CycleCount"; }``
-| ``      Section (Move) {string Name = "Shift"; }``
-| ``    }``
-| ``    Section (WriteData){}``
-| ``  }``
-| ``} ``
+::
+
+ Section (Algorithm)
+ {
+   Section (Loop){ //Start Accumulating observables
+     int Steps=3000000000;
+     Section (Loop){
+       int Steps=100;
+       Section (Move) {string Name="BisectionMoveForHelium";}
+       Section (Loop){
+         int Steps=10;
+         Section (Move) {string Name="Displace";}
+       }
+       Section (Move) {string Name="CenterOfMass";}
+       Section (Observe) {string Name = "Vacancy"; }
+       Section (Observe) {string Name = "PathDump"; }
+       Section (Observe) {string Name = "StructureFactor"; }
+       Section (Observe) {string Name = "TimeAnalysis"; }
+       Section (Observe) {string Name = "CycleCount"; }
+       Section (Move) {string Name = "Shift"; }
+     }
+     Section (WriteData){}
+   }
+ } 
 
 To add your move to the algorithm, you must place in a line like:
 Section (Move) {string Name="BisectionMoveForHelium";} where the name is
@@ -85,16 +89,18 @@ use.
 
 *Example input:*
 
-| ``Section (Move) {``
-| ``    string Type="BisectionBlock";``
-| ``    string Name="BisectionBlock";``
-| ``    string PermuteType="TABLE";``
-| ``    string Species="He";``
-| ``    Array``\ \ `` Gamma(4) = [1.0, 1.0, 1.0, 1.0];``
-| ``    double epsilon=1e-5;``
-| ``    int NumLevels=2;``
-| ``    int StepsPerBlock=100;``
-| ``  }``
+::
+
+ Section (Move) {
+     string Type="BisectionBlock";
+     string Name="BisectionBlock";
+     string PermuteType="TABLE";
+     string Species="He";
+     Array<double,1> Gamma(4) = [1.0, 1.0, 1.0, 1.0];
+     double epsilon=1e-5;
+     int NumLevels=2;
+     int StepsPerBlock=100;
+   }
 
 *Input Paramaters:*
 
@@ -162,15 +168,20 @@ by a constant DO NOT USE THIS MOVE as it is currently implemented)
 
 *Example input:*
 
-| ``Section (Move){``
-| ``    string Type="CenterOfMass";``
-| ``    string Name="CenterOfMass";``
-| ``  }``
+::
 
-*Input Paramaters:* **Type:** CenterOfMass
+ Section (Move){
+     string Type="CenterOfMass";
+     string Name="CenterOfMass";
+   }
 
-*Output Paramaters:* **AcceptRatio:** Although appearing in the output
-file, this is irrelevant because everything is always accepted.
+*Input Paramaters:*
+
+- **Type:** CenterOfMass
+
+*Output Paramaters:*
+
+- **AcceptRatio:** Although appearing in the output file, this is irrelevant because everything is always accepted.
 
 Displace Move
 ^^^^^^^^^^^^^
@@ -188,23 +199,26 @@ will obviously cause a bug.
 
 *Example input:*
 
-| ``Section (Move) {``
-| ``    string Type="Displace";``
-| ``    string Name="Displace";``
-| ``    double Sigma=0.5;``
-| ``    Array``\ \ `` ActiveSpecies(1)=["He"];``
-| ``    int NumToMove=1;``
-| ``  }``
+::
 
-*Input Paramaters:* **Type:** Displace **Sigma:** Width of gaussian from
-which displacement is chosen **Array ActiveSpecies(1):** List of species
-which displacement acts upon. **int NumToMove:** Number of particles in
-which to move at one time.
+ Section (Move) {
+     string Type="Displace";
+     string Name="Displace";
+     double Sigma=0.5;
+     Array<string,1> ActiveSpecies(1)=["He"];
+     int NumToMove=1;
+   }
 
-*Output Paramaters:* **AcceptRatio:** Outputs the percent of these moves
-that have been accepted. Due to technical details of the implementation
-also outputs the acceptance ratio of a single stage that is the same
-value.
+*Input Paramaters:* 
+
+- **Type:** Displace
+- **Sigma:** Width of gaussian from which displacement is chosen
+- **Array ActiveSpecies(1):** List of species which displacement acts upon.
+- **int NumToMove:** Number of particles in which to move at one time.
+
+*Output Paramaters:*
+
+- **AcceptRatio:** Outputs the percent of these moves that have been accepted. Due to technical details of the implementation also outputs the acceptance ratio of a single stage that is the same value.
 
 Shift Move
 ^^^^^^^^^^
@@ -229,13 +243,18 @@ Shift Moves are always accepted.
 
 *Example input:*
 
-| ``Section (Move)``
-| ``    {``
-| ``      string Type="ShiftMove";``
-| ``      string Name="Shift";``
-| ``    }``
+::
 
-*Input Paramaters:* **Type:** ShiftMove
+ Section (Move)
+     {
+       string Type="ShiftMove";
+       string Name="Shift";
+     }
 
-*Output Paramaters:* **AcceptRatio:** Although appearing in the output
-file, this is irrelevant because everything is always accepted
+*Input Paramaters:*
+
+- **Type:** ShiftMove
+
+*Output Paramaters:*
+
+- **AcceptRatio:** Although appearing in the output file, this is irrelevant because everything is always accepted

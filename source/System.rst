@@ -16,8 +16,8 @@ Example input:
   {
     int NumTimeSlices=80;
     double tau=0.025;
-    Array Box(3)=[11.01,12.713,11.98];
-    Array IsPeriodic(3)=[true,true,true];
+    Array<double,1> Box(3)=[11.01,12.713,11.98];
+    Array<bool,1> IsPeriodic(3)=[true,true,true];
     Section (Particles)
     {
       Section (Species)

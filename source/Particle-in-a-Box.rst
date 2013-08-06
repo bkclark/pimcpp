@@ -9,8 +9,8 @@ Specifically, we will calculate the energy of a single particle in a box of size
 
 In this simple case, it will be possible to compare the simulation with the analytical result. If you do this, you should get an energy of :math:`2.499 K` [#analytical]_.
 
-Input File
-----------
+Input
+-----
 
 For more information on each section of the input file, please refer to the documentation for :doc:`Input`.
 

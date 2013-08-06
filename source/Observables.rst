@@ -439,7 +439,7 @@ Winding Number
  {
    string Type="WindingNumber";
    string Name="WindingNumber";
-   Array SpeciesList(1) = ["He"];
+   Array<string,1> SpeciesList(1) = ["He"];
    string Description="Winding Number";
    int Frequency=2;
    int dumpFrequency=20;
