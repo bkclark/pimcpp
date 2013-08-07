@@ -42,8 +42,6 @@ void BisectionBlockClass::Read(IOSectionClass &in)
   assert (in.ReadVar ("Species", speciesName));
   assert (in.ReadVar ("StepsPerBlock", StepsPerBlock));
   SpeciesNum = PathData.Path.SpeciesNum (speciesName);
-  if (PathData.Path.Species(SpeciesNum).GetParticleType() == FERMION)
-    HaveRefslice=true;
   HaveRefslice = ((PathData.Path.Species(SpeciesNum).GetParticleType() == FERMION) &&
                   (PathData.Actions.NodalActions(SpeciesNum) != NULL) &&
                   (!PathData.Actions.NodalActions(SpeciesNum)->IsGroundState()));
