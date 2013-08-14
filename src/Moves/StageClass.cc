@@ -58,7 +58,7 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
   double logSampleRatio = Sample(slice1,slice2,activeParticles);
 
   bool toAccept;
-  //if (!IsFree) {
+  if (!IsFree) {
     SetMode (OLDMODE);
     gettimeofday(&start, &tz);
     double oldAction = StageAction(slice1,slice2,activeParticles);
@@ -86,9 +86,9 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
     }
 
     prevActionChange = currActionChange;
-  //} else {
-  //  toAccept = 0.0 >= log(PathData.Path.Random.Local()); // Accept condition
-  //}
+  } else {
+    toAccept = 0.0 >= log(PathData.Path.Random.Local()); // Accept condition
+  }
 
   if (toAccept)
     NumAccepted++;
