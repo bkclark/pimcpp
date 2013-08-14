@@ -432,7 +432,7 @@ void ActionsClass::Energy (map<string,double>& energies)
 }
 
 
-void ActionsClass::Potential (double &vShort, double &vLong, double &vExt)
+void ActionsClass::Potentials (double &vShort, double &vLong, double &vExt)
 {
   int M = PathData.Path.NumTimeSlices()-1;
   bool doLongRange = HaveLongRange() && UseLongRange;

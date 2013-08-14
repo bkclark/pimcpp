@@ -54,7 +54,7 @@ void EnergyClass::Accumulate()
 
   // Potentials
   double vShort, vLong, vExt;
-  PathData.Actions.Potential(vShort,vLong,vExt);
+  PathData.Actions.Potentials(vShort,vLong,vExt);
   VShortSum += vShort;
   VLongSum += vLong;
   VExtSum += vExt;

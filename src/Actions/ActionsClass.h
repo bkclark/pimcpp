@@ -55,6 +55,8 @@
 #include "Tether.h"
 //#include "NonlocalClass.h"
 
+#include <map>
+
 
 /// ActionsClass is a shell of a class holding all of the necessary
 /// ActionBaseClass derivatives representing the different actions.
@@ -185,7 +187,7 @@ public:
   /// Return the all the energies (potentials) for this processor's segment of
   /// the path.  Must do global sum to get total energy.
   void Energy (map<string,double>& energies);
-  void Potential (double &vShort, double &vLong, double &vExt);
+  void Potentials (double &vShort, double &vLong, double &vExt);
 
   /// Read the action parameters from the input file and do the
   /// necessary initialization.  This reads the pair actions, and does
