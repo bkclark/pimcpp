@@ -189,7 +189,7 @@ NodeType ParametrizedFreeNodalActionClass::Type()
 
 void ParametrizedFreeNodalActionClass::WriteInfo (IOSectionClass &out)
 {
-  out.WriteVar ("Type", "PARAMETRIZED_FREE_PARTICLE");
+  //out.WriteVar ("Type", "PARAMETRIZED_FREE_PARTICLE");
 }
 
 

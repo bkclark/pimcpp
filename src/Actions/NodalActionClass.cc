@@ -937,3 +937,8 @@ bool NodalActionClass::IsGroundState()
 {
   return (false);
 }
+
+void NodalActionClass::WriteInfo (IOSectionClass &out)
+{
+  // do nothing in base class.
+}
