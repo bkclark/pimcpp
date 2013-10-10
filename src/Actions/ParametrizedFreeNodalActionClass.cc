@@ -34,24 +34,36 @@ ParametrizedFreeNodalActionClass::ParametrizedFreeNodalActionClass (PathDataClas
 
 void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 {
+  assert (in.ReadVar ("ModelType", ModelType));
   assert (in.ReadVar ("NumModels", NumModels));
   assert (in.ReadVar ("NumParams", NumParams));
   assert (in.ReadVar ("ParamList", ParamList));
 
   // First model will be setup by base class
   model = 0;
-  Param1 = ParamList(0,0);
-  Param2 = ParamList(0,1);
   NodalActionClass::Read(in);
 
   // Do first model again, just in case (probably could do this better)
   for (int i=0; i<NumModels; i++) {
     model = i;
-    Param1 = ParamList(i,0);
-    Param2 = ParamList(i,1);
     SetupActions();
   }
 
+}
+
+double ParametrizedFreeNodalActionClass::GetFourLambdanTauInv (double lambdanTau)
+{
+  if (ModelType == 0)
+    lambdanTau = lambdanTau/ParamList(model,0);
+  else if (ModelType == 1) {
+    double lambda = Path.Species(SpeciesNum).lambda;
+    double nTau = lambdanTau/lambda;
+    double lambdaStar = lambda * (1. + ParamList(model,0)*pow(nTau,ParamList(model,2)))
+                        /(1. + ParamList(model,1)*pow(nTau,ParamList(model,2)));
+    lambdanTau = lambdaStar*nTau;
+  }
+
+  return (lambdanTau!=0.0) ? (1.0/(4.0*lambdanTau)) : 0.0;
 }
 
 
@@ -59,7 +71,8 @@ double ParametrizedFreeNodalActionClass::ActionImageSum (double L, double lambda
 {
   int numImages = 10;
   double sum = 0.0;
-  double fourLambdaBetaInv = (lambdaBeta!=0.0) ? ((Param1 * 1.0/(4.0*lambdaBeta)) + Param2) : 0.0;
+  //double fourLambdaBetaInv = (lambdaBeta!=0.0) ? ((ParamList(model,0) * 1.0/(4.0*lambdaBeta))) : 0.0;
+  double fourLambdaBetaInv = GetFourLambdanTauInv(lambdaBeta);
   // If the images won't contributed anything, let's not worry
   // about image sums.
   if ((disp*disp*fourLambdaBetaInv) > 50.0)
