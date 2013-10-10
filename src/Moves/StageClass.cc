@@ -26,6 +26,8 @@ void StageClass::Read(IOSectionClass &in)
 void StageClass::WriteRatio()
 {
   AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
+  NumAccepted = 0;
+  NumAttempted = 0;
   AcceptRatioVar.Flush();
 }
 
