@@ -598,11 +598,21 @@ CommunicatorClass::Sum (Array<int,1> &sendBuff, Array<int,1> &recvBuff)
   int *sendPtr = sendBuff.data();
   int *recvPtr = recvBuff.data();
   int count = sendBuff.size();
-  
-  MPI_Reduce(sendPtr, recvPtr, count, MPI_INT, MPI_SUM, 0, 
-	     MPIComm);
+
+  MPI_Reduce(sendPtr, recvPtr, count, MPI_INT, MPI_SUM, 0, MPIComm);
 }
 
+///Sums up the vectors in sendBuff.  Processor 0 only gets the
+///resulting sum.
+void 
+CommunicatorClass::Sum (Array<int,2> &sendBuff, Array<int,2> &recvBuff)
+{
+  int *sendPtr = sendBuff.data();
+  int *recvPtr = recvBuff.data();
+  int count = sendBuff.size();
+
+  MPI_Reduce(sendPtr, recvPtr, count, MPI_INT, MPI_SUM, 0, MPIComm);
+}
 
 
 ///Sums up all values a.  Only processor 0 gets the result.  All
