@@ -25,8 +25,12 @@ class CentroidClass : public ObservableClass
  private:
   ObservableVecDouble1 CentroidSpreadVar;
   Array<int,1> centHistogram;
+  ObservableVecDouble2 xValsVar;
+  ObservableVecDouble1 yzValsVar;
   ObservableVecDouble2 SpreadValsVar;
   ObservableVecDouble3 SpreadVecsVar;
+  Array<double,2> xVals;
+  Array<double,1> yzVals;
   Array<double,2> totVals;
   Array<double,3> totVecs;
   int NumSamples;
@@ -42,6 +46,8 @@ public:
   CentroidClass(PathDataClass &myPathData, IOSectionClass &ioSection) :
     ObservableClass(myPathData,ioSection),
     CentroidSpreadVar("Spread", IOSection, myPathData.Path.Communicator),
+    xValsVar("xVals", IOSection, myPathData.Path.Communicator),
+    yzValsVar("yzVals", IOSection, myPathData.Path.Communicator),
     SpreadValsVar("SpreadVals", IOSection, myPathData.Path.Communicator),
     SpreadVecsVar("SpreadVecs", IOSection, myPathData.Path.Communicator)
   {
