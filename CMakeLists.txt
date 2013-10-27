@@ -6,10 +6,10 @@ cmake_minimum_required (VERSION 2.6)
 # Options
 #-------------------------------------------------------------------
 
-SET(NDIM 2)
+SET(NDIM 3)
 SET(OPEN_LOOPS FALSE)
 SET(USE_MPI TRUE)
-SET(QMC_BUILD_STATIC TRUE)
+SET(QMC_BUILD_STATIC FALSE)
 
 #-------------------------------------------------------------------
 # Compilers
@@ -192,7 +192,8 @@ ENDIF(LAPACK_FOUND AND BLAS_FOUND)
 # extra libraries
 #-------------------------------------------------------------------
 #LINK_LIBRARIES("-lz -lpthread -lm -lmpi -mp")
-LINK_LIBRARIES("-lz -lpthread -lm -lsz")
+#LINK_LIBRARIES("-lz -lpthread -lm -lsz")
+LINK_LIBRARIES("-lz -lpthread -lm")
 
 #-------------------------------------------------------------------
 # add sources
