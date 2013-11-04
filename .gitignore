@@ -10,3 +10,4 @@ build/
 src/Scripts/*.txt
 *.tags
 *.cscope*
+*.pyc

@@ -1,0 +1,210 @@
+
+Section (Output)
+{
+  string OutFileBase = "rawdata/heg-4.0-1.0-1-33-64";
+  bool Restart = true;
+}
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  double tau = 0.0427594146177;
+  int NumTimeSlices = 64;
+  Array<double,1> Box(3) = [5.17051953218,5.17051953218,5.17051953218];
+  Array<bool,1> IsPeriodic(3) = [true,true,true];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name = "eUp";
+      string Type = "e";
+      double lambda = 0.0625;
+      string Statistics = "FERMION";
+      string NodeType = "FREE";
+      int NumParticles = 33;
+      int NumDim = 3;
+      string InitPaths = "BCC";
+      string File = "rawdata/heg-4.0-1.0-1-33-64";
+    }
+  }
+}
+
+Section (Actions)
+{
+  int NumImages = 1;
+  int MaxLevels = 5;
+  Array<string,1> PairActionFiles(1) = ["inputs/heg-4.0-1.0-1-33-64-64.sq.PairAction"];
+
+  Section (Action)
+  {
+    string Name = "ShortRange";
+    string Type = "ShortRange";
+  }
+
+  Section (Action)
+  {
+    string Name = "DavidLongRange";
+    string Type = "DavidLongRange";
+    double kCutoff = 4.86077676958;
+  }
+  Section (NodalAction)
+  {
+    string Type = "FREE";
+    string Species = "eUp";
+    bool StoreNodeDist = true;
+    bool StoreNodeDet = true;
+    bool UseNoDist = false;
+    bool UseHybridDist=true;
+  }
+}
+
+Section (Observables)
+{
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+    string Description = "Total Energy";
+    int Frequency = 1;
+    double HistStart = 0.0;
+    double HistEnd = 1.0;
+    int HistPoints = 2;
+    bool TrackSign = false;
+    bool CountPerms = false;
+  }
+  Section (Observable)
+  {
+    string Type = "PairCorrelation";
+    string Name = "PairCorrelationeUpeUp";
+    string Description = "Pair Correlation";
+    string Species1 = "eUp";
+    string Species2 = "eUp";
+    Section (Grid)
+    {
+      string Type = "Linear";
+      double start = 0.0;
+      int NumPoints = 100;
+    }
+    int Frequency = 1;
+  }
+
+  Section (Observable)
+  {
+    string Type = "StructureFactor";
+    string Name = "StructureFactoreUpeUp";
+    string Description = "Structure Factor";
+    double kCutoff = 4.86077676958;
+    string Species1 = "eUp";
+    string Species2 = "eUp";
+    int Frequency = 1;
+  }
+  Section (Observable)
+  {
+    string Type = "RefPairCorrelation";
+    string Name = "RefPairCorrelationeUpeUp";
+    string Description = "Ref Pair Correlation";
+    string Species1 = "eUp";
+    string Species2 = "eUp";
+    Section (Grid)
+    {
+      string Type = "Linear";
+      double start = 0.0;
+      int NumPoints = 100;
+    }
+    int Frequency = 1;
+  }
+
+  Section (Observable)
+  {
+    string Type = "RefStructureFactor";
+    string Name = "RefStructureFactoreUpeUp";
+    string Description = "Structure Factor";
+    double kCutoff = 4.86077676958;
+    string Species1 = "eUp";
+    string Species2 = "eUp";
+    int Frequency = 1;
+  }
+  Section (Observable)
+  {
+    bool AllClones = true;
+    string Type = "PathDump";
+    string Name = "PathDump";
+    int TemporalFrequency = 1700;
+  }
+
+  Section (Observable)
+  {
+    string Type = "TimeAnalysis";
+    string Name = "TimeAnalysis";
+    int Frequency = 1;
+  }
+
+}
+
+Section (Moves)
+{
+
+  Section (Move)
+  {
+    string Type = "BisectionBlock";
+    string Name = "BisectionBlockeUp";
+    //Array<string,1> HigherLevelActions(2) = ["ShortRange","DavidLongRange"];
+    Array<string,1> SamplingActions(2) = ["ShortRange","DavidLongRange"];
+    string PermuteType = "TABLE";
+    Array<double,1> Gamma(4) = [1.0,0.0,1.0,0.0];
+    double epsilon = 1e-10;
+    string Species = "eUp";
+    int NumLevels = 5;
+    int StepsPerBlock = 33;
+  }
+  Section (Move)
+  {
+    string Type = "RefSlice";
+    string Name = "RefSliceeUp";
+    string PermuteType = "NONE";
+    int NumLevels = 5;
+    string Species = "eUp";
+    Array<string,1> SamplingActions(2) = ["ShortRange","DavidLongRange"];
+  }
+  Section (Move)
+  {
+    string Type = "ShiftMove";
+    string Name = "Shift";
+  }
+}
+
+Section (Algorithm)
+{
+
+  Section (Loop)
+  {
+    int Steps = 10000000;
+
+    Section (Loop)
+    {
+      int Steps = 10;
+      bool Equilibrate = false;
+      Section (Observe) {string Name = "PairCorrelationeUpeUp";}
+      Section (Observe) {string Name = "StructureFactoreUpeUp";}
+      Section (Observe) {string Name = "RefPairCorrelationeUpeUp";}
+      Section (Observe) {string Name = "RefStructureFactoreUpeUp";}
+      Section (Move) {string Name = "BisectionBlockeUp";}
+      Section (Loop)
+      {
+        int Steps = 33;
+        bool Equilibrate = false;
+        Section (Move) {string Name = "RefSliceeUp";}
+      }
+      Section (Observe) {string Name = "Energy";}
+      Section (Observe) {string Name = "PathDump";}
+      Section (Observe) {string Name = "TimeAnalysis";}
+      Section (Move) {string Name = "Shift";}
+    }
+    Section (WriteData){}
+  }
+
+}
