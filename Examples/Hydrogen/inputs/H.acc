@@ -1,0 +1,4 @@
+  gate            nmovers acc.ratio trials 
+  e          winding  1  0.00000     5209405           0
+  e           bisect  1  0.94716     5500000     5209405  0.96175  0.98484
+  nsets=           1  nblocks           55

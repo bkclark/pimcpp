@@ -1,0 +1,137 @@
+bool DavidLongRange = false;
+bool UseLongRange = false;
+double tau = 0.125;
+//double kCutoff = 3.0;
+
+Section (Parallel)
+{
+  int ProcsPerClone = 1;
+}
+
+Section (System)
+{
+  int NumTimeSlices=320;
+  Array<bool,1> IsPeriodic(3) = [true,true,true];
+  Array<double,1> Box(3)=[20,20,20];
+  Section (Particles)
+  {
+    Section (Species)
+    {
+      string Name="e";
+      string Type="e";
+      double lambda=0.5;
+      string Statistics="BOLTZMANNON";
+      int NumParticles=1;
+      int NumDim=3;
+      string InitPaths="FIXED";
+      Array<double,2> Positions(1,3)=[-0.5, 0.0, 0.0];
+    }
+    Section (Species)
+    {
+      string Name="p";
+      string Type="p";
+      double lambda=0.0;//00544617; //classical particle
+      string Statistics="BOLTZMANNON";
+      int NumParticles=1;
+      int NumDim=3;
+      string InitPaths="FIXED";
+      Array<double,2> Positions(1,3)=[0.0, 0.0, 0.0];
+    }
+  }
+}
+
+Section (Action)
+{
+  int NumImages = 0;
+  int MaxLevels = 7;
+  //Array<string,1> PairActionFiles(1) = ["inputs/e-e.PairAction"];
+
+  Array<string,1> PairActionFiles(3) = ["inputs/p-p.PairAction",
+                                        "inputs/e-e.PairAction",
+                                        "inputs/e-p.PairAction"];
+  Section (Action)
+  {
+      string Name="ShortRange";
+      string Type="ShortRange";
+  }
+
+}
+
+Section (Observables)
+{
+  string OutFileBase = "rawdata/H";
+  Section (Observable)
+  {
+    string Type = "Energy";
+    string Name = "Energy";
+    string Description="Total Energy";
+    int Frequency = 1;
+  }
+  Section (Observable)
+  {
+    string Type = "TimeAnalysis";
+    string Name = "TimeAnalysis";
+    int Frequency = 1;
+  }
+
+  Section (Observable)
+  {
+    string Type = "PairCorrelation";
+    string Name = "PairCorrelation_ep";
+    string Description = "Pair Correlation";
+    string Species1 = "e";
+    string Species2 = "p";
+    Section (Grid)
+    {
+      string Type = "Linear";
+      double start = 0.0;
+      int NumPoints = 100;
+    }
+    int Frequency = 1;
+  }
+
+}
+
+Section (Moves) {
+  Section (Move) {
+    string Type="ShiftMove";
+    string Name="Shift";
+  }
+  Section (Move) {
+    string Type="BisectionBlock";
+    //Array<string,1> HigherLevelActions(1)=["ShortRange"];
+    Array<string,1> SamplingActions(1)=["ShortRange"];
+
+    string Name="electronBlock";
+    string PermuteType="NONE";
+    int NumLevels=3;
+    string Species = "e";
+    int StepsPerBlock=1;
+  }
+}
+
+
+
+Section (Algorithm)
+{
+  Section (Loop){ // Before Accumulating Observables
+    int Steps=100;
+    Section (Loop){
+      int Steps=100;
+      Section (Move)  { string Name="electronBlock";   }
+    }
+    Section (Move)    { string Name = "Shift";         }
+  }
+  Section (Loop){ // Start Accumulating observables
+    int Steps=100;
+    Section (Loop){ //Write Loop
+      int Steps=10000;
+      Section (Move)  { string Name = "electronBlock"; }
+      Section (Move)    { string Name = "Shift";         }
+      Section (Observe) { string Name = "Energy";        }
+      Section (Observe) { string Name = "PairCorrelation_ep";        }
+      Section (Observe) { string Name = "TimeAnalysis";  }
+    }
+    Section (WriteData){}
+  }
+}

@@ -1,0 +1,14 @@
+#!/bin/bash
+#PSUB -o outputs/job.out
+#PSUB -ro
+#PSUB -re
+#PSUB -ln 2
+#PSUB -gres ignore
+#PSUB -tM 01:00
+#PSUB -b fraqsa
+source ${HOME}/modules.sh
+OMP_NUM_THREADS=1
+export OMP_NUM_THREADS
+WORK_HOME=/p/lscratchb/brown281/Hatom
+cd $WORK_HOME
+mpirun -np 32 pimc++ inputs/H.in &> outputs/H.out
