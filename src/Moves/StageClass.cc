@@ -26,6 +26,8 @@ void StageClass::Read(IOSectionClass &in)
 void StageClass::WriteRatio()
 {
   AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
+  NumAccepted = 0;
+  NumAttempted = 0;
   AcceptRatioVar.Flush();
 }
 
@@ -69,7 +71,7 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
     double logAcceptProb = logSampleRatio - currActionChange + prevActionChange;
     toAccept = logAcceptProb >= log(PathData.Path.Random.Local()); // Accept condition
 
-    //cout << "Local Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << endl;
+    //cout << "Local Staging: " << toAccept << " " << BisectionLevel << " " << slice1 << " " << slice2 << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << PathData.Path.Communicator.MyProc() << " " << oldAction << " " << newAction << " " << logSampleRatio << " " << currActionChange << " " << prevActionChange << " " << logAcceptProb << endl;
     if (abs(newAction) > 1e50 || abs(oldAction) > 1e50) {
       if (toAccept) {
         if (abs(newAction) > 1e50 && abs(oldAction) < 1e50) {

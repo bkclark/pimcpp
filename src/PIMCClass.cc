@@ -81,7 +81,7 @@ bool PIMCClass::Read(IOSectionClass &in)
     /// Write out Actions
     if (myProc == 0) {
       OutFile.NewSection("Actions");
-      PathData.Actions.WriteInfo(OutFile);
+      //PathData.Actions.WriteInfo(OutFile);
       OutFile.CloseSection(); // "Actions"
     }
 

@@ -70,6 +70,7 @@ public:
   virtual double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
   virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
   virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
+  virtual void WriteInfo(IOSectionClass &out);
 
   bool UseHybridDist, UseNewtonRaphsonDist, UseLineSearchDist, UseMaxDist, UseNoDist;
   bool FirstDistTime, FirstDetTime;

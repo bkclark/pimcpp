@@ -54,6 +54,7 @@ void NoPermuteStageClass::InitBlock(int &slice1,int &slice2)
   //  cerr<<"out of init block"<<endl;
 
 }
+
 int NoPermuteStageClass::ChooseParticle()
 {
   int myPtcl=(PathData.Path.Random.LocalInt(PathData.Path.Species(SpeciesNum).NumParticles)) + PathData.Path.Species(SpeciesNum).FirstPtcl;

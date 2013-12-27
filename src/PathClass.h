@@ -217,6 +217,7 @@ public:
   inline void Mag (dVec &v, double &mag);
   inline void MagSquared (dVec &v, double &mag2);
   inline void DistDisp (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp);
+  inline void DistDisp (int slice1, int slice2, int ptcl1, int ptcl2, double &dist, dVec &disp);
   inline void DistDispPos (int slice, int ptcl, dVec &pos, double &dist, dVec &disp);
   inline void DistDispFast (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp);
   inline void DistDisp (int sliceA, int sliceB, int ptcl1, int ptcl2, double &distA, double &distB, dVec &dispA, dVec &dispB);
@@ -648,6 +649,47 @@ inline void PathClass::DistDispPos (int slice, int ptcl, dVec &pos, double &dist
 inline void PathClass::DistDisp (int slice, int ptcl1, int ptcl2, double &dist, dVec &disp)
 {
   disp = Path(slice, ptcl2) -Path(slice, ptcl1);
+  dVec n;
+#if NDIM==3
+  n[0] = nearbyint(disp[0]*BoxInv[0]);
+  n[1] = nearbyint(disp[1]*BoxInv[1]);
+  n[2] = nearbyint(disp[2]*BoxInv[2]);
+  disp[0] -= n[0]*IsPeriodic[0]*Box[0];
+  disp[1] -= n[1]*IsPeriodic[1]*Box[1];
+  disp[2] -= n[2]*IsPeriodic[2]*Box[2];
+#endif
+#if NDIM==2
+  n[0] = nearbyint(disp[0]*BoxInv[0]);
+  n[1] = nearbyint(disp[1]*BoxInv[1]);
+  disp[0] -= n[0]*IsPeriodic[0]*Box[0];
+  disp[1] -= n[1]*IsPeriodic[1]*Box[1];
+#endif
+
+//   for (int i=0; i<NDIM; i++) {
+//     double n = -floor(disp(i)*BoxInv(i)+0.5);
+//     disp(i) += n*IsPeriodic(i)*Box(i);
+//   }
+  dist = sqrt(dot(disp,disp));
+
+#ifdef DEBUG2
+  dVec DBdisp = Path(slice, ptcl2) -Path(slice, ptcl1);
+  for (int i=0; i<NDIM; i++) {
+    while (DBdisp(i) > 0.5*Box(i))
+      DBdisp(i) -= Box(i);
+    while (DBdisp(i) < -0.5*Box(i)) 
+      DBdisp(i) += Box(i);
+    if (fabs(DBdisp(i)-disp(i)) > 1.0e-12){ 
+      cerr<<DBdisp(i)<<" "<<disp(i)<<endl;
+    }
+    //    assert (fabs(DBdisp(i)-disp(i)) < 1.0e-12);
+  }
+#endif
+}
+
+
+inline void PathClass::DistDisp (int slice1, int slice2, int ptcl1, int ptcl2, double &dist, dVec &disp)
+{
+  disp = Path(slice2, ptcl2) - Path(slice1, ptcl1);
   dVec n;
 #if NDIM==3
   n[0] = nearbyint(disp[0]*BoxInv[0]);

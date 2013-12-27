@@ -1,0 +1,920 @@
+delta = 0
+Total k vecs = 3.3493e+07
+non-degenerate k vecs = 5872
+kCutoff = 5
+Number of kVecs = 8439
+MaxkIndex = (18,18,18)
+Doing V breakup...
+Chi is 6.03458e-18
+Done.
+Vshort_k0 = -0.0637049
+Vlong_k0 = 6.87248
+kCutoff = 5
+Number of kVecs = 16879
+MaxkIndex = (18,18,18)
+  Squarer: computes the thermal density matrix
+  Author: D. Ceperley, University of Illinois. Version of March 10, 1996
+  input prefix of files 
+  1 CMD: UNITS H A
+  1 CMD: TYPE e 1.0
+  1 CMD: TYPE e 1.0
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1.000000000000000E-002   20.0000000000000     
+ LINEAR     22.4612306153077       0.000000000000000E+000
+  0.775387693846923       0.000000000000000E+000         450
+         450  1.000000000000000E-002   20.0000000000000     
+  grid nx=         450 /         650  1.000000000000000E-002
+   20.0000000000000     
+  1 CMD: SQUARER 0.125 8 3 3 30 21
+  lowest temp =  0.125000000000000       highest temp =   16.0000000000000      
+  number of temps output=           8 /          12
+  spatial dimension=           3
+  number of partial waves=           30 /          64
+  1 CMD: POT COULOPT 7.0 5.0 2.0 3 0.D0 1.0 20.0 20.0 20.0
+  1 CMD: VIMAGE 0.000851097
+  1 CMD: POTTAIL 0.0
+  1 CMD: RANK 2 450 1
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1 CMD: LABEL 1 r
+  1 CMD: BEGIN potential 0
+  hbar^2(1/m1+1/m2)=   2.00000000000000     
+  number of squarings =          21
+  density matrix zeroed at   0.000000000000000E+000  1.000000000000000E+090
+  order of polynomial fit=            3 /           3
+  2d polynomial fit in s and z
+  number of derivatives md=           2
+  entering initialu 
+  Beginning matrix squaring nsquare =           21
+ r  0.10000E-01 rho  0.9985022E+00 0.1941683E+03
+ r  0.20000E+02 rho -0.8226753E-13-0.3344497E-03
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes = 0.71858E-01
+  ke=  2.144339876975009E-006  pe=  6.597409015535738E-004  e=
+  6.618852414305487E-004
+  partial waves needed =           1
+ *****finished isq=           1  temp=    131072.000000000      ****
+  
+ r  0.10000E-01 rho  0.9970650E+00 0.1872987E+03
+ r  0.20000E+02 rho -0.5828671E-13-0.2510551E-03
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes = 0.68727E-02
+  ke=  2.050911612717255E-007  pe=  6.597358730351373E-004  e=
+  6.599409641964090E-004
+  partial waves needed =           1
+ *****finished isq=           2  temp=    65536.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9943169E+00 0.1767170E+03
+ r  0.20000E+02 rho -0.7027712E-13-0.3030684E-03
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes =-0.12070E+00
+  ke= -3.601760325934545E-006  pe=  6.597258354442630E-004  e=
+  6.561240751183286E-004
+  partial waves needed =           1
+ *****finished isq=           3  temp=    32768.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9894176E+00 0.1552554E+03
+ r  0.20000E+02 rho -0.2896572E-12-0.3206956E-03
+ cluster pf= 0.33510E+05 pot= 0.22107E+02 kes =-0.97370E-01
+  ke= -2.905656739299528E-006  pe=  6.597058992620575E-004  e=
+  6.568002425227581E-004
+  partial waves needed =           1
+ *****finished isq=           4  temp=    16384.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9813413E+00 0.1243725E+03
+ r  0.20000E+02 rho -0.7062129E-12-0.3731998E-03
+ cluster pf= 0.33510E+05 pot= 0.22106E+02 kes =-0.97174E-01
+  ke= -2.899822533704990E-006  pe=  6.596664079748188E-004  e=
+  6.567665854411139E-004
+  partial waves needed =           2
+ *****finished isq=           5  temp=    8192.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9689152E+00 0.9126149E+02
+ r  0.20000E+02 rho -0.1477041E-11-0.4426519E-03
+ cluster pf= 0.33510E+05 pot= 0.22103E+02 kes =-0.85265E-01
+  ke= -2.544428032438718E-006  pe=  6.595880474278885E-004  e=
+  6.570436193954497E-004
+  partial waves needed =           2
+ *****finished isq=           6  temp=    4096.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9518346E+00 0.5963292E+02
+ r  0.20000E+02 rho -0.3016809E-11-0.5131888E-03
+ cluster pf= 0.33510E+05 pot= 0.22098E+02 kes =-0.76259E-01
+  ke= -2.275675477133100E-006  pe=  6.594328615931864E-004  e=
+  6.571571861160534E-004
+  partial waves needed =           2
+ *****finished isq=           7  temp=    2048.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9308492E+00 0.3534934E+02
+ r  0.20000E+02 rho -0.6126655E-11-0.5708286E-03
+ cluster pf= 0.33510E+05 pot= 0.22088E+02 kes =-0.58912E-01
+  ke= -1.758035757353729E-006  pe=  6.591266649328873E-004  e=
+  6.573686291755336E-004
+  partial waves needed =           2
+ *****finished isq=           8  temp=    1024.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9064392E+00 0.2073487E+02
+ r  0.20000E+02 rho -0.1238609E-10-0.6047678E-03
+ cluster pf= 0.33510E+05 pot= 0.22067E+02 kes =-0.34836E-01
+  ke= -1.039571326009760E-006  pe=  6.585261973486538E-004  e=
+  6.574866260226440E-004
+  partial waves needed =           3
+ *****finished isq=           9  temp=    512.000000000000      ****
+  
+ r  0.10000E-01 rho  0.8768901E+00 0.1301763E+02
+ r  0.20000E+02 rho -0.2491019E-10-0.6128031E-03
+ cluster pf= 0.33510E+05 pot= 0.22028E+02 kes =-0.28566E-02
+  ke= -8.524479957694639E-008  pe=  6.573581063646565E-004  e=
+  6.572728615650796E-004
+  partial waves needed =           3
+ *****finished isq=          10  temp=    256.000000000000      ****
+  
+ r  0.10000E-01 rho  0.8383928E+00 0.8563358E+01
+ r  0.20000E+02 rho -0.5052359E-10-0.6068568E-03
+ cluster pf= 0.33510E+05 pot= 0.21953E+02 kes = 0.47953E-01
+  ke=  1.430989972836360E-006  pe=  6.551125806755920E-004  e=
+  6.565435706484284E-004
+  partial waves needed =           4
+ *****finished isq=          11  temp=    128.000000000000      ****
+  
+ r  0.10000E-01 rho  0.7874894E+00 0.5537330E+01
+ r  0.20000E+02 rho -0.1114092E-09-0.5943512E-03
+ cluster pf= 0.33510E+05 pot= 0.21811E+02 kes = 0.11098E+00
+  ke=  3.311952347512162E-006  pe=  6.508757288416391E-004  e=
+  6.541876811891514E-004
+  partial waves needed =           4
+ *****finished isq=          12  temp=    64.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.7225741E+00 0.3416327E+01
+ r  0.20000E+02 rho -0.4007957E-09-0.5698916E-03
+ cluster pf= 0.33510E+05 pot= 0.21550E+02 kes = 0.16455E+00
+  ke=  4.910516732163315E-006  pe=  6.431056770723355E-004  e=
+  6.480161938044989E-004
+  partial waves needed =           5
+ *****finished isq=          13  temp=    32.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.6442557E+00 0.1986123E+01
+ r  0.20000E+02 rho -0.4005776E-08-0.5186388E-03
+ cluster pf= 0.33509E+05 pot= 0.21092E+02 kes = 0.83469E-01
+  ke=  2.490950804444002E-006  pe=  6.294379187818322E-004  e=
+  6.319288695862763E-004
+  partial waves needed =           5
+  mdatam=        1410 /      100000
+ order =    0 chimax  0.23035E-01 0.18236E+00
+ order =    1 chimax  0.43228E-02 0.32913E-01
+ order =    2 chimax  0.99277E-03 0.11315E-01
+ order =    3 chimax  0.23068E-03 0.41150E-02
+ *****finished isq=          14  temp=    16.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.5559694E+00 0.1072485E+01
+ r  0.20000E+02 rho -0.9388628E-09-0.4536441E-03
+ cluster pf= 0.33508E+05 pot= 0.20332E+02 kes =-0.22116E+00
+  ke= -6.600369084503717E-006  pe=  6.067909644761665E-004  e=
+  6.001905953916629E-004
+  partial waves needed =           5
+  mdatam=        2010 /      100000
+ order =    0 chimax  0.30850E-01 0.11958E+00
+ order =    1 chimax  0.59905E-02 0.22550E-01
+ order =    2 chimax  0.13902E-02 0.77916E-02
+ order =    3 chimax  0.33006E-03 0.28667E-02
+ *****finished isq=          15  temp=    8.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.4645373E+00 0.5271808E+00
+ r  0.20000E+02 rho -0.1920341E-08-0.3300823E-03
+ cluster pf= 0.33505E+05 pot= 0.19174E+02 kes =-0.30026E-01
+  ke= -8.961510234911184E-007  pe=  5.722802240967497E-004  e=
+  5.713840730732586E-004
+  partial waves needed =           5
+  mdatam=        2850 /      100000
+ order =    0 chimax  0.40578E-01 0.74775E-01
+ order =    1 chimax  0.82771E-02 0.15318E-01
+ order =    2 chimax  0.19505E-02 0.53265E-02
+ order =    3 chimax  0.47021E-03 0.19832E-02
+ *****finished isq=          16  temp=    4.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.3794273E+00 0.2302194E+00
+ r  0.20000E+02 rho -0.4789315E-08-0.2083792E-03
+ cluster pf= 0.33501E+05 pot= 0.17599E+02 kes = 0.36368E+00
+  ke=  1.085604637366237E-005  pe=  5.253314288716216E-004  e=
+  5.361874752452839E-004
+  partial waves needed =           4
+  mdatam=        4050 /      100000
+ order =    0 chimax  0.51885E-01 0.42872E-01
+ order =    1 chimax  0.11423E-01 0.10096E-01
+ order =    2 chimax  0.27375E-02 0.36667E-02
+ order =    3 chimax  0.66987E-03 0.13743E-02
+ *****finished isq=          17  temp=    2.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.3099045E+00 0.8726248E-01
+ r  0.20000E+02 rho -0.1395169E-07-0.1708343E-03
+ cluster pf= 0.33492E+05 pot= 0.15746E+02 kes = 0.83770E+00
+  ke=  2.501211866766012E-005  pe=  4.701541419531890E-004  e=
+  4.951662606208490E-004
+  partial waves needed =           3
+  mdatam=        5730 /      100000
+ order =    0 chimax  0.62814E-01 0.22025E-01
+ order =    1 chimax  0.15215E-01 0.62875E-02
+ order =    2 chimax  0.37838E-02 0.26110E-02
+ order =    3 chimax  0.93445E-03 0.10844E-02
+ *****finished isq=          18  temp=    1.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.2609799E+00 0.2844950E-01
+ r  0.20000E+02 rho -0.4250551E-07-0.2018922E-03
+ cluster pf= 0.33476E+05 pot= 0.13916E+02 kes = 0.12809E+01
+  ke=  3.826496052936695E-005  pe=  4.156976279356456E-004  e=
+  4.539625884650125E-004
+  partial waves needed =           2
+  mdatam=        8070 /      100000
+ order =    0 chimax  0.69383E-01 0.10760E-01
+ order =    1 chimax  0.18335E-01 0.41664E-02
+ order =    2 chimax  0.48940E-02 0.18879E-02
+ order =    3 chimax  0.12309E-02 0.84298E-03
+ *****finished isq=          19  temp=   0.500000000000000      ****
+  
+ r  0.10000E-01 rho  0.2312252E+00 0.8191088E-02
+ r  0.20000E+02 rho -0.1105845E-06-0.2618540E-03
+ cluster pf= 0.33445E+05 pot= 0.12410E+02 kes = 0.15308E+01
+  ke=  4.577170576641341E-005  pe=  3.710485248476733E-004  e=
+  4.168202306140866E-004
+  partial waves needed =           2
+           1  p11=0   2.961741566313738E-012  1.000000000000000E-002
+  mdatam=       11430 /      100000
+ order =    0 chimax  0.68183E-01 0.58969E-02
+ order =    1 chimax  0.19118E-01 0.28263E-02
+ order =    2 chimax  0.55237E-02 0.12401E-02
+ order =    3 chimax  0.14960E-02 0.81278E-03
+ *****finished isq=          20  temp=   0.250000000000000      ****
+  
+ r  0.10000E-01 rho  0.2149936E+00 0.2216071E-02
+ r  0.20000E+02 rho -0.2289128E-06-0.4046670E-03
+ cluster pf= 0.33385E+05 pot= 0.11358E+02 kes = 0.70666E+00
+  ke=  2.116719625344789E-005  pe=  3.402156088590792E-004  e=
+  3.613828051125271E-004
+  partial waves needed =           1
+  mdatam=       13500 /      100000
+ order =    0 chimax  0.59791E-01 0.10357E-01
+ order =    1 chimax  0.17395E-01 0.10343E-01
+ order =    2 chimax  0.53718E-02 0.97928E-02
+ order =    3 chimax  0.15941E-02 0.77506E-02
+ *****finished isq=          21  temp=   0.125000000000000      ****
+  
+  beginning smear
+  SQUARER completed successfully
+[?1034hSquarer Parsing
+Process Squarer Info
+KCUT IS 5.0
+VIMAGE IS 0.000851097
+Process Potential
+RANK
+Process U
+NMax: 0 derv: 1
+NMax: 1 derv: 1
+NMax: 2 derv: 1
+NMax: 3 derv: 1
+Process dU/dBeta
+NMax: 0 derv: 2
+NMax: 1 derv: 2
+NMax: 2 derv: 2
+NMax: 3 derv: 2
+Species are e e
+Process Sampling derv: 3
+derv: 4
+Done.
+About to process the long range file e-e.yk
+[ 20.  20.  20.]
+1.0 1.0
+delta = 0
+Total k vecs = 3.3493e+07
+non-degenerate k vecs = 5872
+kCutoff = 5
+Number of kVecs = 8439
+MaxkIndex = (18,18,18)
+Doing V breakup...
+Chi is 6.03458e-18
+Done.
+Vshort_k0 = 0.0637049
+Vlong_k0 = -6.87248
+kCutoff = 5
+Number of kVecs = 16879
+MaxkIndex = (18,18,18)
+  Squarer: computes the thermal density matrix
+  Author: D. Ceperley, University of Illinois. Version of March 10, 1996
+  input prefix of files 
+  1 CMD: UNITS H A
+  1 CMD: TYPE e 1.0
+  1 CMD: TYPE p 0.000544617
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1.000000000000000E-002   20.0000000000000     
+ LINEAR     22.4612306153077       0.000000000000000E+000
+  0.775387693846923       0.000000000000000E+000         450
+         450  1.000000000000000E-002   20.0000000000000     
+  grid nx=         450 /         650  1.000000000000000E-002
+   20.0000000000000     
+  1 CMD: SQUARER 0.125 8 3 3 30 21
+  lowest temp =  0.125000000000000       highest temp =   16.0000000000000      
+  number of temps output=           8 /          12
+  spatial dimension=           3
+  number of partial waves=           30 /          64
+  1 CMD: POT COULOPT 7.0 5.0 -2.0 3 0.D0 1.0 20.0 20.0 20.0
+  1 CMD: VIMAGE -0.000851097
+  1 CMD: POTTAIL 0.0
+  1 CMD: RANK 2 450 1
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1 CMD: LABEL 1 r
+  1 CMD: BEGIN potential 0
+  hbar^2(1/m1+1/m2)=   1.00054461700000     
+  number of squarings =          21
+  density matrix zeroed at   0.000000000000000E+000  1.000000000000000E+090
+  order of polynomial fit=            3 /           3
+  2d polynomial fit in s and z
+  number of derivatives md=           2
+  entering initialu 
+  Beginning matrix squaring nsquare =           21
+ r  0.10000E-01 rho  0.1001508E+01-0.1966716E+03
+ r  0.20000E+02 rho -0.1361133E-12 0.2077613E-03
+ cluster pf= 0.33510E+05 pot=-0.22109E+02 kes = 0.55660E+00
+  ke=  1.660983206567759E-005  pe= -6.597509859872259E-004  e=
+ -6.431411539215482E-004
+  partial waves needed =           1
+ *****finished isq=           1  temp=    131072.000000000      ****
+  
+ r  0.10000E-01 rho  0.1002983E+01-0.1929812E+03
+ r  0.20000E+02 rho -0.2556844E-12 0.3965157E-03
+ cluster pf= 0.33510E+05 pot=-0.22109E+02 kes = 0.14334E+01
+  ke=  4.277342595134906E-005  pe= -6.597560213846326E-004  e=
+ -6.169825954332835E-004
+  partial waves needed =           1
+ *****finished isq=           2  temp=    65536.0000000000      ****
+  
+ r  0.10000E-01 rho  0.1005864E+01-0.1874053E+03
+ r  0.20000E+02 rho -0.3803624E-12 0.2572214E-03
+ cluster pf= 0.33510E+05 pot=-0.22109E+02 kes = 0.13928E+01
+  ke=  4.156245266788972E-005  pe= -6.597660803753846E-004  e=
+ -6.182036277074949E-004
+  partial waves needed =           1
+ *****finished isq=           3  temp=    32768.0000000000      ****
+  
+ r  0.10000E-01 rho  0.1011412E+01-0.1786092E+03
+ r  0.20000E+02 rho -0.8202328E-12 0.2528410E-03
+ cluster pf= 0.33510E+05 pot=-0.22110E+02 kes = 0.13217E+01
+  ke=  3.944262799332613E-005  pe= -6.597861692612460E-004  e=
+ -6.203435412679198E-004
+  partial waves needed =           1
+ *****finished isq=           4  temp=    16384.0000000000      ****
+  
+ r  0.10000E-01 rho  0.1021421E+01-0.1594740E+03
+ r  0.20000E+02 rho -0.1839195E-11 0.2326344E-03
+ cluster pf= 0.33510E+05 pot=-0.22111E+02 kes = 0.12780E+01
+  ke=  3.813605201664888E-005  pe= -6.598261020470999E-004  e=
+ -6.216900500304510E-004
+  partial waves needed =           2
+ *****finished isq=           5  temp=    8192.00000000000      ****
+  
+ r  0.10000E-01 rho  0.1038265E+01-0.1311811E+03
+ r  0.20000E+02 rho -0.3984479E-11 0.2153917E-03
+ cluster pf= 0.33510E+05 pot=-0.22114E+02 kes = 0.12728E+01
+  ke=  3.798249525627130E-005  pe= -6.599053092867245E-004  e=
+ -6.219228140304532E-004
+  partial waves needed =           3
+ *****finished isq=           6  temp=    4096.00000000000      ****
+  
+ r  0.10000E-01 rho  0.1065081E+01-0.1004076E+03
+ r  0.20000E+02 rho -0.8245071E-11 0.1940851E-03
+ cluster pf= 0.33510E+05 pot=-0.22119E+02 kes = 0.12706E+01
+  ke=  3.791748739833646E-005  pe= -6.600628242874569E-004  e=
+ -6.221453368891204E-004
+  partial waves needed =           3
+ *****finished isq=           7  temp=    2048.00000000000      ****
+  
+ r  0.10000E-01 rho  0.1103881E+01-0.6975635E+02
+ r  0.20000E+02 rho -0.1674649E-10 0.1862050E-03
+ cluster pf= 0.33510E+05 pot=-0.22129E+02 kes = 0.12704E+01
+  ke=  3.790997437376221E-005  pe= -6.603759180154761E-004  e=
+ -6.224659436417138E-004
+  partial waves needed =           2
+ *****finished isq=           8  temp=    1024.00000000000      ****
+  
+ r  0.10000E-01 rho  0.1155014E+01-0.4476902E+02
+ r  0.20000E+02 rho -0.3380496E-10 0.1931043E-03
+ cluster pf= 0.33510E+05 pot=-0.22150E+02 kes = 0.12820E+01
+  ke=  3.825537295137023E-005  pe= -6.609975221578489E-004  e=
+ -6.227421492064787E-004
+  partial waves needed =           3
+ *****finished isq=           9  temp=    512.000000000000      ****
+  
+ r  0.10000E-01 rho  0.1219777E+01-0.2874750E+02
+ r  0.20000E+02 rho -0.6795697E-10 0.2179930E-03
+ cluster pf= 0.33510E+05 pot=-0.22192E+02 kes = 0.13111E+01
+  ke=  3.912409593289088E-005  pe= -6.622291464801020E-004  e=
+ -6.231050505472112E-004
+  partial waves needed =           4
+ *****finished isq=          10  temp=    256.000000000000      ****
+  
+ r  0.10000E-01 rho  0.1306024E+01-0.1999863E+02
+ r  0.20000E+02 rho -0.1362385E-09 0.2368951E-03
+ cluster pf= 0.33511E+05 pot=-0.22273E+02 kes = 0.13617E+01
+  ke=  4.063565497255892E-005  pe= -6.646672314679601E-004  e=
+ -6.240315764954012E-004
+  partial waves needed =           4
+ *****finished isq=          11  temp=    128.000000000000      ****
+  
+ r  0.10000E-01 rho  0.1432594E+01-0.1511139E+02
+ r  0.20000E+02 rho -0.2733163E-09 0.2508973E-03
+ cluster pf= 0.33511E+05 pot=-0.22435E+02 kes = 0.14291E+01
+  ke=  4.264586078273248E-005  pe= -6.694983891260806E-004  e=
+ -6.268525283433480E-004
+  partial waves needed =           5
+ *****finished isq=          12  temp=    64.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.1630859E+01-0.1194119E+02
+ r  0.20000E+02 rho -0.5576846E-09 0.2718810E-03
+ cluster pf= 0.33511E+05 pot=-0.22757E+02 kes = 0.15071E+01
+  ke=  4.497368668569560E-005  pe= -6.791009277200952E-004  e=
+ -6.341272410343996E-004
+  partial waves needed =           6
+ *****finished isq=          13  temp=    32.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.1953149E+01-0.9782811E+01
+ r  0.20000E+02 rho -0.1297235E-08 0.3005104E-03
+ cluster pf= 0.33512E+05 pot=-0.23402E+02 kes = 0.16171E+01
+  ke=  4.825444411822846E-005  pe= -6.983170492412327E-004  e=
+ -6.500626051230042E-004
+  partial waves needed =           6
+  mdatam=         990 /      100000
+ order =    0 chimax  0.52407E-01 0.38867E+00
+ order =    1 chimax  0.84655E-02 0.68256E-01
+ order =    2 chimax  0.17928E-02 0.26076E-01
+ order =    3 chimax  0.38615E-03 0.86017E-02
+ *****finished isq=          14  temp=    16.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.2498260E+01-0.8400417E+01
+ r  0.20000E+02 rho -0.5819238E-08 0.3132790E-03
+ cluster pf= 0.33513E+05 pot=-0.24709E+02 kes = 0.17884E+01
+  ke=  5.336322769730339E-005  pe= -7.372949277038111E-004  e=
+ -6.839317000065078E-004
+  partial waves needed =           7
+  mdatam=        1410 /      100000
+ order =    0 chimax  0.82295E-01 0.29167E+00
+ order =    1 chimax  0.12842E-01 0.52688E-01
+ order =    2 chimax  0.27054E-02 0.20742E-01
+ order =    3 chimax  0.56892E-03 0.67656E-02
+ *****finished isq=          15  temp=    8.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.3470449E+01-0.7663527E+01
+ r  0.20000E+02 rho -0.4590411E-08 0.3160524E-03
+ cluster pf= 0.33517E+05 pot=-0.27425E+02 kes = 0.21720E+01
+  ke=  6.480250926366288E-005  pe= -8.182594224423381E-004  e=
+ -7.534569131786752E-004
+  partial waves needed =           6
+  mdatam=        2010 /      100000
+ order =    0 chimax  0.13243E+00 0.21840E+00
+ order =    1 chimax  0.19445E-01 0.42715E-01
+ order =    2 chimax  0.40175E-02 0.16901E-01
+ order =    3 chimax  0.82491E-03 0.53790E-02
+ *****finished isq=          16  temp=    4.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.5321631E+01-0.7506511E+01
+ r  0.20000E+02 rho -0.9357233E-08 0.3398465E-03
+ cluster pf= 0.33524E+05 pot=-0.33279E+02 kes = 0.36287E+01
+  ke=  1.082422755844980E-004  pe= -9.926877909631779E-004  e=
+ -8.844455153786798E-004
+  partial waves needed =           6
+  mdatam=        2850 /      100000
+ order =    0 chimax  0.21625E+00 0.15874E+00
+ order =    1 chimax  0.29106E-01 0.36837E-01
+ order =    2 chimax  0.58946E-02 0.13851E-01
+ order =    3 chimax  0.11709E-02 0.42722E-02
+ *****finished isq=          17  temp=    2.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.9116732E+01-0.7939874E+01
+ r  0.20000E+02 rho -0.2012233E-07 0.3494212E-03
+ cluster pf= 0.33542E+05 pot=-0.46525E+02 kes = 0.78149E+01
+  ke=  2.329902825511301E-004  pe= -1.387080330097018E-003  e=
+ -1.154090047545888E-003
+  partial waves needed =           5
+  mdatam=        3990 /      100000
+ order =    0 chimax  0.35662E+00 0.11139E+00
+ order =    1 chimax  0.42416E-01 0.31792E-01
+ order =    2 chimax  0.86079E-02 0.11320E-01
+ order =    3 chimax  0.16577E-02 0.34658E-02
+ *****finished isq=          18  temp=    1.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.1752677E+02-0.9090456E+01
+ r  0.20000E+02 rho -0.4551032E-07 0.3131726E-03
+ cluster pf= 0.33592E+05 pot=-0.78226E+02 kes = 0.21111E+02
+  ke=  6.284524116995730E-004  pe= -2.328732305294552E-003  e=
+ -1.700279893594979E-003
+  partial waves needed =           4
+  mdatam=        5562 /      100000
+ order =    0 chimax  0.58596E+00 0.12821E+00
+ order =    1 chimax  0.59208E-01 0.26685E-01
+ order =    2 chimax  0.12943E-01 0.92307E-02
+ order =    3 chimax  0.24860E-02 0.29555E-02
+ *****finished isq=          19  temp=   0.500000000000000      ****
+  
+ r  0.10000E-01 rho  0.3776135E+02-0.1134434E+02
+ r  0.20000E+02 rho -0.1043103E-06 0.1728560E-03
+ cluster pf= 0.33747E+05 pot=-0.15873E+03 kes = 0.64213E+02
+  ke=  1.902782892544798E-003  pe= -4.703534650413358E-003  e=
+ -2.800751757868560E-003
+  partial waves needed =           3
+  mdatam=        7830 /      100000
+ order =    0 chimax  0.94421E+00 0.14099E+00
+ order =    1 chimax  0.77869E-01 0.21325E-01
+ order =    2 chimax  0.19823E-01 0.16135E-01
+ order =    3 chimax  0.41173E-02 0.90369E-02
+ *****finished isq=          20  temp=   0.250000000000000      ****
+  
+ r  0.10000E-01 rho  0.9150103E+02-0.1580736E+02
+ r  0.20000E+02 rho -0.2340341E-06-0.1111981E-03
+ cluster pf= 0.34283E+05 pot=-0.37900E+03 kes = 0.20649E+03
+  ke=  6.023107113614865E-003  pe= -1.105530703564624E-002  e=
+ -5.032199922031372E-003
+  partial waves needed =           2
+           1  p11=0   1.171071115483496E-009  1.000000000000000E-002
+  mdatam=       10890 /      100000
+ order =    0 chimax  0.14956E+01 0.14093E+00
+ order =    1 chimax  0.96343E-01 0.17697E-01
+ order =    2 chimax  0.27920E-01 0.17322E-01
+ order =    3 chimax  0.64759E-02 0.12845E-01
+ *****finished isq=          21  temp=   0.125000000000000      ****
+  
+  beginning smear
+  SQUARER completed successfully
+[?1034hSquarer Parsing
+Process Squarer Info
+KCUT IS 5.0
+VIMAGE IS -0.000851097
+Process Potential
+RANK
+Process U
+NMax: 0 derv: 1
+NMax: 1 derv: 1
+NMax: 2 derv: 1
+NMax: 3 derv: 1
+Process dU/dBeta
+NMax: 0 derv: 2
+NMax: 1 derv: 2
+NMax: 2 derv: 2
+NMax: 3 derv: 2
+Species are e p
+Process Sampling Skipping sampling table for different species
+Done.
+About to process the long range file e-p.yk
+[ 20.  20.  20.]
+1.0 0.000544617
+delta = 0
+Total k vecs = 3.3493e+07
+non-degenerate k vecs = 5872
+kCutoff = 5
+Number of kVecs = 8439
+MaxkIndex = (18,18,18)
+Doing V breakup...
+Chi is 6.03458e-18
+Done.
+Vshort_k0 = -0.0637049
+Vlong_k0 = 6.87248
+kCutoff = 5
+Number of kVecs = 16879
+MaxkIndex = (18,18,18)
+  Squarer: computes the thermal density matrix
+  Author: D. Ceperley, University of Illinois. Version of March 10, 1996
+  input prefix of files 
+  1 CMD: UNITS H A
+  1 CMD: TYPE p 0.000544617
+  1 CMD: TYPE p 0.000544617
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1.000000000000000E-002   20.0000000000000     
+ LINEAR     22.4612306153077       0.000000000000000E+000
+  0.775387693846923       0.000000000000000E+000         450
+         450  1.000000000000000E-002   20.0000000000000     
+  grid nx=         450 /         650  1.000000000000000E-002
+   20.0000000000000     
+  1 CMD: SQUARER 0.125 8 3 3 30 21
+  lowest temp =  0.125000000000000       highest temp =   16.0000000000000      
+  number of temps output=           8 /          12
+  spatial dimension=           3
+  number of partial waves=           30 /          64
+  1 CMD: POT COULOPT 7.0 5.0 2.0 3 0.D0 1.0 20.0 20.0 20.0
+  1 CMD: VIMAGE 0.000851097
+  1 CMD: POTTAIL 0.0
+  1 CMD: RANK 2 450 1
+  1 CMD: GRID 450 LINEAR 0.01 20.0
+  1 CMD: LABEL 1 r
+  1 CMD: BEGIN potential 0
+  hbar^2(1/m1+1/m2)=  1.089234000000000E-003
+  number of squarings =          21
+  density matrix zeroed at   0.000000000000000E+000  1.000000000000000E+090
+  order of polynomial fit=            3 /           3
+  2d polynomial fit in s and z
+  number of derivatives md=           2
+  entering initialu 
+  Beginning matrix squaring nsquare =           21
+ r  0.10000E-01 rho  0.9984815E+00 0.1988611E+03
+ r  0.20000E+02 rho -0.1206457E-10 0.4712302E+00
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes = 0.11393E+03
+  ke=  3.399895988331935E-003  pe=  6.597408966836005E-004  e=
+  4.059636885015535E-003
+  partial waves needed =           1
+ *****finished isq=           1  temp=    131072.000000000      ****
+  
+ r  0.10000E-01 rho  0.9969661E+00 0.1984912E+03
+ r  0.20000E+02 rho -0.3355061E-10 0.4993654E+00
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes =-0.61974E+02
+  ke= -1.849396235589790E-003  pe=  6.597358515768989E-004  e=
+ -1.189660384012891E-003
+  partial waves needed =           1
+ *****finished isq=           2  temp=    65536.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9939436E+00 0.1978102E+03
+ r  0.20000E+02 rho -0.6889000E-10 0.4738494E+00
+ cluster pf= 0.33510E+05 pot= 0.22108E+02 kes =-0.14053E+03
+  ke= -4.193688997084379E-003  pe=  6.597257635883176E-004  e=
+ -3.533963233496061E-003
+  partial waves needed =           1
+ *****finished isq=           3  temp=    32768.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9879300E+00 0.1964336E+03
+ r  0.20000E+02 rho -0.1361046E-09 0.4712376E+00
+ cluster pf= 0.33510E+05 pot= 0.22107E+02 kes =-0.14667E+03
+  ke= -4.376944386646367E-003  pe=  6.597055959144710E-004  e=
+ -3.717238790731895E-003
+  partial waves needed =           1
+ *****finished isq=           4  temp=    16384.0000000000      ****
+  
+ r  0.10000E-01 rho  0.9760230E+00 0.1938505E+03
+ r  0.20000E+02 rho -0.2700987E-09 0.4687399E+00
+ cluster pf= 0.33510E+05 pot= 0.22106E+02 kes =-0.14374E+03
+  ke= -4.289422723148189E-003  pe=  6.596652919601864E-004  e=
+ -3.629757431188003E-003
+  partial waves needed =           1
+ *****finished isq=           5  temp=    8192.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9526702E+00 0.1889064E+03
+ r  0.20000E+02 rho -0.5357408E-09 0.4670221E+00
+ cluster pf= 0.33510E+05 pot= 0.22103E+02 kes =-0.14655E+03
+  ke= -4.373174767086696E-003  pe=  6.595848036642977E-004  e=
+ -3.713589963422398E-003
+  partial waves needed =           1
+ *****finished isq=           6  temp=    4096.00000000000      ****
+  
+ r  0.10000E-01 rho  0.9077164E+00 0.1795728E+03
+ r  0.20000E+02 rho -0.1064052E-08 0.4637166E+00
+ cluster pf= 0.33510E+05 pot= 0.22098E+02 kes =-0.14705E+03
+  ke= -4.388120181428173E-003  pe=  6.594242824826547E-004  e=
+ -3.728695898945519E-003
+  partial waves needed =           1
+ *****finished isq=           7  temp=    2048.00000000000      ****
+  
+ r  0.10000E-01 rho  0.8243080E+00 0.1625099E+03
+ r  0.20000E+02 rho -0.2107233E-08 0.4591275E+00
+ cluster pf= 0.33510E+05 pot= 0.22087E+02 kes =-0.14736E+03
+  ke= -4.397318846832755E-003  pe=  6.591049546086818E-004  e=
+ -3.738213892224073E-003
+  partial waves needed =           3
+ *****finished isq=           8  temp=    1024.00000000000      ****
+  
+ r  0.10000E-01 rho  0.6803597E+00 0.1334315E+03
+ r  0.20000E+02 rho -0.4154964E-08 0.4526971E+00
+ cluster pf= 0.33510E+05 pot= 0.22066E+02 kes =-0.14775E+03
+  ke= -4.409138536612966E-003  pe=  6.584725626543904E-004  e=
+ -3.750665973958575E-003
+  partial waves needed =           8
+ *****finished isq=           9  temp=    512.000000000000      ****
+  
+ r  0.10000E-01 rho  0.4646938E+00 0.9039766E+02
+ r  0.20000E+02 rho -0.8146938E-08 0.4438377E+00
+ cluster pf= 0.33510E+05 pot= 0.22024E+02 kes =-0.14823E+03
+  ke= -4.423452283700130E-003  pe=  6.572293283174345E-004  e=
+ -3.766222955382695E-003
+  partial waves needed =           7
+ *****finished isq=          10  temp=    256.000000000000      ****
+  
+ r  0.10000E-01 rho  0.2185258E+00 0.4195376E+02
+ r  0.20000E+02 rho -0.1584794E-07 0.4316881E+00
+ cluster pf= 0.33510E+05 pot= 0.21943E+02 kes =-0.14875E+03
+  ke= -4.438939527947823E-003  pe=  6.548101383165971E-004  e=
+ -3.784129389631226E-003
+  partial waves needed =          21
+ *****finished isq=          11  temp=    128.000000000000      ****
+  
+ r  0.10000E-01 rho  0.4965263E-01 0.9314107E+01
+ r  0.20000E+02 rho -0.3048734E-07 0.4152414E+00
+ cluster pf= 0.33510E+05 pot= 0.21787E+02 kes =-0.14917E+03
+  ke= -4.451465231796937E-003  pe=  6.501611461479282E-004  e=
+ -3.801304085649008E-003
+  partial waves needed =          22
+ *****finished isq=          12  temp=    64.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.2830835E-02 0.5072184E+00
+ r  0.20000E+02 rho -0.5775997E-07 0.3933758E+00
+ cluster pf= 0.33510E+05 pot= 0.21493E+02 kes =-0.14915E+03
+  ke= -4.450928168030741E-003  pe=  6.413891645995953E-004  e=
+ -3.809539003431145E-003
+  partial waves needed =          19
+ *****finished isq=          13  temp=    32.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.1375236E-04 0.2224979E-02
+ r  0.20000E+02 rho -0.1071803E-06 0.3650256E+00
+ cluster pf= 0.33509E+05 pot= 0.20956E+02 kes =-0.14795E+03
+  ke= -4.415291284819022E-003  pe=  6.253917749994126E-004  e=
+ -3.789899509819609E-003
+  partial waves needed =          22
+  mdatam=          30 /      100000
+ order =    0 chimax  0.79998E-02 0.11335E+00
+ order =    1 chimax  0.18696E-03 0.19050E-01
+ order =    2 chimax  0.16858E-03 0.15468E-01
+ order =    3 chimax  0.87258E-04 0.92563E-02
+ *****finished isq=          14  temp=    16.0000000000000      ****
+  
+ r  0.10000E-01 rho  0.5988696E-08 0.6353136E-06
+ r  0.20000E+02 rho -0.2166817E-06 0.2879935E+00
+ cluster pf= 0.33508E+05 pot= 0.20029E+02 kes =-0.15162E+03
+  ke= -4.524993797137384E-003  pe=  5.977390694130823E-004  e=
+ -3.927254727724303E-003
+  partial waves needed =          23
+  mdatam=          30 /      100000
+ order =    0 chimax  0.47315E-02 0.37668E-01
+ order =    1 chimax  0.24527E-03 0.35400E-01
+ order =    2 chimax  0.23625E-03 0.26431E-01
+ order =    3 chimax  0.10968E-03 0.14312E-01
+ *****finished isq=          15  temp=    8.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.3419137E-11 0.1650473E-09
+ r  0.20000E+02 rho -0.4625348E-06 0.1812805E+00
+ cluster pf= 0.33505E+05 pot= 0.18536E+02 kes =-0.15758E+03
+  ke= -4.703274749818747E-003  pe=  5.532116007086761E-004  e=
+ -4.150063149110071E-003
+  partial waves needed =          25
+  mdatam=          57 /      100000
+ order =    0 chimax  0.11847E-02 0.69332E-01
+ order =    1 chimax  0.33467E-03 0.65105E-01
+ order =    2 chimax  0.22906E-03 0.48511E-01
+ order =    3 chimax  0.12366E-03 0.26196E-01
+ *****finished isq=          16  temp=    4.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.6231287E-14 0.1436309E-12
+ r  0.20000E+02 rho -0.9659974E-06 0.1058355E+00
+ cluster pf= 0.33501E+05 pot= 0.16352E+02 kes =-0.15864E+03
+  ke= -4.735504592500312E-003  pe=  4.881002449422108E-004  e=
+ -4.247404347558100E-003
+  partial waves needed =          26
+  mdatam=          90 /      100000
+ order =    0 chimax  0.11717E-02 0.20267E+00
+ order =    1 chimax  0.25207E-03 0.11195E+00
+ order =    2 chimax  0.24922E-03 0.83514E-01
+ order =    3 chimax  0.13700E-03 0.45029E-01
+ *****finished isq=          17  temp=    2.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.5049052E-17 0.8237755E-16
+ r  0.20000E+02 rho -0.1979374E-05 0.4060896E-01
+ cluster pf= 0.33494E+05 pot= 0.13521E+02 kes =-0.15554E+03
+  ke= -4.643885312004442E-003  pe=  4.036915743391728E-004  e=
+ -4.240193737665269E-003
+  partial waves needed =          27
+  mdatam=         142 /      100000
+ order =    0 chimax  0.85794E-03 0.35484E+00
+ order =    1 chimax  0.26360E-03 0.20827E+00
+ order =    2 chimax  0.25482E-03 0.15420E+00
+ order =    3 chimax  0.15052E-03 0.79917E-01
+ *****finished isq=          18  temp=    1.00000000000000      ****
+  
+ r  0.10000E-01 rho  0.2794879E-22 0.3586299E-21
+ r  0.20000E+02 rho -0.4028621E-05-0.2899112E-01
+ cluster pf= 0.33482E+05 pot= 0.10334E+02 kes =-0.14879E+03
+  ke= -4.443967620136928E-003  pe=  3.086401375791244E-004  e=
+ -4.135327482557803E-003
+  partial waves needed =          27
+  mdatam=         158 /      100000
+ order =    0 chimax  0.82564E-03 0.37265E+00
+ order =    1 chimax  0.33927E-03 0.30991E+00
+ order =    2 chimax  0.28210E-03 0.21885E+00
+ order =    3 chimax  0.16738E-03 0.11133E+00
+ *****finished isq=          19  temp=   0.500000000000000      ****
+  
+ r  0.10000E-01 rho  0.2148931E-29 0.1585745E-28
+ r  0.20000E+02 rho -0.8148121E-05-0.1022733E+00
+ cluster pf= 0.33465E+05 pot= 0.72531E+01 kes =-0.13875E+03
+  ke= -4.146287539725959E-003  pe=  2.167403980423194E-004  e=
+ -3.929547141683640E-003
+  partial waves needed =          28
+  mdatam=         205 /      100000
+ order =    0 chimax  0.12705E-02 0.55899E+00
+ order =    1 chimax  0.43602E-03 0.52410E+00
+ order =    2 chimax  0.43156E-03 0.39128E+00
+ order =    3 chimax  0.26014E-03 0.21225E+00
+ *****finished isq=          20  temp=   0.250000000000000      ****
+  
+ r  0.10000E-01 rho  0.3721112E-37 0.1513046E-36
+ r  0.20000E+02 rho -0.1638380E-04-0.1550682E+00
+ cluster pf= 0.33441E+05 pot= 0.46889E+01 kes =-0.12459E+03
+  ke= -3.725539383927157E-003  pe=  1.402123912629543E-004  e=
+ -3.585326992664202E-003
+  partial waves needed =          28
+  mdatam=         241 /      100000
+ order =    0 chimax  0.24370E-02 0.10744E+01
+ order =    1 chimax  0.63588E-03 0.10054E+01
+ order =    2 chimax  0.62594E-03 0.74827E+00
+ order =    3 chimax  0.36202E-03 0.40419E+00
+ *****finished isq=          21  temp=   0.125000000000000      ****
+  
+  beginning smear
+  SQUARER completed successfully
+[?1034hSquarer Parsing
+Process Squarer Info
+KCUT IS 5.0
+VIMAGE IS 0.000851097
+Process Potential
+RANK
+Process U
+NMax: 0 derv: 1
+NMax: 1 derv: 1
+NMax: 2 derv: 1
+NMax: 3 derv: 1
+Process dU/dBeta
+NMax: 0 derv: 2
+NMax: 1 derv: 2
+NMax: 2 derv: 2
+NMax: 3 derv: 2
+Species are p p
+Process Sampling derv: 3
+derv: 4
+Done.
+About to process the long range file p-p.yk
+[ 20.  20.  20.]
+0.000544617 0.000544617
+M 640
+tau 0.0625
+beta 40.0
+**** Performing Breakup ****
+**** Creating Square Inputs ****
+Vk0 0.000851097
+**** Performing Squaring Procedure ****
+**** Parsing Density Matrix ****
+**** Creating PairAction File ****
+Section (Fits)
+{
+  string Type="DavidFit";
+  int NumOffDiagonalTerms = 3;
+  Section (Particle1)
+  {
+    string Name = "e";
+    double lambda =1.0;
+    int Ndim = 3;
+  }
+  Section (Particle2)
+  {
+    string Name = "e";
+    double lambda =1.0;
+    int Ndim = 3;
+  }
+  string Daviddmfile = "inputs/e-e.h5";
+} M 640
+tau 0.0625
+beta 40.0
+**** Performing Breakup ****
+**** Creating Square Inputs ****
+Vk0 -0.000851097
+**** Performing Squaring Procedure ****
+**** Parsing Density Matrix ****
+**** Creating PairAction File ****
+Section (Fits)
+{
+  string Type="DavidFit";
+  int NumOffDiagonalTerms = 3;
+  Section (Particle1)
+  {
+    string Name = "e";
+    double lambda =1.0;
+    int Ndim = 3;
+  }
+  Section (Particle2)
+  {
+    string Name = "p";
+    double lambda =0.000544617;
+    int Ndim = 3;
+  }
+  string Daviddmfile = "inputs/e-p.h5";
+} M 640
+tau 0.0625
+beta 40.0
+**** Performing Breakup ****
+**** Creating Square Inputs ****
+Vk0 0.000851097
+**** Performing Squaring Procedure ****
+**** Parsing Density Matrix ****
+**** Creating PairAction File ****
+Section (Fits)
+{
+  string Type="DavidFit";
+  int NumOffDiagonalTerms = 3;
+  Section (Particle1)
+  {
+    string Name = "p";
+    double lambda =0.000544617;
+    int Ndim = 3;
+  }
+  Section (Particle2)
+  {
+    string Name = "p";
+    double lambda =0.000544617;
+    int Ndim = 3;
+  }
+  string Daviddmfile = "inputs/p-p.h5";
+}

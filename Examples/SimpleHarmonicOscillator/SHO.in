@@ -1,5 +1,4 @@
-bool OpenLoops = false;
-int NEquilibrate = 0;
+// 2 free bosons in a SHO with frequency w=1
 
 Section (Output)
 {
@@ -14,7 +13,7 @@ Section (Parallel)
 
 Section (System)
 {
-  double tau = 0.1;
+  double tau = 0.05;
   int NumTimeSlices = 20;
   Array<double,1> Box(3) = [1.0,1.0,1.0];
   Array<bool, 1> IsPeriodic(3) = [false,false,false];

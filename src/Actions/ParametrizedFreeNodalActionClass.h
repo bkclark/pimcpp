@@ -44,13 +44,13 @@ private:
   void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
   void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
 
+  double GetFourLambdanTauInv (double lambdanTau);
   void SetupActions();
 public:
   /// Variational parameters
-  int NumModels, NumParams;
+  int NumModels, NumParams, ModelType;
   Array<double,2> ParamList;
   int model;
-  double Param1, Param2;
   void ChangeModel(int tmpModel);
   int GetModel();
   int GetNumModels();

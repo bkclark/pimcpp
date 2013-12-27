@@ -35,13 +35,6 @@ void CentroidMoveClass::Read(IOSectionClass &in)
   assert (in.ReadVar ("Species", speciesName));
   SpeciesNum = PathData.Path.SpeciesNum (speciesName);
 
-  /// Set up permutation
-  // Right now it only makes sense to have no permutation
-  //assert (in.ReadVar ("PermuteType", permuteType));
-  PermuteStage = new NoPermuteStageClass(PathData, SpeciesNum, NumLevels, IOSection);
-  PermuteStage->Read (in);
-  Stages.push_back (PermuteStage);
-
   /// Sampling actions
   Array<string,1> samplingActions;
   samplingActions.resize(0);
@@ -57,38 +50,20 @@ void CentroidMoveClass::Read(IOSectionClass &in)
     if (myProc == 0)
       cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
     newStage->Actions.push_back(&PathData.Actions.Kinetic);
-    if (level!=LowestLevel) {
-      Array<string,1> higherLevelActions;
-      if (in.ReadVar("HigherLevelActions",higherLevelActions)){
-        for (int i=0;i<higherLevelActions.size();i++) {
-          if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(higherLevelActions(i))).GetName()<<" Action"<<endl;
-          newStage->Actions.push_back(PathData.Actions.GetAction(higherLevelActions(i)));
-        }
-      }
-    } else if (level == LowestLevel) {
-      for (int i=0;i<samplingActions.size();i++) {
-        if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
-        newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
-      }
-    }
     Stages.push_back (newStage);
   }
 
   /// Add centroid displace stage
+  /// HACK! Not adding Kinetic to save time.
+  //if (myProc == 0)
+  //  cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" Adding Kinetic Action"<<endl;
+  //DisplaceStage.Actions.push_back(&PathData.Actions.Kinetic);
   for (int i=0;i<samplingActions.size();i++) {
     if (myProc == 0)
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
     DisplaceStage.Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
   }
   Stages.push_back(&DisplaceStage);
-
-  // Add the second stage of the permutation step
-  /// HACK!!!  Pushing onto the stack twice causes the stage
-  /// to be accepted twice, which causes swapping the forward and
-  // reverse tables twice!
-  Stages.push_back (PermuteStage);
 
 }
 
@@ -119,10 +94,10 @@ void CentroidMoveClass::MakeMove()
   ChooseTimeSlices();
   PathData.MoveJoin(Slice2);
 
-  ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1,Slice2);
   ActiveParticles.resize(1);
   NumAttempted++;
-  ActiveParticles(0)=-1;
+  int myPtcl = (PathData.Path.Random.LocalInt(PathData.Path.Species(SpeciesNum).NumParticles)) + PathData.Path.Species(SpeciesNum).FirstPtcl;
+  ActiveParticles(0) = myPtcl;
   gettimeofday(&start, &tz);
   MultiStageClass::MakeMove();
   gettimeofday(&end, &tz);
@@ -132,12 +107,15 @@ void CentroidMoveClass::MakeMove()
 
 void CentroidStageClass::Accept()
 {
+  NumAccepted++;
+  NumAttempted++;
   CommonStageClass::Accept();
 }
 
 
 void CentroidStageClass::Reject()
 {
+  NumAttempted++;
   CommonStageClass::Reject();
 }
 
@@ -167,20 +145,29 @@ double CentroidStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activ
       PathData.Path(slice, ptcl) = PathData.Path(slice, ptcl) - disp;
   }
 
-  //PathData.GetCentroids(newCentPos, activeParticles);
-  //for (int i=0; i<N; i++) {
-  //  for (int d=0; d<NDIM; d++) {
-  //    if(abs(float(oldCentPos(i)(d))-float(newCentPos(i)(d))) > 1e-8) {
-  //      cout << oldCentPos(i)(d) << " " << newCentPos(i)(d) << endl;
-  //      cout << oldCentPos << endl;
-  //      cout << newCentPos << endl;
-  //      abort();
-  //    }
-  //  }
-  //}
+  PathData.GetCentroids(newCentPos, activeParticles);
+  for (int i=0; i<N; i++) {
+    for (int d=0; d<NDIM; d++) {
+      if(abs(float(oldCentPos(i)(d))-float(newCentPos(i)(d))) > 1e-8) {
+        cout << oldCentPos(i)(d) << " " << newCentPos(i)(d) << endl;
+        cout << oldCentPos << endl;
+        cout << newCentPos << endl;
+        abort();
+      }
+    }
+  }
 
-  // And return log sample probability ratio
   return log(1.0);
 }
 
+
+bool CentroidStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
+{
+  // HACK: We are assuming previous step was accepted by setting
+  // prevActionChange = 0. This really only works for Boltzmannons.
+  prevActionChange = 0;
+
+  bool toAccept = CommonStageClass::Attempt(slice1, slice2, activeParticles, prevActionChange);
+  return toAccept;
+}
 

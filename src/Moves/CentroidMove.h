@@ -34,6 +34,7 @@ public:
   /// This does the actual displacement of the path.  All processors
   /// within a single close must displace by the same amount.
   double Sample (int &slice1, int &slice2, Array <int,1> &activeParticles);
+  bool Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
   CentroidStageClass (PathDataClass &pathData, IOSectionClass &out) :
     CommonStageClass (pathData, out)
   {
