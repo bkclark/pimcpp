@@ -1,10 +1,13 @@
 #include "../Blitz.h"
 #include "OptimizedBreakup.h"
 #include "../Splines/Grid.h"
+#include "../Splines/CubicSpline.h"
 #include <vector>
 #include <algorithm>
 #include "../Integration/GKIntegration.h"
+#include <complex>
 
+const int DIM = 3;
 
 class UshortIntegrand
 {
@@ -55,13 +58,13 @@ bool same(pair<double,double> &a, pair<double,double> &b)
   return fabs(a.first-b.first)<1e-6;
 }
 
-
 class EwaldClass
 {
 public:
   double Z1Z2;
   double kCut;
   dVec box;
+  double vol;
   double r0;
   double rc;
   int NumImages;
@@ -81,6 +84,9 @@ public:
   void SetBox(dVec t_Box)
   {
     box=t_Box;
+    vol=1.0;
+    for (int i=0; i<DIM; i++)
+      vol *= box[i];
   }
 
   void Setr0(double t_r0)
@@ -116,47 +122,56 @@ public:
     return (Z1Z2*C0);
   }
 
-  inline bool Include(dVec k,bool includeAll=false)
+  inline bool Include(dVec k, bool includeAll=false)
   {
     if (includeAll)
       return true;
-    //  assert (NDIM == 3);
-    if (k[0] > 0.0)
+    //  assert (DIM == 3);
+    if (abs(k[0]) > 0.0)
       return true;
-    else if ((k[0]==0.0) && (k[1]>0.0))
+    else if ((k[0]==0.0) && (abs(k[1]) > 0.0))
       return true;
-    else if ((NDIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (k[2] > 0.0)))
+    else if ((DIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (abs(k[2]) > 0.0)))
       return true;
     else
-    return false;
+      return false;
   }
 
-  void SetupkVecs3D(Array<dVec,1> &kVecs, Array<double,1> &MagK, bool includeAll=false)
+  void SetupkVecs(Array<dVec,1> &kVecs, Array<double,1> &MagK, bool includeAll=false)
   {
     double kCutoff=kCut;
-    assert (NDIM == 3);
     //    Array<double,1> MagK;
     dVec kBox;
-    for (int i=0; i<NDIM; i++)
+    for (int i=0; i<DIM; i++)
       kBox[i] = 2.0*M_PI/box[i];
 
     int numVecs=0;
     dVec MaxkIndex;
-    for (int i=0;i<NDIM;i++){
-      MaxkIndex[i]= (int) ceil(1.1*kCutoff/kBox[i]);
+    for (int i=0;i<DIM;i++){
+      MaxkIndex[i]= (int) ceil(1.*kCutoff/kBox[i]);
     }
 
     dVec k;
-    TinyVector<int,NDIM> ki;
+    TinyVector<int,DIM> ki;
     for (int ix=-MaxkIndex[0]; ix<=MaxkIndex[0]; ix++) {
       k[0] = ix*kBox[0];
-      for (int iy=-MaxkIndex[1]; iy<=MaxkIndex[1]; iy++) {
-        k[1] = iy*kBox[1];
-        for (int iz=-MaxkIndex[2]; iz<=MaxkIndex[2]; iz++) {
-          k[2] = iz*kBox[2];
-          if ((dot(k,k)<kCutoff*kCutoff) && Include(k,includeAll))
-            numVecs++;
+      if (DIM > 1) {
+        for (int iy=-MaxkIndex[1]; iy<=MaxkIndex[1]; iy++) {
+          k[1] = iy*kBox[1];
+          if (DIM > 2) {
+            for (int iz=-MaxkIndex[2]; iz<=MaxkIndex[2]; iz++) {
+              k[2] = iz*kBox[2];
+              if (Include(k,includeAll))
+                numVecs++;
+            }
+          } else {
+            if (Include(k,includeAll))
+              numVecs++;
+          }
         }
+      } else {
+        if (Include(k,includeAll))
+           numVecs++;
       }
     }
     //  kIndices.resize(numVecs);
@@ -166,24 +181,39 @@ public:
     kVecs.resize(numVecs);
     MagK.resize(numVecs);
 
-    //   for (int i=0; i<NDIM; i++)
+    //   for (int i=0; i<DIM; i++)
     //     C[i].resize(2*MaxkIndex[i]+1);
     numVecs = 0;
     for (int ix=-MaxkIndex[0]; ix<=MaxkIndex[0]; ix++) {
       k[0] = ix*kBox[0];
       ki[0]= ix+MaxkIndex[0];
-      for (int iy=-MaxkIndex[1]; iy<=MaxkIndex[1]; iy++) {
-        k[1] = iy*kBox[1];
-        ki[1]= iy+MaxkIndex[1];
-        for (int iz=-MaxkIndex[2]; iz<=MaxkIndex[2]; iz++) {
-          k[2] = iz*kBox[2];
-          ki[2]= iz+MaxkIndex[2];
-          if ((dot(k,k)<kCutoff*kCutoff) && Include(k,includeAll)) {
-            kVecs(numVecs) = k;
-            //          kIndices(numVecs)=ki;
-            MagK(numVecs) = sqrt(dot(k,k));
-            numVecs++;
+      if (DIM > 1) {
+        for (int iy=-MaxkIndex[1]; iy<=MaxkIndex[1]; iy++) {
+          k[1] = iy*kBox[1];
+          ki[1]= iy+MaxkIndex[1];
+          if (DIM > 2) {
+            for (int iz=-MaxkIndex[2]; iz<=MaxkIndex[2]; iz++) {
+              k[2] = iz*kBox[2];
+              ki[2]= iz+MaxkIndex[2];
+              if (Include(k,includeAll)) {
+                kVecs(numVecs) = k;
+                MagK(numVecs) = sqrt(dot(k,k));
+                numVecs++;
+              }
+            }
+          } else {
+            if (Include(k,includeAll)) {
+              kVecs(numVecs) = k;
+              MagK(numVecs) = sqrt(dot(k,k));
+              numVecs++;
+            }
           }
+        }
+      } else {
+        if (Include(k,includeAll)) {
+          kVecs(numVecs) = k;
+          MagK(numVecs) = sqrt(dot(k,k));
+          numVecs++;
         }
       }
     }
@@ -193,10 +223,10 @@ public:
   {
     const double tolerance = 1.0e-11;
     double boxVol = box[0]*box[1]*box[2];
-    //for (int i=1; i<NDIM; i++)
+    //for (int i=1; i<DIM; i++)
     //  rc = min (rc, 0.5*box[i]);
-    double kvol = 2*M_PI/box[0]; // Path.GetkBox()[0];
-    for (int i=1; i<NDIM; i++)
+    double kvol = 1.0; // Path.GetkBox()[0];
+    for (int i=0; i<DIM; i++)
       kvol *= 2*M_PI/box[i]; // Path.GetkBox()[i];
     double kavg = pow(kvol,1.0/3.0);
 
@@ -229,7 +259,7 @@ public:
       r(i) = LongGrid(i);
     Array<dVec,1> kVecs;
     Array<double,1> kMag;
-    SetupkVecs3D(kVecs,kMag,false);
+    SetupkVecs(kVecs,kMag,false);
     Vlong_k.resize(kVecs.size()); //need actual number of ks
     Vlong_k=0.0;
     Vlong_r = 0.0;
@@ -318,123 +348,214 @@ public:
     outfile.close();
   }
 
-  void FourierTransform(bool diagonal=false)
+  void TestMadelung()
   {
+    // Get Long-ranged k-space part
+    cout << "Getting long-ranged k-space part" << endl;
     ifstream infile;
     infile.open("kData.txt");
-    vector<double> magDavid;
-    vector<double> uk;
+    vector<double> ks;
+    vector<double> fVls;
     double Vk0=0.0;
-    while (!infile.eof()){
+    while (!infile.eof()) {
       double k;
-      double data;
+      double fVl;
       infile>>k;
-      if (!infile.eof()){
-        infile>>data;
-        magDavid.push_back(k);
-        uk.push_back(data*(box[0]*box[1]*box[2]));
-        if (k==0.0)
-          Vk0 = data;
+      if (!infile.eof()) {
+        infile>>fVl;
+        ks.push_back(k);
+        fVls.push_back(fVl/Z1Z2);
+        if (k == 0.0)
+          Vk0 = fVl/Z1Z2;
       }
     }
-    Array<dVec,1> kVecs;
-    Array<double,1> MagK;
-    SetupkVecs3D(kVecs,MagK,true);
+
+    // Get Short-ranged r-space part
+    cout << "Getting short-ranged r-space part" << endl;
     ifstream pointFile;
     pointFile.open("rData.txt");
-    ofstream outFile;
-    outFile.open("FTData.txt");
-    while (!pointFile.eof()){
+    Array<double,1> rs(NumPoints);
+    Array<double,1> Vss(NumPoints);
+    int ri = 0;
+    while (!pointFile.eof()) {
       double r;
-      double VShort_r;
+      double Vs;
       pointFile>>r;
-      pointFile>>VShort_r;
-      double VLong_r;
-      pointFile>>VLong_r;
-      double V=0.0;
-      for (int i=0;i<kVecs.size();i++){
+      pointFile>>Vs;
+      rs(ri) = r;
+      Vss(ri) = Vs/Z1Z2;
+      ri += 1;
+    }
+    double r0 = rs(0);
+    double rMax = rs(rs.size()-1);
+    cout << "Creating spline" << endl;
+    LinearGrid LongGrid;
+    LongGrid.Init(r0, rMax, NumPoints);
+    CubicSpline VsSpline(&LongGrid,Vss);
 
-        bool foundMe=false;
-        if ((MagK(i)==0))
-          foundMe=true;
-        for (int j=0;j<magDavid.size();j++){
-          if ((fabs(MagK(i)-magDavid[j])<1e-3)){
-            if (!foundMe){
-              foundMe=true;
-              for (int nL = -NumImages; nL <= NumImages; nL++) {
-                double kdotr;
-                double rp;
-                if (diagonal){
-                  rp=(r+nL*box[0])/sqrt(3);
-                  kdotr=(rp*kVecs(i)[0]+rp*kVecs(i)[1]+rp*kVecs(i)[2]);
-                }
-                else {
-                  rp=r+nL*box[0];
-                  kdotr=rp*kVecs(i)[0];
-                }
-                V+=cos(kdotr)*uk[j]/(box[0]*box[1]*box[2]); //*uk;
-              }
-            }
+    cout << "Setting coordinates" << endl;
+    double s1 = box[0]/2.;
+    int N = 8;
+    Array<dVec,1> xs(N);
+    Array<double,1> Qs(N);
+    if (DIM==3) {
+      dVec x0(0,0,0);
+      xs(0) = x0;
+      dVec x1(s1,s1,0);
+      xs(1) = x1;
+      dVec x2(s1, 0, s1);
+      xs(2) = x2;
+      dVec x3(0, s1, s1);
+      xs(3) = x3;
+      dVec x4(s1, 0, 0);
+      xs(4) = x4;
+      dVec x5(0, s1, 0);
+      xs(5) = x5;
+      dVec x6(0, 0, s1);
+      xs(6) = x6;
+      dVec x7(s1, s1, s1);
+      xs(7) = x7;
+      Qs(0) = 1.0;
+      Qs(1) = 1.0;
+      Qs(2) = 1.0;
+      Qs(3) = 1.0;
+      Qs(4) = -1.0;
+      Qs(5) = -1.0;
+      Qs(6) = -1.0;
+      Qs(7) = -1.0;
+    }
+
+    // Short-ranged r-space
+    cout << "Getting Vs" << endl;
+    double L = box[0];
+    double Li = 1.0/L;
+    double Vs = 0.;
+    for (int i=0; i<xs.size()-1; i++) {
+      for (int j=i+1; j<xs.size(); j++) {
+        dVec r = xs(i) - xs(j);
+        for (int d=0; d<DIM; d++)
+          r(d) -= floor(r(d)*Li + 0.5)*L; // Put in box
+        double magr = sqrt(dot(r,r));
+        if (magr <= rc)
+          Vs += Qs(i)*Qs(j)*VsSpline(magr);
+      }
+    }
+    cout << "Vs " << Vs << endl;
+
+    // Long-ranged k-space
+    Array<dVec,1> kVecs;
+    Array<double,1> MagK;
+    SetupkVecs(kVecs,MagK,true);
+    Array<double,1> fVl(kVecs.size());
+    for (int i=0; i<kVecs.size(); i++) {
+      bool foundMe = false;
+      for (int j=0; j<ks.size(); j++) {
+        if (fabs(MagK(i)-ks[j])<1.e-4) {
+          if (!foundMe) {
+            foundMe = true;
+            fVl(i) = fVls[j];
           }
         }
-        if (!foundMe){
-          cerr<<"ERROR! Cannot find MagK "<<MagK(i)<<endl;
-          exit(1);
+      }
+    }
+
+    double Vl = 0.;
+    for (int i=0; i<kVecs.size(); i++) {
+      if(MagK(i) < kCut) {
+        double Re = 0.;
+        double Im = 0.;
+        for (int j=0; j<xs.size(); j++) {
+          double h = dot(kVecs(i), xs(j));
+          Re += Qs(j)*cos(h);
+          Im -= Qs(j)*sin(h);
+        }
+        for (int j=0; j<xs.size(); j++) {
+          double h = dot(kVecs(i), xs(j));
+          Vl += Qs(j) * (Re*cos(h) - Im*sin(h)) * fVl(i);
         }
       }
-      outFile<<r<<" "<<V<<" "<<VShort_r+Vk0<<" "<<1.0/r<<endl;
     }
+    Vl *= 0.5;
+    cout << "Vl " << Vl << endl;
+
+    // Self-interacting terms
+    double Vself = 0;
+    double alpha = 7./box[0]; // HACK !! ! ! ! ! !!  ! !! ! ! ! ! ! ! ! !!!!
+    for (int i=0; i<Qs.size(); i++)
+      Vself -= Qs(i)*Qs(i)*alpha/sqrt(M_PI);
+    cout << "Vself " << Vself << endl;
+
+    // Neutralizing Background
+    double rMin = 1e-5;
+    rMax = rc;
+    int nR = 10000;
+    double dr = (rMax-rMin)/nR;
+    LinearGrid nbGrid;
+    nbGrid.Init(rMin, rc, nR);
+    double s0 = 0.;
+    for (int i=0; i<nbGrid.NumPoints; i++) {
+      double r = nbGrid(i);
+      s0 += dr*4*M_PI*r*r*VsSpline(r)/vol;
+    }
+
+    double Vb = 0.;
+    for (int i=0; i<N; i++)
+      Vb -= 0.5*N*N*s0;
+    cout << "Vb " << Vb << endl;
+
+    double V = Vs + Vl + Vself;
+
+    // Madelung Constant
+    double estMad = box[0]*V/N;
+    cout << "Estimated madelung constant: " << estMad << endl;
+    double extMad = -1.747564594633182190636212035544397403481;
+    cout << "Exact madelung constant: " << extMad << endl;
+    cout << "Relative error: " << abs(estMad-extMad)/extMad << endl;
   }
 
   void BasicEwald(double &alpha)
   {
     Array<dVec,1> kVecs;
     Array<double,1> MagK;
-    SetupkVecs3D(kVecs,MagK,true);
-    double vol=box[0]*box[1]*box[2];
+    SetupkVecs(kVecs,MagK,true);
     ofstream outfile;
 
-    // k space part
-    outfile.open("kData.txt");
-    double Vlong_k0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
-    cerr << "Vlong_k0 = " << Vlong_k0 << endl;
-    outfile<<0.0<<" "<<Vlong_k0<<endl;
-    vector<pair<double, double> > k_ewald;
-    for (int i=0;i<kVecs.size();i++){
-      dVec k=kVecs(i);
-      double k2=dot(k,k);
-      double kMag=sqrt(k2);
-      double val=(4*M_PI*Z1Z2)/(vol*k2)*exp(-k2/(4*alpha*alpha));
-      k_ewald.push_back(make_pair(kMag,val));
-    }
-    sort(k_ewald.begin(),k_ewald.end());
-    vector<pair<double, double> >::iterator new_end = unique(k_ewald.begin(), k_ewald.end(), same);
-    // delete all elements past new_end
-    k_ewald.erase(new_end, k_ewald.end());
-    for (int i=1;i<k_ewald.size();i++){
-      outfile<<k_ewald[i].first<<" "<<k_ewald[i].second<<endl; // *vol<<endl;
+    // Short-ranged r-space part
+    outfile.open("rData.txt");
+    double rMax = rc;
+    Array<double,1> Vss(NumPoints);
+    LinearGrid LongGrid;
+    LongGrid.Init (r0, rMax, NumPoints);
+    for (int i=0; i<LongGrid.NumPoints; i++){
+      double r = LongGrid(i);
+      Vss(i) = Z1Z2*erfc(alpha*r)/r;
+      outfile<<r<<" "<<Vss(i)<<endl;
     }
     outfile.close();
 
-    // r space part
-    outfile.open("rData.txt");
-    double rmax = 0.75 * sqrt (dot(box,box));
-    Array<double,1> Vshort_r(NumPoints), Vlong_r(NumPoints);
-    LinearGrid LongGrid;
-    LongGrid.Init (r0, rmax, NumPoints);
-    for (int i=0;i<LongGrid.NumPoints;i++){
-      double r=LongGrid(i);
-      Vshort_r(i) = 0.0;
-      for (int nL = -NumImages; nL <= NumImages; nL++) {
-        double rp = r + nL*box[0];
-        Vshort_r(i) += Z1Z2*erfc(alpha*rp)/rp;
-        Vlong_r(i) += Z1Z2*erf(alpha*rp)/rp;
-      }
-      outfile<<r<<" "<<Vshort_r(i)<<" "<<Vlong_r(i)<<endl;
+    // Long-ranged k-space part
+    outfile.open("kData.txt");
+    double Vlong_k0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
+    outfile<<0.0<<" "<<Vlong_k0<<endl;
+    vector<pair<double, double> > fVls;
+    for (int i=0; i<kVecs.size(); ++i) {
+      dVec k = kVecs(i);
+      double k2 = dot(k,k);
+      double kMag = sqrt(k2);
+      double val = (4.*M_PI*Z1Z2/(k2*vol)) * exp(-k2/(4.*alpha*alpha));
+      fVls.push_back(make_pair(kMag, val));
+    }
+    sort(fVls.begin(), fVls.end());
+    vector<pair<double, double> >::iterator new_end = unique(fVls.begin(), fVls.end(), same);
+    // delete all elements past new_end
+    fVls.erase(new_end, fVls.end());
+    for (int i=1;i<fVls.size();i++){
+      outfile<<fVls[i].first<<" "<<fVls[i].second<<endl; // *vol<<endl;
     }
     outfile.close();
 
   }
+
 };
 
 int main(int argc, char* argv[])
@@ -443,24 +564,22 @@ int main(int argc, char* argv[])
   double L = atof(argv[1]);
   dVec box(L,L,L);
   e.SetBox(box);
-  e.SetkCut(3*atof(argv[2]));
+  e.SetkCut(2.0*M_PI*atof(argv[2])/L);
   e.Setr0(atof(argv[3]));
-  double rCut = atof(argv[4]);
-  e.SetrCut(rCut);
+  e.SetrCut(atof(argv[4]));
   e.SetCharge(atof(argv[5]));
   e.SetNumPoints(atoi(argv[6]));
   bool doBreakup = atoi(argv[7]);
-  e.SetNumKnots(atoi(argv[8]));
 
   if (doBreakup) {
+    e.SetNumKnots(atoi(argv[8]));
     e.Breakup();
     e.SetNumImages(0);
   } else {
-    double alpha=10.0/(L*2);
-    alpha = rCut/L;
-    e.SetNumImages(0);
+    double alpha=7.0/(L);
+    e.SetNumImages(50);
     e.BasicEwald(alpha);
   }
-  bool diagonal = atoi(argv[9]);
-  e.FourierTransform(diagonal);
+
+  e.TestMadelung();
 }
