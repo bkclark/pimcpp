@@ -546,8 +546,6 @@ class LogGrid : public Grid
       grid(i) = r0 * pow(Spacing, (double) i);
   }
 
-
-
   void Write (IOSectionClass &outSection)
   {
     outSection.WriteVar ("Points", grid); 
