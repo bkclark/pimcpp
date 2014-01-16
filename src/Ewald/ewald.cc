@@ -67,6 +67,7 @@ public:
   double vol;
   double r0;
   double rc;
+  int grid;
   int NumImages;
   int NumPoints;
   int NumKnots;
@@ -99,6 +100,11 @@ public:
   void SetrCut(double t_rc)
   {
     rc=t_rc;
+  }
+
+  void SetGridType(int t_grid)
+  {
+    grid=t_grid;
   }
 
   void SetNumPoints(double t_NumPoints)
@@ -388,10 +394,11 @@ public:
     }
     double r0 = rs(0);
     double rMax = rs(rs.size()-1);
-    cout << "Creating spline" << endl;
-    LinearGrid LongGrid;
-    LongGrid.Init(r0, rMax, NumPoints);
-    CubicSpline VsSpline(&LongGrid,Vss);
+    cout << "Creating spline " << r0 << " " << rMax << " " << NumPoints << endl;
+    cout << "Hi" << endl;
+    LogGrid longGrid(r0, rMax, NumPoints);
+    cout << "Hi" << endl;
+    CubicSpline VsSpline(&longGrid, Vss);
 
     cout << "Setting coordinates" << endl;
     double s1 = box[0]/2.;
@@ -524,13 +531,24 @@ public:
     outfile.open("rData.txt");
     double rMax = rc;
     Array<double,1> Vss(NumPoints);
-    LinearGrid LongGrid;
-    LongGrid.Init (r0, rMax, NumPoints);
-    for (int i=0; i<LongGrid.NumPoints; i++){
-      double r = LongGrid(i);
-      Vss(i) = Z1Z2*erfc(alpha*r)/r;
-      outfile<<r<<" "<<Vss(i)<<endl;
-    }
+    if (grid == 0) {
+      LinearGrid longGrid;
+      longGrid.Init (r0, rMax, NumPoints);
+      for (int i=0; i<longGrid.NumPoints; i++){
+        double r = longGrid(i);
+        Vss(i) = Z1Z2*erfc(alpha*r)/r;
+        outfile<<r<<" "<<Vss(i)<<endl;
+      }
+    } else if (grid == 1) {
+      LogGrid longGrid;
+      longGrid.Init (r0, rMax, NumPoints);
+      for (int i=0; i<longGrid.NumPoints; i++){
+        double r = longGrid(i);
+        Vss(i) = Z1Z2*erfc(alpha*r)/r;
+        outfile<<r<<" "<<Vss(i)<<endl;
+      }
+    } else
+      std::cerr << "ERROR: Unrecognized grid. " << endl;
     outfile.close();
 
     // Long-ranged k-space part
@@ -567,12 +585,13 @@ int main(int argc, char* argv[])
   e.SetkCut(2.0*M_PI*atof(argv[2])/L);
   e.Setr0(atof(argv[3]));
   e.SetrCut(atof(argv[4]));
-  e.SetCharge(atof(argv[5]));
-  e.SetNumPoints(atoi(argv[6]));
-  bool doBreakup = atoi(argv[7]);
+  e.SetGridType(atoi(argv[5]));
+  e.SetCharge(atof(argv[6]));
+  e.SetNumPoints(atoi(argv[7]));
+  bool doBreakup = atoi(argv[8]);
 
   if (doBreakup) {
-    e.SetNumKnots(atoi(argv[8]));
+    e.SetNumKnots(atoi(argv[9]));
     e.Breakup();
     e.SetNumImages(0);
   } else {

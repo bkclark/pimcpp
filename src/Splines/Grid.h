@@ -65,7 +65,7 @@ class Grid
 };
 
 
-/// Linear Grid inherets from Grid.  
+/// Linear Grid inherets from Grid.
 class LinearGrid : public Grid
 {
  private:
@@ -136,7 +136,7 @@ class LinearGrid : public Grid
 };
 
 
-/// General Grid inherets from Grid.  
+/// General Grid inherets from Grid.
 class GeneralGrid : public Grid
 {
  public:
@@ -195,7 +195,6 @@ class GeneralGrid : public Grid
   { /*  Do nothing */ }
 
 };
-
 
 
 /// The OptimalGrid class stores a grid which has linear spacing at
@@ -510,7 +509,6 @@ public:
 };
 
 
-
 /// LogGrid is a function whose gridpoints increase exponentially with
 /// the index.  That is, it has the analytic form
 /// \f[ r_k = \frac{r_0}{Z} \Delta^k.\f]  It is appropriate for
@@ -585,8 +583,6 @@ class LogGrid : public Grid
       grid(i) = r0/Z * pow (Spacing, (double) i);
   }
 };
-
-
 
 
 /// ClusterGrid is a function whose gridpoints are clustered tightly
@@ -690,9 +686,6 @@ LinearGrid::CheckRoundingMode()
     }
   }
 }
-      
-
-
 
 
 #endif
