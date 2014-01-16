@@ -1352,7 +1352,8 @@ int PathClass::GetSign()
   CountedAlready = false;
   int sign = 1;
   while (ptcl < N) {
-    if (!CountedAlready(ptcl)) {
+    int species = ParticleSpeciesNum(ptcl);
+    if (Species(species).GetParticleType() == 0 && !CountedAlready(ptcl)) {
       int startPtcl = ptcl;
       int roamingPtcl = ptcl;
       int cycleLength = 0;
