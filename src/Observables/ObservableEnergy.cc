@@ -61,6 +61,8 @@ void EnergyClass::Accumulate()
   // Energy Histogram
   double completeSum = PathData.Path.Communicator.Sum(localSum) /
                        (double) PathData.Path.TotalNumSlices;
+  if (isnan(completeSum))
+    cout << completeSum << " ERROR" << endl;
   EnergyHistogram.add(completeSum, 1.0);
 
   // Permutation Counting

@@ -106,6 +106,8 @@ void ObservableClass::GetStats(vector<double>& xs, double& mean, double& err, do
   double var = 0.0;
   if (N > 1)
     var = ((N+0.0)/(N-1.0)) * sampVar;
-  double sigma = sqrt(var);
+  double sigma = 0.;
+  if (var > 0)
+    sigma = sqrt(var);
   err = sigma/sqrt(N);
 }
