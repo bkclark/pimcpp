@@ -53,9 +53,9 @@ void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 
 double ParametrizedFreeNodalActionClass::GetFourLambdanTauInv (double lambdanTau)
 {
-  if (ModelType == 0)
-    lambdanTau = lambdanTau/ParamList(model,0);
-  else if (ModelType == 1) {
+  if (ModelType == 0) {
+    lambdanTau = lambdanTau*ParamList(model,0);
+  } else if (ModelType == 1) {
     double lambda = Path.Species(SpeciesNum).lambda;
     double nTau = lambdanTau/lambda;
     double lambdaStar = lambda * (1. + ParamList(model,0)*pow(nTau,ParamList(model,2)))
