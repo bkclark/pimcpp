@@ -78,12 +78,16 @@ bool PIMCClass::Read(IOSectionClass &in)
     PathData.Actions.Read(in);
     in.CloseSection();
 
-    /// Write out Actions
-    if (myProc == 0) {
-      OutFile.NewSection("Actions");
-      PathData.Actions.WriteInfo(OutFile);
-      OutFile.CloseSection(); // "Actions"
-    }
+    /// COMMENTED THIS OUT FOR NO APPARENT REASON
+    /// APPARENTLY KRAKEN HAS ISSUES WITH HDF5
+    /// WILL ADDRESS LATER - EWB 09/19/13
+    ///
+    //// Write out Actions
+    //if (myProc == 0) {
+    //  OutFile.NewSection("Actions");
+    //  PathData.Actions.WriteInfo(OutFile);
+    //  OutFile.CloseSection(); // "Actions"
+    //}
 
     /// Set Ion Config
     if (PathData.Path.UseCorrelatedSampling())
