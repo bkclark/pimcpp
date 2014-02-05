@@ -1,0 +1,15 @@
+NSLICES 320
+UNITS H A
+ENORM 1.
+BOXSIZE 20.0 20.0 20.0
+BETA 40.0
+
+TYPE e 0.5 -1 1 e.ic -1.0
+TYPE p 0 -1 1 p.ic 1.0
+
+POT PAIR e e e-e.dm
+POT PAIR e p e-p.dm
+POT PAIR p p p-p.dm
+
+RESTART
+OMOVE 100 100000 2

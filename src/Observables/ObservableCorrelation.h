@@ -24,29 +24,33 @@ class PairCorrelationClass : public ObservableClass
 {
 private:
   ObservableVecDouble1 gofrVar;
-  ObservableVecDouble1 gofrVarNeg;
-  ObservableVecDouble1 gofrVarPos;
+  ObservableVecDouble1 gofrVarRefSlice;
+  ObservableVecDouble2 gofrVarPerSlice;
+
   /// Stores number of counts in each bin
   Array<int,1> Histogram;
-  Array<int,1> HistogramNeg;
-  Array<int,1> HistogramPos;
+  Array<int,2> HistogramPerSlice;
+  Array<int,1> HistogramRefSlice;
+
   /// Stores the total number of counts
   int TotalCounts;
   int TimesCalled;
   int Freq;
   int DumpFreq;
+
 public:
+  /// Whether or not to record every slice's g(r)
+  bool PerSlice;
+  /// Whether or not to record just the ref slice's g(r)
+  bool HaveRefSlice, RefSliceOnly;
   /// The species between which I am calculating the pair correlation
   /// function.
   int Species1, Species2;
   /// This grid defines the bins.  Bin 0 is bounded by 0 on the 
   /// bottom and grid(0) on the top.
   LinearGrid grid;
-  /// My specialization of the virtual function.
   void Accumulate();
-  /// My specialization of the virtual function.
   void Initialize();
-  /// My specialization of the virtual function.
   void Print();
   void WriteBlock();
   void WriteInfo();
@@ -54,8 +58,8 @@ public:
   PairCorrelationClass(PathDataClass &myPathData, IOSectionClass &ioSection) :
     ObservableClass(myPathData,ioSection),
     gofrVar("y", IOSection, myPathData.Path.Communicator),
-    gofrVarNeg("yNeg", IOSection, myPathData.Path.Communicator),
-    gofrVarPos("yPos", IOSection, myPathData.Path.Communicator)
+    gofrVarRefSlice("yRefSlice", IOSection, myPathData.Path.Communicator),
+    gofrVarPerSlice("yPerSlice", IOSection, myPathData.Path.Communicator)
   {
     TimesCalled=0;
   }
@@ -63,13 +67,13 @@ public:
     ObservableClass(myPathData, ioSection),
     Species1(species1), Species2(species2),
     gofrVar("y", IOSection, myPathData.Path.Communicator),
-    gofrVarNeg("yNeg", IOSection, myPathData.Path.Communicator),
-    gofrVarPos("yPos", IOSection, myPathData.Path.Communicator)
-  { Initialize(); }
-
+    gofrVarRefSlice("yRefSlice", IOSection, myPathData.Path.Communicator),
+    gofrVarPerSlice("yPerSlice", IOSection, myPathData.Path.Communicator)
+  {
+    Initialize();
+  }
 
 };
-
 
 ///Creates a histogram of the end to end distance between the head and
 ///tail of the open loop.
@@ -114,10 +118,5 @@ public:
   { Initialize(); }
 
 };
-
-
-
-
-
 
 #endif

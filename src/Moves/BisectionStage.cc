@@ -124,6 +124,7 @@ void guassianDisplace(dVec rbar)
 
 }
 
+
 double BisectionStageClass::SampleFree(int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
   struct timeval start, end;
@@ -188,24 +189,22 @@ double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activ
   double levelTau = 0.5*PathData.Path.tau*skip;
 
   int numImages = PathData.Actions.NumImages;
-  int oldSlice2=slice2;
-  slice2=slice1+(1<<TotalLevels);
-  double logSampleProb=0.0;
-  double logOldSampleProb=0.0;
+  int oldSlice2 = slice2;
+  slice2 = slice1+(1<<TotalLevels);
+  double logSampleProb = 0.0;
+  double logOldSampleProb = 0.0;
   dVec firstDelta;
 
-  for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
-    int ptcl=activeParticles(ptclIndex);
-    double lambda=PathData.Path.ParticleSpecies(ptcl).lambda;
-    double sigma2=(1.0*lambda*levelTau);
-    double sigma=sqrt(sigma2);
-    double prefactorOfSampleProb=0.0; //-NDIM/2.0*log(2*M_PI*sigma2);
-    for (int slice=slice1;slice<slice2;slice+=skip){
+  for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++){
+    int ptcl = activeParticles(ptclIndex);
+    double lambda = PathData.Path.ParticleSpecies(ptcl).lambda;
+    double sigma2 = (1.0*lambda*levelTau);
+    double sigma = sqrt(sigma2);
+    double prefactorOfSampleProb = 0.0; //-NDIM/2.0*log(2*M_PI*sigma2);
+    for (int slice=slice1; slice<slice2; slice+=skip) {
       SetMode(OLDMODE);
-      if (UseCorrelatedSampling){
-        ///testing the calcShift 
-        //done testing
-        ///Correlated sampling
+
+      if (UseCorrelatedSampling) {
         dVec rshiftOld;
         rshiftOld=0.0;
         for (int cptcl=0;cptcl<PathData.Path.NumParticles();cptcl++){
@@ -213,83 +212,80 @@ double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activ
           dVec disp;
           PathData.Path.DistDisp(slice,ptcl,cptcl,dist,disp);
           double t1=PathData.Actions.ShortRange.dUdR(slice,ptcl,cptcl,BisectionLevel);
-
           for (int dim=0;dim<NDIM;dim++)
             rshiftOld[dim]-=t1*disp[dim];
         }
-        //cerr<<"R shift old"<<endl;
-        //cerr<<rshiftOld<<endl;
       }
-      ///      cerr<<"Ptcl is "<<ptcl<<" "<<rshiftOld[0]<<" "<<rshiftOld[1]<<endl;
 
-      dVec rOld=Path(slice,ptcl);
-      dVec rdiffOld=Path.Velocity(slice,slice+skip,ptcl);
-      dVec rbarOld=rOld+ 0.5*rdiffOld;
-      ///correlated sampling
-      if (UseCorrelatedSampling){
+      // Get old values
+      dVec rOld = Path(slice,ptcl);
+      dVec rdiffOld = Path.Velocity(slice,slice+skip,ptcl);
+      dVec rbarOld = rOld + 0.5*rdiffOld;
+
+      if (UseCorrelatedSampling) {
         dVec rshiftOld;
-        double drmax=0.1*PathData.Path.GetBox()[0];
-        for (int dim=0;dim<NDIM;dim++)
+        double drmax = 0.1*PathData.Path.GetBox()[0];
+        for (int dim=0; dim<NDIM; dim++)
           if (-drmax<=rshiftOld[dim] && rshiftOld[dim]<=drmax)
-            rbarOld[dim] +=rshiftOld[dim];
+            rbarOld[dim] += rshiftOld[dim];
           else if (rshiftOld[dim] < -drmax)
-            rbarOld[dim] +=-drmax;
+            rbarOld[dim] += -drmax;
           else
-            rbarOld[dim] +=drmax;
+            rbarOld[dim] += drmax;
       }
-      dVec rppOld=Path(slice+(skip>>1),ptcl);
-      dVec DeltaOld=rppOld-rbarOld;
+
+      dVec rppOld = Path(slice+(skip>>1),ptcl);
+      dVec DeltaOld = rppOld - rbarOld;
       Path.PutInBox(DeltaOld);
 
       SetMode(NEWMODE);
-      dVec r=Path(slice,ptcl);
-      dVec rdiff=Path.Velocity(slice,slice+skip,ptcl);
-      dVec rbar=r+ 0.5*rdiff;
+      dVec r = Path(slice,ptcl);
+      dVec rdiff = Path.Velocity(slice,slice+skip,ptcl);
+      dVec rbar = r+ 0.5*rdiff;
 
       if (UseCorrelatedSampling){
         ///Correlated sampling
         dVec rshift;
-        rshift=0.0;
-        for (int cptcl=0;cptcl<PathData.Path.NumParticles();cptcl++){
+        rshift = 0.0;
+        for (int cptcl=0; cptcl<PathData.Path.NumParticles(); cptcl++){
           double dist;
           dVec disp;
           PathData.Path.DistDisp(slice,ptcl,cptcl,dist,disp);
-          double t1=PathData.Actions.ShortRange.dUdR(slice,ptcl,cptcl,BisectionLevel);
-          for (int dim=0;dim<NDIM;dim++)
-            rshift[dim]-=t1*disp[dim];
+          double t1 = PathData.Actions.ShortRange.dUdR(slice,ptcl,cptcl,BisectionLevel);
+          for (int dim=0; dim<NDIM; dim++)
+            rshift[dim]-= t1*disp[dim];
         }
-
         double drmax=0.1*PathData.Path.GetBox()[0];
-        for (int dim=0;dim<NDIM;dim++)
+        for (int dim=0; dim<NDIM; dim++)
           if (-drmax<=rshift[dim] && rshift[dim]<=drmax)
-            rbar[dim] +=rshift[dim];
+            rbar[dim] += rshift[dim];
           else if (rshift[dim] < -drmax)
-            rbar[dim] +=-drmax;
+            rbar[dim] += -drmax;
           else
-            rbar[dim] +=drmax;
+            rbar[dim] += drmax;
       }
 
-      ///Here we've stored the new position in the path
-      dVec  Delta;
+      dVec Delta;
       Path.Random.LocalGaussianVec(sigma,Delta);
       PathData.Path.PutInBox(Delta);
-//       if (ptclIndex==0)
-//         firstDelta=Delta;
-//       if (ptclIndex==1){
-//         double length=sqrt(dot(Delta,Delta));
-//         double firstLength=sqrt(dot(firstDelta,firstDelta));
-//         Delta=-1.0*firstDelta*length/firstLength;
-//       }
-      double GaussProd=1.0;
-      double GaussProdOld=1.0;
+
+      dVec rpp=rbar+Delta;
+      Path.SetPos(slice+(skip>>1),ptcl,rpp);
+
+      double GaussProd = 1.0;
+      double GaussProdOld = 1.0;
+      double d02 = 0.0;
+      double d12 = 0.0;
       for (int dim=0; dim<NDIM; dim++) {
         double GaussSum = 0.0;
-        double GaussSumOld =0.0;
-        for (int image=-numImages; image <= numImages; image++) {
-          double dist = Delta[dim]+(double)image*Path.GetBox()[dim];
-          double distOld=DeltaOld[dim]+(double)image*Path.GetBox()[dim];
+        double GaussSumOld = 0.0;
+        for (int image=-numImages; image<=numImages; image++) {
+          double dist = Delta[dim] + (double)image*Path.GetBox()[dim];
+          double distOld = DeltaOld[dim] + (double)image*Path.GetBox()[dim];
           GaussSum += exp(-0.5*dist*dist/sigma2);
           GaussSumOld += exp(-0.5*distOld*distOld/sigma2);
+          d02 += distOld*distOld;
+          d12 += dist*dist;
         }
         GaussProd *= GaussSum;
         GaussProdOld *= GaussSumOld;
@@ -297,117 +293,55 @@ double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activ
       logOldSampleProb += prefactorOfSampleProb + log(GaussProdOld);
       logSampleProb += prefactorOfSampleProb  + log(GaussProd);
 
-      dVec rpp=rbar+Delta;
-      ////REALLY BAD HACK!
-      ///      dVec rpp=rbar+100*Delta;
-      ///Here we've stored the new position in the path
-      Path.SetPos(slice+(skip>>1),ptcl,rpp);
+      //double FourLambdaTauInv = 1.0/(4*sigma2);
+      //dVec vel0, vel1, velOld0, velOld1, velPrev, velOldPrev;
+      //SetMode(OLDMODE);
+      //velOld0 = PathData.Path.Velocity(slice, slice+(skip>>1), ptcl);
+      //velOld1 = PathData.Path.Velocity(slice+(skip>>1), slice+skip, ptcl);
+      //velOldPrev = PathData.Path.Velocity(slice, slice+skip, ptcl);
+      //SetMode(NEWMODE);
+      //vel0 = PathData.Path.Velocity(slice, slice+(skip>>1), ptcl);
+      //vel1 = PathData.Path.Velocity(slice+(skip>>1), slice+skip, ptcl);
+      //velPrev = PathData.Path.Velocity(slice, slice+skip, ptcl);
+
+      //double GaussProd = 1.0;
+      //double GaussProdPrev = 1.0;
+      //double GaussProdOld = 1.0;
+      //double GaussProdOldPrev = 1.0;
+      //for (int dim=0; dim<NDIM; dim++) {
+      //  double GaussSum0 = 0.0;
+      //  double GaussSum1 = 0.0;
+      //  double GaussSumPrev = 0.0;
+      //  double GaussSumOld0 = 0.0;
+      //  double GaussSumOld1 = 0.0;
+      //  double GaussSumOldPrev = 0.0;
+      //  for (int image=-numImages; image<=numImages; image++) {
+      //    double dist0 = vel0[dim]+(double)image*Path.GetBox()[dim];
+      //    double dist1 = vel1[dim]+(double)image*Path.GetBox()[dim];
+      //    double distPrev = velPrev[dim]+(double)image*Path.GetBox()[dim];
+      //    double distOld0 = velOld0[dim]+(double)image*Path.GetBox()[dim];
+      //    double distOld1 = velOld1[dim]+(double)image*Path.GetBox()[dim];
+      //    double distOldPrev = velOldPrev[dim]+(double)image*Path.GetBox()[dim];
+      //    GaussSum0 += exp(-dist0*dist0*FourLambdaTauInv);
+      //    GaussSum1 += exp(-dist1*dist1*FourLambdaTauInv);
+      //    GaussSumPrev += exp(-0.5*distPrev*distPrev*FourLambdaTauInv);
+      //    GaussSumOld0 += exp(-distOld0*distOld0*FourLambdaTauInv);
+      //    GaussSumOld1 += exp(-distOld1*distOld1*FourLambdaTauInv);
+      //    GaussSumOldPrev += exp(-0.5*distOldPrev*distOldPrev*FourLambdaTauInv);
+      //  }
+      //  GaussProd *= GaussSum0*GaussSum1;
+      //  GaussProdPrev *= GaussSumPrev;
+      //  GaussProdOld *= GaussSumOld0*GaussSumOld1;
+      //  GaussProdOldPrev *= GaussSumOldPrev;
+      //}
+      //logOldSampleProb += prefactorOfSampleProb + log(GaussProdOld) - log(GaussProdOldPrev);
+      //logSampleProb += prefactorOfSampleProb  + log(GaussProd) - log(GaussProdPrev);
     }
+
   }
-//   SetMode (NEWMODE);
-//   SamplePaths (slice1, slice2, activeParticles);
-//   SetMode(OLDMODE);
-//   double oldSample = LogSampleProb (slice1, slice2, activeParticles);
-//   SetMode(NEWMODE);
-//   double newSample = LogSampleProb (slice1, slice2, activeParticles);
-  //cerr << "oldSample = " << oldSample << endl;
-  //cerr << "oldSampleProb = " << logOldSampleProb << endl;
-  //cerr << "newSample = " << newSample << endl;
-  //cerr << "newSampleProb = " << logSampleProb << endl;
-  //  if (activeParticles.size()>1)
-  //    cerr<<"Value is "<<BisectionLevel<<": "<<exp(-logSampleProb+logOldSampleProb)<<endl;
-  slice2=oldSlice2;
-  //  NewSample=exp(logSampleProb);
-  //  OldSample=exp(logOldSampleProb);
 
+  slice2 = oldSlice2;
+  gettimeofday(&end, &tz);
 
-  gettimeofday(&end,   &tz);
-
-  // TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
-  // cerr<<"What's time of day"<<TimeSpent<<endl;
-  return -logSampleProb+logOldSampleProb;
-  //return (exp (-newSample + oldSample));
+  return -logSampleProb + logOldSampleProb;
 }
-
-double BisectionStageClass::Sample_old(int &slice1, int &slice2, Array<int,1> &activeParticles)
-{
-  PathClass &Path = PathData.Path;
-  int skip = 1<<(BisectionLevel+1);
-  double levelTau = 0.5*PathData.Path.tau*skip;
-  int numImages = PathData.Actions.NumImages;
-  int oldSlice2=slice2;
-  slice2=slice1+(1<<TotalLevels);
-  double logSampleProb=0.0;
-  double logOldSampleProb=0.0;
-  Array<double,1> sChiOld(NDIM*activeParticles.size());
-  ///BUG: will only work if all of activeParticles are of the same species
-  for (int slice=slice1;slice<slice2;slice+=skip){
-    double lambda=PathData.Path.ParticleSpecies(activeParticles(0)).lambda;
-    double sigma2=(1.0*lambda*levelTau);
-    double sigma=sqrt(sigma2);
-    SetMode(OLDMODE);
-    double oldDet;
-    CalcShift(activeParticles,slice,sigma,oldDet);
-    logOldSampleProb+=log(sqrt(oldDet));
-    for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
-      int ptcl=activeParticles(ptclIndex);
-      dVec rOld=Path(slice,ptcl);
-      dVec rdiffOld=Path.Velocity(slice,slice+skip,ptcl);
-      dVec rbarOld=rOld+0.5*rdiffOld;
-      double drmax=0.1*PathData.Path.GetBox()[0];
-      for (int dim=0;dim<NDIM;dim++)
-	if (-drmax<=dispShift(ptclIndex)(dim) && dispShift(ptclIndex)(dim)<=drmax)
-	  rbarOld(dim) +=dispShift(ptclIndex)(dim);
-	else if (dispShift(ptclIndex)(dim) < -drmax)
-	  rbarOld(dim) +=-drmax;
-	else 
-	  rbarOld(dim) +=drmax;
-      
-
-      for (int dim=0;dim<NDIM;dim++)
-	sChiOld(NDIM*ptclIndex+dim)=rOld(dim)-rbarOld(dim);
-    }
-    Array<double,1> AsChi(NDIM*activeParticles.size());
-    GJInverse(Correlated);
-    MatVecProd (Correlated, sChiOld,AsChi);
-    double oldProbTerm=InnerProduct(AsChi,sChiOld);
-    logOldSampleProb -=0.5*oldProbTerm;
-    
-    SetMode(NEWMODE);
-    double newDet;
-    CalcShift(activeParticles,slice,sigma,newDet);
-    logSampleProb += log(sqrt(newDet));
-    Array<double,1> gaussianVec(NDIM*activeParticles.size());
-    for (int i=0;i<NDIM*activeParticles.size();i++)
-      gaussianVec(i)=Path.Random.LocalGaussian(1.0);
-    Array<double,1> sChi(NDIM*activeParticles.size());
-    MatVecProd(S,gaussianVec,sChi);
-    GJInverse(Correlated);
-    MatVecProd(Correlated,sChi,AsChi);
-    double newProbTerm=InnerProduct(AsChi,sChi);
-    logSampleProb-=0.5*newProbTerm;
-    for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
-      int ptcl=activeParticles(ptclIndex);
-      dVec r=Path(slice,ptcl);
-      dVec rdiff=Path.Velocity(slice,slice+skip,ptcl);
-      dVec rbar=r+ 0.5*rdiff;
-      double drmax=0.1*PathData.Path.GetBox()[0];
-      for (int dim=0;dim<NDIM;dim++)
-	if (-drmax<=dispShift(ptclIndex)(dim) && dispShift(ptclIndex)(dim)<=drmax)
-	  rbar(dim) +=dispShift(ptclIndex)(dim);
-	else if (dispShift(ptclIndex)[dim] < -drmax)
-	  rbar(dim) +=-drmax;
-	else 
-	  rbar(dim) +=drmax;
-      dVec rpp;
-      for (int dim=0;dim<NDIM;dim++)
-	rpp(dim)=rbar(dim)+sChi(ptclIndex*NDIM+dim);
-      ///Here we've stored the new position in the path
-      Path.SetPos(slice+(skip>>1),ptcl,rpp);
-    }
-  }
-  slice2=oldSlice2;
-
-  return exp(-logSampleProb+logOldSampleProb);
-}
-

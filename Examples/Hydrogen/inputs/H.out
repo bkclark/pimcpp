@@ -1,0 +1,282 @@
+2012 08 31 11 2603.103 intel  
+  run id H        20120831112603.103 intel  
+  1 CMD:NSLICES 320
+  1 CMD:UNITS H A
+  1 CMD:ENORM 1.
+  1 CMD:BOXSIZE 20.0 20.0 20.0
+  volume of box    8000.00000000000     
+  minimum side    10.0000000000000      maximum side   10.0000000000000     
+  half box size    10.0000000000000        10.0000000000000     
+   10.0000000000000     
+  2*pi/ell   0.314159265358979       0.314159265358979     
+  0.314159265358979     
+  1 CMD:BETA 40.0
+  beta =    40.0000000000000       inverse H       
+  temperature =   2.500000000000000E-002  H       
+  1 CMD:
+  1 CMD:TYPE e 0.5 -1 1 e.ic -1.0
+  beginning read from file e.ic          
+
+ input for particle     1
+ number     1 hbs2m     0.500000
+       density =   1.250000000000000E-004
+ nspins    -1number of particles/state 
+           first and last particle of this type     1    1
+  dimensionality of this type            0
+  1 CMD:TYPE p 0 -1 1 p.ic 1.0
+  beginning read from file p.ic          
+
+ input for particle     2
+ number     1 hbs2m     0.000000
+       density =   1.250000000000000E-004
+ nspins    -1number of particles/state 
+           first and last particle of this type     2    2
+  dimensionality of this type            0
+  1 CMD:
+  1 CMD:POT PAIR e e e-e.dm
+  addpot beginning read from file e-e.dm
+  ntermact ntermeng            6           6
+  vimage for ij  0.000000000000000E+000           1           1
+  0.000000000000000E+000
+  grid sticks out of box    10.0000000000000        20.0000000000000     
+  number of grid points          450  range   0.100000000000000     
+   20.0000000000000     
+  finished reading potential
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           2
+  number records skipped            0  levels defined            1  terms read 
+           2
+  set up potential between pairs            1           1           1
+  1 CMD:POT PAIR e p e-p.dm
+  addpot beginning read from file e-p.dm
+  ntermact ntermeng            6           6
+  vimage for ij  0.000000000000000E+000           1           2
+  0.000000000000000E+000
+  grid sticks out of box    10.0000000000000        20.0000000000000     
+  number of grid points          450  range   0.100000000000000     
+   20.0000000000000     
+  finished reading potential
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           2
+  number records skipped            0  levels defined            1  terms read 
+           2
+  set up potential between pairs            1           2           1
+  1 CMD:POT PAIR p p p-p.dm
+  addpot beginning read from file p-p.dm
+  ntermact ntermeng            6           6
+  vimage for ij  0.000000000000000E+000           2           2
+  0.000000000000000E+000
+  grid sticks out of box    10.0000000000000        20.0000000000000     
+  number of grid points          450  range   0.100000000000000     
+   20.0000000000000     
+  finished reading potential
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           6
+  number records skipped            0  levels defined            1  terms read 
+           2
+  number records skipped            0  levels defined            1  terms read 
+           2
+  set up potential between pairs            2           2           1
+  1 CMD:
+  1 CMD:RESTART
+
+
+ total  number of particles    2
+  minimum nslices=           10
+  enter rpa nksh1=           0           0
+  idebug ifleak ifdiag ifsamp            0           1           1           1
+           1
+   cutk   0.000000000000000E+000
+  ifewald=           0 nksh1 nkvc1            0           0
+ nksh2 nkvc2            0           0
+  nparts nslices ntypes            2         320           2
+  beta enorm    40.0000000000000        1.00000000000000     
+  vtail   0.000000000000000E+000 ptail   0.000000000000000E+000
+  iref            0  irev            0
+  npfilen=           3  nlvld=           1
+  hop   0.000000000000000E+000  0.000000000000000E+000
+  number of projections=           0
+  g(r) table limit    10.0000000000000     
+  ifdensity            0
+  nbins             0
+  1 CMD:OMOVE 100 100000 2
+ starting new set with          100  blocks
+ number of single particle steps/block       100000
+ levels     2
+ maximum drift  0.50000E+01
+  gamma=    1.00000000000000       0.000000000000000E+000
+2012 08 31 11 2610.081 intel  
+ spill id H         nsets    1 ndone    1 20120831112610.081 intel  
+ block time  0.68020E+01 secs  total time =  0.68020E+01
+2012 08 31 11 2616.998 intel  
+ spill id H         nsets    1 ndone    2 20120831112616.998 intel  
+ block time  0.68040E+01 secs  total time =  0.13606E+02
+2012 08 31 11 2623.806 intel  
+ spill id H         nsets    1 ndone    3 20120831112623.806 intel  
+ block time  0.67710E+01 secs  total time =  0.20377E+02
+2012 08 31 11 2630.614 intel  
+ spill id H         nsets    1 ndone    4 20120831112630.614 intel  
+ block time  0.67700E+01 secs  total time =  0.27147E+02
+2012 08 31 11 2637.418 intel  
+ spill id H         nsets    1 ndone    5 20120831112637.418 intel  
+ block time  0.67680E+01 secs  total time =  0.33915E+02
+2012 08 31 11 2644.221 intel  
+ spill id H         nsets    1 ndone    6 20120831112644.221 intel  
+ block time  0.67660E+01 secs  total time =  0.40681E+02
+2012 08 31 11 2651.030 intel  
+ spill id H         nsets    1 ndone    7 20120831112651.030 intel  
+ block time  0.67710E+01 secs  total time =  0.47452E+02
+2012 08 31 11 2657.839 intel  
+ spill id H         nsets    1 ndone    8 20120831112657.839 intel  
+ block time  0.67720E+01 secs  total time =  0.54224E+02
+2012 08 31 11 2704.649 intel  
+ spill id H         nsets    1 ndone    9 20120831112704.649 intel  
+ block time  0.67720E+01 secs  total time =  0.60996E+02
+2012 08 31 11 2711.459 intel  
+ spill id H         nsets    1 ndone   10 20120831112711.459 intel  
+ block time  0.67730E+01 secs  total time =  0.67769E+02
+2012 08 31 11 2718.289 intel  
+ spill id H         nsets    1 ndone   11 20120831112718.289 intel  
+ block time  0.67950E+01 secs  total time =  0.74564E+02
+2012 08 31 11 2725.112 intel  
+ spill id H         nsets    1 ndone   12 20120831112725.112 intel  
+ block time  0.67860E+01 secs  total time =  0.81350E+02
+2012 08 31 11 2731.938 intel  
+ spill id H         nsets    1 ndone   13 20120831112731.938 intel  
+ block time  0.67900E+01 secs  total time =  0.88140E+02
+2012 08 31 11 2738.769 intel  
+ spill id H         nsets    1 ndone   14 20120831112738.769 intel  
+ block time  0.67940E+01 secs  total time =  0.94934E+02
+2012 08 31 11 2745.590 intel  
+ spill id H         nsets    1 ndone   15 20120831112745.590 intel  
+ block time  0.67850E+01 secs  total time =  0.10172E+03
+2012 08 31 11 2752.419 intel  
+ spill id H         nsets    1 ndone   16 20120831112752.419 intel  
+ block time  0.67880E+01 secs  total time =  0.10851E+03
+2012 08 31 11 2759.245 intel  
+ spill id H         nsets    1 ndone   17 20120831112759.245 intel  
+ block time  0.67890E+01 secs  total time =  0.11530E+03
+2012 08 31 11 2806.065 intel  
+ spill id H         nsets    1 ndone   18 20120831112806.065 intel  
+ block time  0.67790E+01 secs  total time =  0.12207E+03
+2012 08 31 11 2812.870 intel  
+ spill id H         nsets    1 ndone   19 20120831112812.870 intel  
+ block time  0.67680E+01 secs  total time =  0.12884E+03
+2012 08 31 11 2819.670 intel  
+ spill id H         nsets    1 ndone   20 20120831112819.670 intel  
+ block time  0.67650E+01 secs  total time =  0.13561E+03
+2012 08 31 11 2826.471 intel  
+ spill id H         nsets    1 ndone   21 20120831112826.471 intel  
+ block time  0.67670E+01 secs  total time =  0.14237E+03
+2012 08 31 11 2833.278 intel  
+ spill id H         nsets    1 ndone   22 20120831112833.278 intel  
+ block time  0.67690E+01 secs  total time =  0.14914E+03
+2012 08 31 11 2840.085 intel  
+ spill id H         nsets    1 ndone   23 20120831112840.085 intel  
+ block time  0.67640E+01 secs  total time =  0.15591E+03
+2012 08 31 11 2846.889 intel  
+ spill id H         nsets    1 ndone   24 20120831112846.889 intel  
+ block time  0.67660E+01 secs  total time =  0.16267E+03
+2012 08 31 11 2853.694 intel  
+ spill id H         nsets    1 ndone   25 20120831112853.694 intel  
+ block time  0.67680E+01 secs  total time =  0.16944E+03
+2012 08 31 11 2900.504 intel  
+ spill id H         nsets    1 ndone   26 20120831112900.504 intel  
+ block time  0.67700E+01 secs  total time =  0.17621E+03
+2012 08 31 11 2907.309 intel  
+ spill id H         nsets    1 ndone   27 20120831112907.309 intel  
+ block time  0.67650E+01 secs  total time =  0.18298E+03
+2012 08 31 11 2914.117 intel  
+ spill id H         nsets    1 ndone   28 20120831112914.117 intel  
+ block time  0.67710E+01 secs  total time =  0.18975E+03
+2012 08 31 11 2920.922 intel  
+ spill id H         nsets    1 ndone   29 20120831112920.922 intel  
+ block time  0.67670E+01 secs  total time =  0.19651E+03
+2012 08 31 11 2927.733 intel  
+ spill id H         nsets    1 ndone   30 20120831112927.733 intel  
+ block time  0.67730E+01 secs  total time =  0.20329E+03
+2012 08 31 11 2934.533 intel  
+ spill id H         nsets    1 ndone   31 20120831112934.533 intel  
+ block time  0.67670E+01 secs  total time =  0.21005E+03
+2012 08 31 11 2941.338 intel  
+ spill id H         nsets    1 ndone   32 20120831112941.338 intel  
+ block time  0.67720E+01 secs  total time =  0.21683E+03
+2012 08 31 11 2948.146 intel  
+ spill id H         nsets    1 ndone   33 20120831112948.146 intel  
+ block time  0.67720E+01 secs  total time =  0.22360E+03
+2012 08 31 11 2954.956 intel  
+ spill id H         nsets    1 ndone   34 20120831112954.956 intel  
+ block time  0.67760E+01 secs  total time =  0.23037E+03
+2012 08 31 11 3001.764 intel  
+ spill id H         nsets    1 ndone   35 20120831113001.764 intel  
+ block time  0.67740E+01 secs  total time =  0.23715E+03
+2012 08 31 11 3008.579 intel  
+ spill id H         nsets    1 ndone   36 20120831113008.579 intel  
+ block time  0.67770E+01 secs  total time =  0.24392E+03
+2012 08 31 11 3015.384 intel  
+ spill id H         nsets    1 ndone   37 20120831113015.384 intel  
+ block time  0.67680E+01 secs  total time =  0.25069E+03
+2012 08 31 11 3022.189 intel  
+ spill id H         nsets    1 ndone   38 20120831113022.189 intel  
+ block time  0.67660E+01 secs  total time =  0.25746E+03
+2012 08 31 11 3028.995 intel  
+ spill id H         nsets    1 ndone   39 20120831113028.995 intel  
+ block time  0.67680E+01 secs  total time =  0.26423E+03
+2012 08 31 11 3035.804 intel  
+ spill id H         nsets    1 ndone   40 20120831113035.804 intel  
+ block time  0.67700E+01 secs  total time =  0.27100E+03
+2012 08 31 11 3042.612 intel  
+ spill id H         nsets    1 ndone   41 20120831113042.612 intel  
+ block time  0.67700E+01 secs  total time =  0.27777E+03
+2012 08 31 11 3049.425 intel  
+ spill id H         nsets    1 ndone   42 20120831113049.425 intel  
+ block time  0.67670E+01 secs  total time =  0.28453E+03
+2012 08 31 11 3056.238 intel  
+ spill id H         nsets    1 ndone   43 20120831113056.238 intel  
+ block time  0.67680E+01 secs  total time =  0.29130E+03
+2012 08 31 11 3103.045 intel  
+ spill id H         nsets    1 ndone   44 20120831113103.045 intel  
+ block time  0.67710E+01 secs  total time =  0.29807E+03
+2012 08 31 11 3109.851 intel  
+ spill id H         nsets    1 ndone   45 20120831113109.851 intel  
+ block time  0.67670E+01 secs  total time =  0.30484E+03
+2012 08 31 11 3116.654 intel  
+ spill id H         nsets    1 ndone   46 20120831113116.654 intel  
+ block time  0.67660E+01 secs  total time =  0.31161E+03
+2012 08 31 11 3123.458 intel  
+ spill id H         nsets    1 ndone   47 20120831113123.458 intel  
+ block time  0.67670E+01 secs  total time =  0.31837E+03
+2012 08 31 11 3130.262 intel  
+ spill id H         nsets    1 ndone   48 20120831113130.262 intel  
+ block time  0.67670E+01 secs  total time =  0.32514E+03
+2012 08 31 11 3137.263 intel  
+ spill id H         nsets    1 ndone   49 20120831113137.263 intel  
+ block time  0.67730E+01 secs  total time =  0.33191E+03
+2012 08 31 11 3144.387 intel  
+ spill id H         nsets    1 ndone   50 20120831113144.387 intel  
+ block time  0.67690E+01 secs  total time =  0.33868E+03
+2012 08 31 11 3151.523 intel  
+ spill id H         nsets    1 ndone   51 20120831113151.523 intel  
+ block time  0.67710E+01 secs  total time =  0.34545E+03
+2012 08 31 11 3158.642 intel  
+ spill id H         nsets    1 ndone   52 20120831113158.642 intel  
+ block time  0.67740E+01 secs  total time =  0.35223E+03
+2012 08 31 11 3205.527 intel  
+ spill id H         nsets    1 ndone   53 20120831113205.527 intel  
+ block time  0.67710E+01 secs  total time =  0.35900E+03
+2012 08 31 11 3212.333 intel  
+ spill id H         nsets    1 ndone   54 20120831113212.333 intel  
+ block time  0.67680E+01 secs  total time =  0.36577E+03
+2012 08 31 11 3219.137 intel  
+ spill id H         nsets    1 ndone   55 20120831113219.137 intel  
+ block time  0.67670E+01 secs  total time =  0.37253E+03

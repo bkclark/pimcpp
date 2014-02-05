@@ -44,8 +44,7 @@ void EnergyClass::Accumulate()
 
   // Add energies to total
   double localSum = 0.0;
-  std::list<string>::iterator labelIt;
-  for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
+  for (std::list<string>::iterator labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
     localSum += energies[*labelIt] * FullWeight;
     ESum[*labelIt] += energies[*labelIt] * FullWeight;
     energies[*labelIt] = 0.0;
@@ -62,6 +61,8 @@ void EnergyClass::Accumulate()
   // Energy Histogram
   double completeSum = PathData.Path.Communicator.Sum(localSum) /
                        (double) PathData.Path.TotalNumSlices;
+  if (isnan(completeSum))
+    cout << completeSum << " ERROR" << endl;
   EnergyHistogram.add(completeSum, 1.0);
 
   // Permutation Counting

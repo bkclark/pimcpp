@@ -31,9 +31,7 @@ KineticClass::KineticClass(PathDataClass &pathData ) :
   TimeSpent = 0.0;
 }
 
-double 
-KineticClass::SingleAction (int slice1, int slice2,
-			    const Array<int,1> &changedParticles, int level)
+double KineticClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
   struct timeval start, end;
   struct timezone tz;
@@ -42,56 +40,38 @@ KineticClass::SingleAction (int slice1, int slice2,
   double TotalK = 0.0;
   int numChangedPtcls = changedParticles.size();
   int skip = 1<<level;
-  double levelTau = Path.tau* (1<<level);
+  double levelTau = Path.tau*(1<<level);
   for (int ptclIndex=0; ptclIndex<numChangedPtcls; ptclIndex++){
     int ptcl = changedParticles(ptclIndex);
-    int species=Path.ParticleSpeciesNum(ptcl);
+    int species = Path.ParticleSpeciesNum(ptcl);
     double lambda = Path.Species(species).lambda;
-    if (lambda != 0){
-      double FourLambdaTauInv=1.0/(4.0*Path.Species(species).lambda*levelTau);
-      for (int slice=slice1; slice < slice2;slice+=skip) {
+    if (lambda != 0) {
+      double FourLambdaTauInv = 1.0/(4.0*Path.Species(species).lambda*levelTau);
+      for (int slice=slice1; slice<slice2; slice+=skip) {
         dVec vel;
-	vel = PathData.Path.Velocity(slice, slice+skip, ptcl);
-	//vel= PathData.Path(slice+skip,ptcl)-PathData.Path(slice,ptcl);
-	
+        vel = PathData.Path.Velocity(slice, slice+skip, ptcl);
+
         double GaussProd = 1.0;
         for (int dim=0; dim<NDIM; dim++) {
-	  double GaussSum=0.0;
-	  for (int image=-NumImages; image<=NumImages; image++) {
-	    double dist = vel[dim]+(double)image*Path.GetBox()[dim];
-	    GaussSum += exp(-dist*dist*FourLambdaTauInv);
-	  }
-	  GaussProd *= GaussSum;
+          double GaussSum=0.0;
+          for (int image=-NumImages; image<=NumImages; image++) {
+            double dist = vel[dim]+(double)image*Path.GetBox()[dim];
+            GaussSum += exp(-dist*dist*FourLambdaTauInv);
+          }
+          GaussProd *= GaussSum;
         }
-	//	if (changedParticles.size()==1)
-	//	if (ptcl<3)
-	//	  TotalK -= PathData.Path.ExistsCoupling*log(GaussProd);    
-	//	else 
-	//	if (changedParticles.size()>1)
-	//	  TotalK -= 0;
-	//	else
-	////////////////////////////////	  TotalK -= log(GaussProd);   
-	if (PathData.Path.WormOn){
-	  if (PathData.Path.ParticleExist(slice,ptcl)*PathData.Path.ParticleExist(slice+skip,ptcl)!=0.0)
-	    TotalK -= log(GaussProd);
-	}
-	else {
-	  TotalK -= log(GaussProd);
-	}
-	//TotalK += dot(vel,vel)*FourLambdaTauInv; 
-	//	KineticVal(slice)+=dot(vel,vel)*FourLambdaTauInv; 
+
+        if (PathData.Path.WormOn){
+          if (PathData.Path.ParticleExist(slice,ptcl)*PathData.Path.ParticleExist(slice+skip,ptcl)!=0.0)
+            TotalK -= log(GaussProd);
+        }
+        else {
+          TotalK -= log(GaussProd);
+        }
       }
     }
   }
-  //We are ignoring the \$\frac{3N}{2}*\log{4*\Pi*\lambda*\tau}
-  //  for (int counter=0;counter<KineticVal.size();counter++){
-  //    cerr<<"My kinetic link "<<counter<<" is "<<KineticVal(counter)<<endl;
-  //  }
-  //  if (PathData.Path.ExistsCoupling>0)
-  //    TotalK-=100*PathData.Path.ExistsCoupling*log(0.9);
-    //    TotalK+=pow(0.8,100*PathData.Path.ExistsCoupling);
-  //  cerr<<"My total K is "<<TotalK<<endl;
-  //
+
   gettimeofday(&end, &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
 

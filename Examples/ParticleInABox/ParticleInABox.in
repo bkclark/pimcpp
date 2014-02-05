@@ -1,5 +1,4 @@
-bool OpenLoops = false;
-int NEquilibrate = 0;
+// This is an input for an electron in a 3D box with L=10A at T=1K.
 
 Section (Output)
 {
@@ -14,7 +13,7 @@ Section (Parallel)
 Section (System)
 {
   double tau = 0.05;
-  int NumTimeSlices = 12;
+  int NumTimeSlices = 20;
   Array<double,1> Box(3) = [10.0,10.0,10.0];
   Array<bool, 1> IsPeriodic(3) = [true,true,true];
   Section (Particles)
@@ -35,7 +34,7 @@ Section (System)
 Section (Actions)
 {
   int NumImages = 1;
-  int MaxLevels = 2;
+  int MaxLevels = 3;
   Array<string,1> PairActionFiles(1) = ["zero.PairAction"];
 }
 
@@ -67,8 +66,8 @@ Section (Moves)
     string Name = "BisectionBlock";
     string PermuteType = "NONE";
     string Species = "free";
-    int NumLevels = 2;
-    int StepsPerBlock = 2;
+    int NumLevels = 3;
+    int StepsPerBlock = 1;
   }
 
   Section (Move)

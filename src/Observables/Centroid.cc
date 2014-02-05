@@ -48,6 +48,12 @@ void CentroidClass::WriteBlock()
   int myProc = Path.Communicator.MyProc();
 
   if (myProc == 0) {
+    xVals = xVals/NumSamples;
+    xValsVar.Write(xVals);
+    xValsVar.Flush();
+    yzVals = yzVals/NumSamples;
+    yzValsVar.Write(yzVals);
+    yzValsVar.Flush();
     totVals = totVals/NumSamples;
     SpreadValsVar.Write(totVals);
     SpreadValsVar.Flush();
@@ -55,6 +61,8 @@ void CentroidClass::WriteBlock()
     SpreadVecsVar.Write(totVecs);
     SpreadVecsVar.Flush();
   }
+  xVals = 0;
+  yzVals = 0;
   totVals = 0;
   totVecs = 0;
 
@@ -91,8 +99,14 @@ void CentroidClass::Read(IOSectionClass &in)
   ObservableClass::Read(in);
 
   const int N = PathData.Path.NumParticles();
+  xVals.resize(N,2);
+  yzVals.resize(N);
   totVals.resize(N,NDIM);
   totVecs.resize(N,NDIM,NDIM);
+  xVals = 0;
+  yzVals = 0;
+  totVals = 0;
+  totVecs = 0;
 
   // Setup the grid and histograms
   assert(in.OpenSection("Grid"));
@@ -127,7 +141,6 @@ void CentroidClass::Read(IOSectionClass &in)
 
 }
 
-// Check out MetaMoves.cc! Shift was changed to 0 b/c for some reason it's messing this procedure up!
 void CentroidClass::Accumulate()
 {
   NumSamples++;
@@ -150,13 +163,35 @@ void CentroidClass::Accumulate()
     const int D = NDIM;
     Array<double,2> C(D,D); // Will be the covariance matrix.
     C = 0;                  // Eigenvectors will be major & minor axes. Eigenvalues will be lengths of axes, squared.
+    double count0 = 0;
+    double count1 = 0;
     for (int k = 0; k < M; k++) {
       dVec diff = PathData.Path(k,ptcl) - CentPos(ptcl);
       PathData.Path.PutInBox(diff);
-      for (int d1 = 0; d1 < D; d1++)
+
+      // Get y-z plane and x-axis avg distances
+      for (int d1 = 1; d1 < D; d1++)
+        yzVals(ptcl) = yzVals(ptcl) + sqrt(diff(d1)*diff(d1))/(2.*totM);
+      if (abs(PathData.Path(k,ptcl)(0)) - abs(CentPos(ptcl)(0)) <= 0.0) {
+        xVals(ptcl,0) = xVals(ptcl,0) + sqrt(diff(0)*diff(0));
+        count0 += 1;
+      } else {
+        xVals(ptcl,1) = xVals(ptcl,1) + sqrt(diff(0)*diff(0));
+        count1 += 1;
+      }
+
+      // Covariance Matrix
+      for (int d1 = 0; d1 < D; d1++) {
         for (int d2 = 0; d2 < D; d2++)
           C(d1,d2) += diff(d1)*diff(d2);
+      }
+
     }
+    if (count0 > 0)
+      xVals(ptcl,0) = xVals(ptcl,0)/count0;
+    if (count1 > 0)
+      xVals(ptcl,1) = xVals(ptcl,1)/count1;
+
 
     // Gather all covariance matrix totals and normalize
     Array<double,2> totC(D,D);

@@ -336,6 +336,7 @@ public:
   ///Sums up the vectors in sendBuff.  Processor 0 only gets the
   ///resulting sum.
   void Sum (blitz::Array<int,1> &sendBuff, blitz::Array<int,1> &recvBuff);
+  void Sum (blitz::Array<int,2> &sendBuff, blitz::Array<int,2> &recvBuff);
 
   ///Sums up the vectors in sendBuff.  Processor 0 only gets the
   ///resulting sum.

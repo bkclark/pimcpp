@@ -1,0 +1,18 @@
+Section (Fits)
+{
+  string Type="DavidFit";
+  int NumOffDiagonalTerms = 3;
+  Section (Particle1)
+  {
+    string Name = "e";
+    double lambda =0.5;
+    int Ndim = 3;
+  }
+  Section (Particle2)
+  {
+    string Name = "e";
+    double lambda =0.5;
+    int Ndim = 3;
+  }
+  string Daviddmfile = "inputs/e-e.h5";
+}

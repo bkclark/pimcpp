@@ -3,21 +3,40 @@ project (pimc++ CXX C Fortran)
 cmake_minimum_required (VERSION 2.6)
 
 #-------------------------------------------------------------------
+# Options
+#-------------------------------------------------------------------
+
+SET(NDIM 3)
+SET(OPEN_LOOPS FALSE)
+SET(USE_MPI TRUE)
+SET(QMC_BUILD_STATIC FALSE)
+
+#-------------------------------------------------------------------
 # Compilers
 #-------------------------------------------------------------------
+SET(C_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=${NDIM}")
+IF(OPEN_LOOPS)
+  SET(C_FLAGS "${C_FLAGS} -DOPEN_LOOPS=1")
+ELSE(OPEN_LOOPS)
+  SET(C_FLAGS "${C_FLAGS} -DOPEN_LOOPS=0")
+ENDIF(OPEN_LOOPS)
+IF(USE_MPI)
+  SET(C_FLAGS "${C_FLAGS} -DUSE_MPI -fopenmp")
+ENDIF(USE_MPI)
+
+
 SET(CMAKE_CXX_COMPILER,"CC")
-SET(CMAKE_CXX_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=2 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
+SET(CMAKE_CXX_FLAGS "${C_FLAGS}")
 SET(CMAKE_CXX_SOURCE_FILE_EXTENSIONS ,"cc")
 
 SET(CMAKE_C_COMPILER,"cc")
-SET(CMAKE_C_FLAGS "-DH5_USE_16_API -std=c99 -O3 -msse3 -w -DNDIM=2 -DOPEN_LOOPS=0 -DUSE_MPI -fopenmp")
+SET(CMAKE_C_FLAGS "-std=c99 ${C_FLAGS}")
 SET(CMAKE_C_SOURCE_FILE_EXTENSIONS ,"c")
 
 SET(CMAKE_Fortran_COMPILER,"ftn")
 SET(CMAKE_Fortran_FLAGS "-funroll-loops -O3")
 SET(CMAKE_Fortran_SOURCE_FILE_EXTENSIONS ,"f")
 
-set(QMC_BUILD_STATIC TRUE)
 IF(QMC_BUILD_STATIC)
   # Enable static linking
   set(BUILD_STATIC_LIBS TRUE)
@@ -49,33 +68,8 @@ SET(BUILD_DIR "${CMAKE_SOURCE_DIR}/build")
 #-------------------------------------------------------------------
 #  check MPI
 #-------------------------------------------------------------------
-FIND_PACKAGE(MPI REQUIRED)
-IF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
-  MESSAGE(STATUS "MPI_COMPILE_FLAGS=${MPI_COMPILE_FLAGS}")
-  MESSAGE(STATUS "MPI_LINK_FLAGS=${MPI_LINK_FLAGS}")
-  MESSAGE(STATUS "MPI_INCLUDE_PATH=${MPI_INCLUDE_PATH}")
-  MESSAGE(STATUS "MPI_LIBRARIES=${MPI_LIBRARIES}")
-  SET(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
-  SET(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
-  INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
-  LINK_LIBRARIES(${MPI_LIBRARIES})
-ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
-  SET(TRIAL_LIBRARY_PATHS
-    $ENV{MPI_HOME}/lib
-    /usr/lib
-    /usr/local/lib
-    /opt/lib
-    /sw/lib
-  )
-  SET(TRIAL_INCLUDE_PATHS
-    $ENV{MPI_HOME}/include
-    /usr/include
-    /opt/include
-    /usr/local/include
-    /sw/include
-  )
-  FIND_LIBRARY(MPI_LIBRARIES mpi ${TRIAL_LIBRARY_PATHS})
-  FIND_PATH(MPI_INCLUDE_PATH mpi.h ${TRIAL_INCLUDE_PATHS})
+IF(USE_MPI)
+  FIND_PACKAGE(MPI REQUIRED)
   IF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
     MESSAGE(STATUS "MPI_COMPILE_FLAGS=${MPI_COMPILE_FLAGS}")
     MESSAGE(STATUS "MPI_LINK_FLAGS=${MPI_LINK_FLAGS}")
@@ -86,9 +80,36 @@ ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
     INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
     LINK_LIBRARIES(${MPI_LIBRARIES})
   ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
-    MESSAGE(STATUS "MPI not found!")
+    SET(TRIAL_LIBRARY_PATHS
+      $ENV{MPI_HOME}/lib
+      /usr/lib
+      /usr/local/lib
+      /opt/lib
+      /sw/lib
+    )
+    SET(TRIAL_INCLUDE_PATHS
+      $ENV{MPI_HOME}/include
+      /usr/include
+      /opt/include
+      /usr/local/include
+      /sw/include
+    )
+    FIND_LIBRARY(MPI_LIBRARIES mpi ${TRIAL_LIBRARY_PATHS})
+    FIND_PATH(MPI_INCLUDE_PATH mpi.h ${TRIAL_INCLUDE_PATHS})
+    IF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+      MESSAGE(STATUS "MPI_COMPILE_FLAGS=${MPI_COMPILE_FLAGS}")
+      MESSAGE(STATUS "MPI_LINK_FLAGS=${MPI_LINK_FLAGS}")
+      MESSAGE(STATUS "MPI_INCLUDE_PATH=${MPI_INCLUDE_PATH}")
+      MESSAGE(STATUS "MPI_LIBRARIES=${MPI_LIBRARIES}")
+      SET(CMAKE_CXX_COMPILE_FLAGS ${CMAKE_CXX_COMPILE_FLAGS} ${MPI_COMPILE_FLAGS})
+      SET(CMAKE_CXX_LINK_FLAGS ${CMAKE_CXX_LINK_FLAGS} ${MPI_LINK_FLAGS})
+      INCLUDE_DIRECTORIES(${MPI_INCLUDE_PATH})
+      LINK_LIBRARIES(${MPI_LIBRARIES})
+    ELSE(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+      MESSAGE(STATUS "MPI not found!")
+    ENDIF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
   ENDIF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
-ENDIF(MPI_INCLUDE_PATH AND MPI_LIBRARIES)
+ENDIF(USE_MPI)
 
 #-------------------------------------------------------------------
 # check blitz++
@@ -171,6 +192,7 @@ ENDIF(LAPACK_FOUND AND BLAS_FOUND)
 # extra libraries
 #-------------------------------------------------------------------
 #LINK_LIBRARIES("-lz -lpthread -lm -lmpi -mp")
+#LINK_LIBRARIES("-lz -lpthread -lm -lsz")
 LINK_LIBRARIES("-lz -lpthread -lm")
 
 #-------------------------------------------------------------------
