@@ -17,28 +17,24 @@
 #ifndef DavidPAClass_H
 #define DavidPAClass_H
 
-// #include "../MPI/Communication.h" //include not needed
 #include "PAFitBase.h"
 #include "../Blitz.h"
 #include "../Splines/LinearSpline.h"
 #include <fstream>
 #include <iostream>
-//#include "../../PathDataClass.h"
-
 
 ///This is the pair action class. It uses the following formula in
 ///order to calculate the pair action
 /*! \f[\frac{u_0(r;\tau)+u_0(r';\tau)}{2}+\sum_{k=1}^n 
   \sum_{j=1}^k u_{kj}(q;\tau)z^{2j}s^{2(k-j)}\f]   */
-class DavidPAClass : public PairActionFitClass 
+class DavidPAClass : public PairActionFitClass
 {
-
  private:
-  
+
   ///Holds the Ukj coefficients for a given q
   blitz::Array<double,1> TempukjArray;
   blitz::Array<double,1> TempdukjArray;
-  int NumTerms;
+  int nTerms;
   //  DistanceTableClass *DistanceTable;
   /// Skips to the next string in the file whose substring matches skipToString
   inline string SkipTo(ifstream &infile, string skipToString);
@@ -48,7 +44,7 @@ class DavidPAClass : public PairActionFitClass
   double Vimage;
   double kCutoff;
   int dummyPairActionClass;
-  blitz::Array<double,1> Potential; 
+  blitz::Array<double,1> Potential;
   string type1,type2;
   bool SamplingTableRead;
   inline bool Read(IOSectionClass &IOSection,double desiredTau, int numLevels);
@@ -56,7 +52,7 @@ class DavidPAClass : public PairActionFitClass
   double Udiag(double q, int level);
   double dUdiag_fast(double q, int level);
   double UDiag_exact(double q,int level);
-  
+
   double DesiredTau;
   int TauPos;
   int NumLevels;
@@ -83,14 +79,11 @@ class DavidPAClass : public PairActionFitClass
   blitz::Array<double,1> SamplingTau;
 
   /////  MultiCubicSpline Pot;
-  /// Calculate the U(s,q,z) value when given s,q,z and the level 
-  void calcUsqz(double s,double q,double z,int level,
-		       double &U, double &dU, double &V);
-  void calcUsqzFast(double s,double q,double z,int level,
-		    double &U);
+  /// Calculate the U(s,q,z) value when given s,q,z and the level
+  void calcUsqz(double s,double q,double z,int level, double &U, double &dU, double &V);
+  void calcUsqzFast(double s,double q,double z,int level, double &U);
 
-
-  /// This is the order of the fit to use. 
+  /// This is the order of the fit to use.
   int n;
   /// This is the temperature 
   //////  double tau;
@@ -100,7 +93,7 @@ class DavidPAClass : public PairActionFitClass
   void ReadDavidSquarerFileHDF5(string DMFile);
   void ReadSamplingTable(string fileName);
   void PrintVals(double begin, double end, double dx);
-  double U (double q, double z, double s2, int level);
+  double U(double q, double z, double s2, int level);
   double dU(double q, double z, double s2, int level);
   double V(double r);
   double dUdRTimesSigma(double r,int level);
@@ -108,30 +101,24 @@ class DavidPAClass : public PairActionFitClass
   double d2UdR2TimesSigma(double r,int level);
   double d2UdR2TimesSigma_movers(double r,int level);
 
-
   blitz::Array<double,1> kVals;
   blitz::Array<double,1> uk_long;
-
 
   /// The q-derivative of the above
   double Udiag_p(double q, int level);
   /// The q-derivative of the above
   double Udiag_pp(double q, int level);
   /// The beta-derivative of the diagonal action
-  double dUdiag    (double q, int level);
+  double dUdiag(double q, int level);
   /// The q-derivative of the above
-  double dUdiag_p  (double q, int level);
+  double dUdiag_p(double q, int level);
   /// The q-derivative of the above
   double dUdiag_pp (double q, int level);
-  void Derivs   (double q, double z, double s2, int level,
-	         double &d_dq, double &d_dz);
-  void DerivsFD (double q, double z, double s2, int level,
-		 double &d_dq, double &d_dz);
-  void Derivs   (double q, double z, double s2, int level,
-	         double &d_dq, double &d_dz, double &d_ds);
-  void DerivsFD (double q, double z, double s2, int level,
-		 double &d_dq, double &d_dz, double &d_ds);
-  bool IsLongRange(); 
+  void Derivs(double q, double z, double s2, int level, double &d_dq, double &d_dz);
+  void DerivsFD(double q, double z, double s2, int level, double &d_dq, double &d_dz);
+  void Derivs(double q, double z, double s2, int level, double &d_dq, double &d_dz, double &d_ds);
+  void DerivsFD(double q, double z, double s2, int level, double &d_dq, double &d_dz, double &d_ds);
+  bool IsLongRange();
 
   void ReadParams  (IOSectionClass &inSection);
   void WriteBetaIndependentInfo (IOSectionClass &outSection);
@@ -142,17 +129,15 @@ class DavidPAClass : public PairActionFitClass
 };
 
 
-inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
+inline bool DavidPAClass::Read(IOSectionClass &in, double x, int y)
 {
-  Name="DavidPAClass";
-  //cerr<<"In DavidPAClass Read"<<endl;
-  //cerr<<"values are "<<x<<" "<<y<<endl;
+  Name = "DavidPAClass";
   string fileName;
-  DesiredTau=x;
-  NumLevels=y;
+  DesiredTau = x;
+  NumLevels = y;
   // Read Particles;
   assert(in.OpenSection("Fits"));
-  assert(in.ReadVar("NumOffDiagonalTerms",NumTerms));
+  assert(in.ReadVar("NumOffDiagonalTerms",nTerms));
   assert(in.OpenSection("Particle1"));
   Particle1.Read(in);
   in.CloseSection();
@@ -172,7 +157,7 @@ inline bool DavidPAClass::Read(IOSectionClass &in,double x, int y)
   else
     assert(0);
   string samplingTableFile;
-  SamplingTableRead=in.ReadVar("SamplingTableFile",samplingTableFile);
+  SamplingTableRead = in.ReadVar("SamplingTableFile",samplingTableFile);
   if (SamplingTableRead)
     ReadSamplingTable(samplingTableFile);
   in.CloseSection();
@@ -218,6 +203,7 @@ inline bool IsDigit(char c)
   return (((c>='0') && (c<='9')) || (c == '-'));
 }
 
+
 inline bool IsNumberChar(char c)
 {
   bool IsNumber = false;
@@ -227,7 +213,6 @@ inline bool IsNumberChar(char c)
   IsNumber = IsNumber || (c=='.');
   return IsNumber;
 }
-
 
 
 inline int GetNextInt(string &s)
@@ -267,6 +252,7 @@ inline string GetNextWord(string &s)
   return toReturn;
 }
 
+
 inline double GetNextDouble(string &s)
 {
   int i=0;
@@ -288,10 +274,9 @@ inline double GetNextDouble(string &s)
   return (num);
 }
 
+
 inline void DavidPAClass::Print()
-{ cerr<<"hi\n";}
-            
-
-
+{
+}
 
 #endif
