@@ -18,17 +18,13 @@
 #define DAVID_LONG_RANGE_CLASS_YK2_H
 
 #include "ActionBase.h"
-
 #include "../PairAction/PAFit.h"
-
-
 
 
 /// The LongRangeClass is an action class responsible for the long
 /// wavelength components of the action that are summed in k-space.
 /// This class reads in and uses an optimized breakup from a file that
 /// David supplies. 
-
 class DavidLongRangeClassYk : public ActionBaseClass
 {
 protected:
@@ -76,17 +72,15 @@ public:
   void BuildRPA_MultipleSpecies();
   double V(int slice1,int slice2,int level);
 
-  double SingleAction (int slice1, int slice2, 
-		       const Array<int,1> &activeParticles, int level);
+  double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
   double d_dBeta (int slice1, int slice2,  int level);
   string GetName();
   bool fequals(double a,double b, double tol);
   bool vecEquals(dVec &a, dVec &b,double tol);
   void WriteInfo(IOSectionClass &out);
-  DavidLongRangeClassYk(PathDataClass &pathData,
-                        Array<PairActionFitClass*,2> &pairMatrix,
-                        Array<PairActionFitClass*,1> &pairArray,
-                        Array<int,2> &pairIndex);
+  DavidLongRangeClassYk::DavidLongRangeClassYk(PathDataClass &pathData, Array<PairActionFitClass*,2> &pairMatrix, Array<PairActionFitClass*,1> &pairArray, Array<int,2> &pairIndex)
+    : ActionBaseClass (pathData), PairMatrix(pairMatrix), PairArray(pairArray), PairIndex(pairIndex)
+  {}
 };
 
 #endif

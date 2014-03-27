@@ -3,11 +3,11 @@ import numpy as np
 import h5py as h5
 import Stats
 
-StartCut = 1
+StartCut = int(sys.argv[1])
 
-ENames = ['Kinetic','Node','Total','dUExt','dULong','dUShort']
+ENames = ['Kinetic','Node','dUExt','dULong','dUShort','ShortRange','DavidLongRange','Total']
 EStats = {}
-for fname in sys.argv[1:]:
+for fname in sys.argv[2:]:
   f = h5.File(fname,'r')
 
   for EName in ENames:

@@ -92,18 +92,17 @@ void EnergyClass::WriteBlock()
 {
   if (FirstTime) {
     FirstTime = false;
-    Array<double,1> vtail;
-    vtail.resize(PathData.Actions.PairArray.size());
-    double longrange_vtail = 0.0;
-    for (int i = 0; i < PathData.Actions.PairArray.size(); i++)
-      vtail(i) = ((DavidPAClass *) (PathData.Actions.PairArray(i)))->Vimage;
-    if (PathData.Path.DavidLongRange) {
-      DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
-      //longrange_vtail = 0.5 * lr->yk_zero(0) * PathData.Path.NumParticles() / Path.GetVol();
-      longrange_vtail = 0.5 * lr->yk_zero(0) * PathData.Path.NumParticles();
+    int nPair = PathData.Actions.PairArray.size();
+    Array<double,1> vTailSR(nPair), vTailLR(nPair);
+    for (int iPair=0; iPair<nPair; iPair++) {
+      vTailSR(iPair) = ((DavidPAClass *) (PathData.Actions.PairArray(iPair)))->Vimage;
+      if (PathData.Path.DavidLongRange) {
+        DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
+        vTailLR(iPair) = 0.5 * lr->yk_zero(iPair) * PathData.Path.NumParticles();
+      }
     }
-    VTailSRVar.Write(vtail);
-    VTailLRVar.Write(longrange_vtail);
+    VTailSRVar.Write(vTailSR);
+    VTailLRVar.Write(vTailLR);
     HistStart.Write(EnergyHistogram.startVal);
     HistEnd.Write(EnergyHistogram.endVal);
     NumPoints.Write(EnergyHistogram.NumPoints);

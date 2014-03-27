@@ -25,8 +25,8 @@ class EnergyClass : public ObservableClass
 {
 
 private:
-  ObservableDouble TotalVar, VShortVar, VLongVar, VExtVar, VTailLRVar, HistStart, HistEnd, NumPoints;
-  ObservableVecDouble1 VTailSRVar, EnergyHistogramVar, PermEnergyVar;
+  ObservableDouble TotalVar, VShortVar, VLongVar, VExtVar, HistStart, HistEnd, NumPoints;
+  ObservableVecDouble1 VTailSRVar, VTailLRVar, EnergyHistogramVar, PermEnergyVar;
 
   double TotalSum, VShortSum, VLongSum, VExtSum;
   map<string,double> energies;
