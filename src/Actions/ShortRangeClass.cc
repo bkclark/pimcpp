@@ -172,9 +172,8 @@ double ShortRangeClass::SingleAction (int slice1, int slice2, const Array<int,1>
       }
     }
   }
-  gettimeofday(&end,   &tz);
-  TimeSpent += (double)(end.tv_sec-start.tv_sec) +
-    1.0e-6*(double)(end.tv_usec-start.tv_usec);
+  gettimeofday(&end, &tz);
+  TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
   return (TotalU);
 }
 
@@ -260,15 +259,14 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
   Array<double,1> sliceTotal(Path.NumTimeSlices());
   double levelTau=Path.tau;
   int skip = 1<<level;
-  //  int slice2 = slice1 + (1<<level);
-  // Add constant part.  Note: we should really check the number of
-  // dimensions.
+  // Add constant part.  Note: we should really check the number of dimensions.
   double dU = 0.0;
   for (int ptcl1=0; ptcl1<PathData.NumParticles(); ptcl1++) {
     int species1=Path.ParticleSpeciesNum(ptcl1);
     for (int ptcl2=0; ptcl2<ptcl1; ptcl2++) {
-      int species2=Path.ParticleSpeciesNum(ptcl2);
-      for (int slice=slice1;slice<slice2;slice+=skip){
+      int species2 = Path.ParticleSpeciesNum(ptcl2);
+      PairActionFitClass& pa = *(PairMatrix(species1,species2));
+      for (int slice=slice1; slice<slice2; slice+=skip){
         dVec r, rp;
         double rmag, rpmag;
         Path.DistDisp(slice,slice+skip,ptcl1,ptcl2,rmag,rpmag,r,rp);
@@ -276,9 +274,6 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
         double s2 = dot(r-rp, r-rp);
         double q = 0.5*(rmag+rpmag);
         double z = (rmag-rpmag);
-
-        PairActionFitClass& pa = *(PairMatrix(species1,species2));
-
         if (Path.WormOn){
           dU += pa.dU(q,z,s2,level)*
             Path.ParticleExist(slice,ptcl1)*
