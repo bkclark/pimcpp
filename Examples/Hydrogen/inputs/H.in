@@ -1,7 +1,10 @@
-bool DavidLongRange = false;
-bool UseLongRange = false;
-double tau = 0.125;
-//double kCutoff = 3.0;
+int Seed = 12345;
+
+Section (Output)
+{
+  string OutFileBase = "rawdata/H";
+  bool Restart = true;
+}
 
 Section (Parallel)
 {
@@ -10,9 +13,10 @@ Section (Parallel)
 
 Section (System)
 {
-  int NumTimeSlices=320;
-  Array<bool,1> IsPeriodic(3) = [true,true,true];
-  Array<double,1> Box(3)=[20,20,20];
+  double tau = 0.125;
+  int NumTimeSlices = 320;
+  Array<bool,1> IsPeriodic(3) = [false,false,false];
+  Array<double,1> Box(3) = [100,100,100];
   Section (Particles)
   {
     Section (Species)
@@ -40,21 +44,18 @@ Section (System)
   }
 }
 
-Section (Action)
+Section (Actions)
 {
   int NumImages = 0;
   int MaxLevels = 7;
-  //Array<string,1> PairActionFiles(1) = ["inputs/e-e.PairAction"];
-
-  Array<string,1> PairActionFiles(3) = ["inputs/p-p.PairAction",
-                                        "inputs/e-e.PairAction",
-                                        "inputs/e-p.PairAction"];
+  Array<string,1> PairActionFiles(3) = ["inputs/p-p.sq.PairAction",
+                                        "inputs/e-e.sq.PairAction",
+                                        "inputs/e-p.sq.PairAction"];
   Section (Action)
   {
       string Name="ShortRange";
       string Type="ShortRange";
   }
-
 }
 
 Section (Observables)
@@ -65,7 +66,7 @@ Section (Observables)
     string Type = "Energy";
     string Name = "Energy";
     string Description="Total Energy";
-    int Frequency = 1;
+    int Frequency = 100;
   }
   Section (Observable)
   {
@@ -85,47 +86,41 @@ Section (Observables)
     {
       string Type = "Linear";
       double start = 0.0;
+      double end = 50.0;
       int NumPoints = 100;
     }
-    int Frequency = 1;
+    int Frequency = 100;
   }
 
 }
 
-Section (Moves) {
+Section (Moves)
+{
+
   Section (Move) {
     string Type="ShiftMove";
     string Name="Shift";
   }
+
   Section (Move) {
     string Type="BisectionBlock";
     //Array<string,1> HigherLevelActions(1)=["ShortRange"];
     Array<string,1> SamplingActions(1)=["ShortRange"];
-
     string Name="electronBlock";
     string PermuteType="NONE";
     int NumLevels=3;
     string Species = "e";
     int StepsPerBlock=1;
   }
+
 }
-
-
 
 Section (Algorithm)
 {
-  Section (Loop){ // Before Accumulating Observables
-    int Steps=100;
-    Section (Loop){
-      int Steps=100;
-      Section (Move)  { string Name="electronBlock";   }
-    }
-    Section (Move)    { string Name = "Shift";         }
-  }
   Section (Loop){ // Start Accumulating observables
     int Steps=100;
     Section (Loop){ //Write Loop
-      int Steps=10000;
+      int Steps=1000;
       Section (Move)  { string Name = "electronBlock"; }
       Section (Move)    { string Name = "Shift";         }
       Section (Observe) { string Name = "Energy";        }

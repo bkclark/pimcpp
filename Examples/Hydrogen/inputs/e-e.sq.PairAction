@@ -5,14 +5,14 @@ Section (Fits)
   Section (Particle1)
   {
     string Name = "e";
-    double lambda =0.0625;
+    double lambda =0.5;
     int Ndim = 3;
   }
   Section (Particle2)
   {
     string Name = "e";
-    double lambda =0.0625;
+    double lambda =0.5;
     int Ndim = 3;
   }
-  string Daviddmfile = "inputs/heg-4.0-1.0-1-33-64-64.sq.h5";
+  string Daviddmfile = "inputs/e-e.sq.h5";
 }
