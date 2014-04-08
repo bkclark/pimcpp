@@ -133,7 +133,12 @@ void PairCorrelationClass::WriteBlock()
 {
   PathClass &Path= PathData.Path;
   int M = PathData.Path.TotalNumSlices;
-  double V = PathData.Path.GetVol();
+  double V;
+  dVec IsPeriodic = PathData.Path.GetPeriodic();
+  if (IsPeriodic(0)) // HACK: only checks 1 dimension
+    V = PathData.Path.GetVol();
+  else
+    V = 1.;
   int N1 = PathData.Species(Species1).NumParticles;
   int N2 = PathData.Species(Species2).NumParticles;
 
