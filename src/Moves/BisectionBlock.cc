@@ -75,7 +75,8 @@ void BisectionBlockClass::Read(IOSectionClass &in)
     newStage->BisectionLevel = level;
     newStage->UseCorrelatedSampling = useCorrelatedSampling;
     newStage->IsFree = IsFree;
-    if (!IsFree) {
+    if (!IsFree || level == LowestLevel) {
+      newStage->IsFree = false;
       if (myProc == 0)
         cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
       newStage->Actions.push_back(&PathData.Actions.Kinetic);
@@ -89,8 +90,7 @@ void BisectionBlockClass::Read(IOSectionClass &in)
           newStage->Actions.push_back(PathData.Actions.GetAction(higherLevelActions(i)));
         }
       }
-    }
-    else if (level == LowestLevel) {
+    } else if (level == LowestLevel) {
       Array<string,1> samplingActions;
       if(in.ReadVar("SamplingActions",samplingActions)) {
         for (int i=0;i<samplingActions.size();i++) {
@@ -131,8 +131,7 @@ void BisectionBlockClass::ChooseTimeSlices()
   PathClass &Path = PathData.Path;
   int myProc = PathData.Path.Communicator.MyProc();
   // do something special to avoid moving reference slice
-  if (HaveRefslice &&
-      Path.SliceOwner(Path.GetRefSlice()) == myProc) {
+  if (HaveRefslice && Path.SliceOwner(Path.GetRefSlice()) == myProc) {
     int bSlices = 1<<NumLevels;
     int myStart, myEnd;
     Path.SliceRange (myProc, myStart, myEnd);
@@ -207,7 +206,6 @@ void BisectionBlockClass::MakeMove()
   ((PermuteStageClass*)PermuteStage)->InitBlock(Slice1,Slice2);
   ActiveParticles.resize(1);
   for (int step=0; step<StepsPerBlock; step++) {
-    NumAttempted++;
     ActiveParticles(0)=-1;
     gettimeofday(&start, &tz);
     MultiStageClass::MakeMove();

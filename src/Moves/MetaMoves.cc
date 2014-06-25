@@ -41,8 +41,7 @@ void ShiftMoveClass::MakeMove()
   int slice1, slice2;
   // The last processor will have the least number of slices
   // possible.  Use that for the maximum shift.
-  PathData.Path.SliceRange(PathData.Path.Communicator.NumProcs()-1,
-			   slice1, slice2);
+  PathData.Path.SliceRange(PathData.Path.Communicator.NumProcs()-1,slice1, slice2);
 
 //   /// Shift between 7/16 and 1/2 of the maximum slices
 //   int maxSlices = (slice2-slice1)>>1;
