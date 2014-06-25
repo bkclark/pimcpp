@@ -12,12 +12,12 @@ suffix = '' # suffix to input files
 ## Potgen
 OurEwald = False # use our Ken's ewald (True) or David's (False)
 nGrid = 100 # number of grid points
-rMin = 0.0001 # first grid point
-L = 100.0 # length of box
-breakup = 2 # 2 - Short-ranged only, 1 - Optimized breakup, 0 - Classical Ewald breakup
-rCut = 17.32 # r cutoff for ewald
+rMin = 0.0004 # first grid point
+L = 10.0 # length of box
+breakup = 1 # 2 - Short-ranged only, 1 - Optimized breakup, 0 - Classical Ewald breakup
+rCut = 5. # r cutoff for ewald
 nCut = 4 # n cutoff for ewald (kCut = nCut*2.0*math.pi/L)
-gridType = "LOG" # LOG/LINEAR
+gridType = "LINEAR" # LOG/LINEAR
 
 ## Squarer
 nTemp = 1 # number of temperatures at which to compute the density matrix (must be <= 8)

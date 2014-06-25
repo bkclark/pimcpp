@@ -23,11 +23,11 @@ def GenPotgenInput(prefix,unit1,unit2,type1,type2,lam1,lam2,Z1Z2,L,D,tau,gridTyp
     f.write('UNITS '+unit1+' '+unit2+'\n')
     f.write('TYPE '+type1+' %f\n' % (lam1))
     f.write('TYPE '+type2+' %f\n' % (lam2))
-    f.write('GRID %i %s %f %f\n' % (nGrid,gridType,rMin,rMax))
+    f.write('GRID %i %s %f %f\n' % (nGrid,gridType,rMin,rCut))
     f.write('SQUARER %f %i %i 3 30 %i\n' % (1./maxTau,nTemp,D,nSquare))
     boxString = ' '.join([str(L) for i in range(D)])
     if breakup == 2:
-        f.write('POT COUL %f %f 0.D0\n' % (rMax,Z1Z2))
+        f.write('POT COUL %f %f 0.D0\n' % (rCut,Z1Z2))
     if breakup == 1:
         f.write('POT COULOPT %f %f %f %i 0.D0 1.0 %s\n' % (rCut,kCut,Z1Z2,D,boxString))
     elif breakup == 0:
@@ -126,7 +126,8 @@ def GenDM(suffix,unit1,unit2,type1,type2,lam1,lam2,Z1Z2,L,D,tau,gridType,nGrid,r
 
     # Cutoff in r-space
     lam = max(lam1,lam2)
-    rCut = L/2. - sqrt(lam*tau)
+    if (breakup != 2):
+      rCut = L/2. - sqrt(lam*tau)
 
     # Cutoff in k-space
     kCut = nCut*2.*pi/L
