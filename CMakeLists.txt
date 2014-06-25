@@ -240,6 +240,7 @@ src/Actions/KineticClass.cc
 src/Moves/RandomPermClass.cc
 src/Moves/ReadPath.cc
 src/Moves/RefSliceMove.cc
+src/Moves/RefSliceShift.cc
 src/Actions/LongRangeClass.cc
 src/Moves/SPS.cc
 src/SwitchClass.cc
