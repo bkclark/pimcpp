@@ -12,12 +12,11 @@ const int DIM = 3;
 class UshortIntegrand
 {
 private:
-  Array<double,1> &Vl;
-  double Z1Z2;
+  CubicSpline &Vl, &V;
   int Level;
   inline double Vintegrand(double r)
   {
-    return r*r*(Z1Z2/r - Vl(r));
+    return r*r*(V(r) - Vl(r));
   }
 
 public:
@@ -25,8 +24,8 @@ public:
   {
     return Vintegrand(r);
   }
-  UshortIntegrand (Array<double,1> &temp_Vl,double &t_Z1Z2) :
-    Vl(temp_Vl), Z1Z2(t_Z1Z2)
+  UshortIntegrand (CubicSpline &t_Vl, CubicSpline &t_V) :
+    Vl(t_Vl), V(t_V)
   { /* do nothing else */ }
 };
 
@@ -34,10 +33,10 @@ public:
 class UlongIntegrand
 {
 private:
-  Array<double,1> &Vl;
+  CubicSpline &Vl, &V;
   inline double Vintegrand(double r)
   {
-    return r*r*Vl(r);
+    return r*r*(Vl(r));
   }
 
 public:
@@ -45,8 +44,8 @@ public:
   {
       return Vintegrand(r);
   }
-  UlongIntegrand (Array<double,1> &temp_Vl) :
-    Vl(temp_Vl)
+  UlongIntegrand (CubicSpline &t_Vl, CubicSpline &t_V) :
+    Vl(t_Vl), V(t_V)
   { /* do nothing else */ }
 };
 
@@ -60,7 +59,7 @@ class EwaldClass
 {
 public:
   dVec box;
-  double Z1Z2, vol, rMin, rMax;
+  double Z1Z2, vol, rMin, rMax, tau;
   Array<dVec,1> kVecs;
   Array<double,1> MagK;
   double kCut;
@@ -69,9 +68,9 @@ public:
   Grid &grid;
 
   EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rMax, int t_nPoints,
-             Grid &t_grid, int t_breakupType, int t_nKnots=0)
+             Grid &t_grid, int t_breakupType, int t_nKnots, double t_tau)
     : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rMax(t_rMax), nPoints(t_nPoints),
-      grid(t_grid), breakupType(t_breakupType), nKnots(t_nKnots)
+      grid(t_grid), breakupType(t_breakupType), nKnots(t_nKnots), tau(t_tau)
   {
     if (rMin == 0.)
       cerr << "Warning: rMin = 0!" << endl;
@@ -202,6 +201,27 @@ public:
       kvol *= 2*M_PI/box[i]; // Path.GetkBox()[i];
     double kavg = pow(kvol,1.0/3.0);
 
+    // Read potential
+    ifstream pointFile;
+    pointFile.open("Vr.dat");
+    Array<double,1> rs(nPoints), v(nPoints);
+    int ri = 0;
+    while (!pointFile.eof()) {
+      double r, V;
+      pointFile>>r;
+      if (!pointFile.eof()) {
+        pointFile>>V;
+        rs(ri) = r;
+        v(ri) = V;
+        ri += 1;
+      }
+    }
+    pointFile.close();
+    GeneralGrid vGrid;
+    vGrid.Init(rs);
+    CubicSpline VSpline(&vGrid,v);
+
+    // Set up basis
     LPQHI_BasisClass basis;
     basis.Set_rc(rMax);
     basis.SetBox(box);
@@ -232,7 +252,7 @@ public:
 
     // Calculate Xk's
     for (int ki=0; ki<numk; ki++) {
-      // Xk(ki) = CalcXk(paIndex, 0, breakup.kpoints(ki)[0], rMax, JOB_V);
+      //Xk(ki) = CalcXk(paIndex, 0, breakup.kpoints(ki)[0], rMax, JOB_V);
       double k = breakup.kpoints(ki)[0];
       Xk(ki) = Xk_V (k,rMax) / boxVol;
     }
@@ -271,19 +291,22 @@ public:
          for (int n=0; n<N; n++)
            Vl(i) += t(n) * basis.h(n, r);
        }
-       else
-         Vl(i) = Z1Z2/r; // 0.0; //hack!  pa.V (r);
+       else {
+         cerr << "WARNING: Why is r bigger than rMax?" << endl;
+         Vl(i) = VSpline(r); // 0.0; //hack!  pa.V (r);
+      }
     }
 
     // Calculate FT of Ushort at k=0
-    UshortIntegrand shortIntegrand(Vl,Z1Z2);
+    CubicSpline VlSpline(&grid,Vl);
+    UshortIntegrand shortIntegrand(VlSpline,VSpline);
     GKIntegration<UshortIntegrand, GK31> shortIntegrator(shortIntegrand);
     shortIntegrator.SetRelativeErrorMode();
     double fVs0 = 4.0*M_PI/boxVol * shortIntegrator.Integrate(1.0e-100, rMax, tolerance);
     cerr << "fVs0 = " << fVs0 << endl;
 
     // Calculate FT of Vl at k=0
-    UlongIntegrand longIntegrand(Vl);
+    UlongIntegrand longIntegrand(VlSpline,VSpline);
     GKIntegration<UlongIntegrand, GK31> longIntegrator(longIntegrand);
     longIntegrator.SetRelativeErrorMode();
     double fVl0 = 4.0*M_PI/boxVol * longIntegrator.Integrate(1.0e-100, rMax, tolerance);
@@ -294,7 +317,7 @@ public:
     outfile<<0.<<" "<<Vl0<<endl;
     for (int i=0;i<grid.NumPoints; i++){
       double r=grid(i);
-      outfile<<r<<" "<<Z1Z2/r-Vl(i)<<endl;
+      outfile<<r<<" "<<VSpline(r)-Vl(i)<<endl;
     }
     outfile.close();
 
@@ -538,8 +561,9 @@ int main(int argc, char* argv[])
   double Z1Z2 = atof(argv[7]);
   bool breakupType = atoi(argv[8]);
   int nKnots = atoi(argv[9]);
+  double tau = atof(argv[10]);
 
-  EwaldClass e(Z1Z2, box, nMax, rMin, rMax, nPoints, *grid, breakupType, nKnots);
+  EwaldClass e(Z1Z2, box, nMax, rMin, rMax, nPoints, *grid, breakupType, nKnots, tau);
   e.DoBreakup();
   e.TestMadelung();
 
