@@ -98,25 +98,6 @@ void BisectionStageClass::CalcShift(Array<int,1> &activeParticles,int slice,doub
 
 }
 
-
-void BisectionStageClass::WriteRatio()
-{
-  AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
-  AcceptRatioVar.Flush();
-}
-
-void BisectionStageClass::Accept()
-{
-  LocalStageClass::Accept();
-  //do nothing for now
-}
-
-void BisectionStageClass::Reject()
-{
-  LocalStageClass::Reject();
-  //do nothing for now
-}
-
 ///Calculates a new rbar that is displaced
 ///by the old rbar via the correlated sampling
 void guassianDisplace(dVec rbar)
@@ -171,8 +152,8 @@ double BisectionStageClass::SampleFree(int &slice1, int &slice2, Array<int,1> &a
 double BisectionStageClass::Sample(int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
   // Check for free particle sampling
-  if (IsFree)
-    return SampleFree(slice1,slice2,activeParticles);
+  //if (IsFree)
+  //  return SampleFree(slice1,slice2,activeParticles);
 
   //std::cout << "Bisecting " << slice1 << " " << slice2 << " " << BisectionLevel << endl;
   struct timeval start, end;

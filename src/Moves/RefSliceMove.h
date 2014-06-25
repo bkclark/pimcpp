@@ -37,8 +37,6 @@ private:
   /// Number of bisection stage levels
   int NumLevels;
 
-  int NodeAccept, NodeReject;
-
   /// Holds the current master processor
   int MasterProc;
 
@@ -60,19 +58,13 @@ private:
 public:
   /// Read in the parameters this class needs from the input file.
   void Read(IOSectionClass &in);
-  void WriteRatio();  
 
   /// Override base class MakeMove to do a block of moves
   void MakeMove();
-  inline double AcceptanceRatio() 
-  {
-    return (double)NodeAccept/(double)(NodeAccept+NodeReject);
-  }
 
   RefSliceMoveClass(PathDataClass &pathData, IOSectionClass &out) : 
     MultiStageClass(pathData, out)
   { 
-    NodeAccept = NodeReject = 0;
     // do nothing for now
   }
 };

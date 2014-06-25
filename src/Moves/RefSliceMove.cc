@@ -17,11 +17,6 @@
 #include "RefSliceMove.h"
 #include "NoPermuteStage.h"
 
-void RefSliceMoveClass::WriteRatio()
-{
-  MultiStageClass::WriteRatio();
-}
-
 void RefSliceMoveClass::Read(IOSectionClass &in)
 {
   int myProc = PathData.Path.Communicator.MyProc();
@@ -168,7 +163,6 @@ void RefSliceMoveClass::MakeMoveMaster()
   // Now, if we accept local stages, move on to global nodal decision
   if (toAccept) {
     if (NodeCheck()) {
-      NodeAccept++;
       Accept();
       Path.RefPath.AcceptCopy();
       if (Path.StoreNodeDist)
@@ -178,7 +172,6 @@ void RefSliceMoveClass::MakeMoveMaster()
       //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
     }
     else {
-      NodeReject++;
       Reject();
       Path.RefPath.RejectCopy();
       if (Path.StoreNodeDist)
@@ -190,7 +183,6 @@ void RefSliceMoveClass::MakeMoveMaster()
   }
   // Otherwise, reject the whole move
   else {
-    NodeReject++;
     Reject();
     Path.RefPath.RejectCopy();
     if (Path.StoreNodeDist)
@@ -239,8 +231,6 @@ void RefSliceMoveClass::MakeMoveSlave()
   PathData.Path.Communicator.Broadcast (master, accept);
   if (accept==1) {
     if (NodeCheck()) {
-      NodeAccept++;
-      //Accept();
       Path.RefPath.AcceptCopy();
       if (Path.StoreNodeDist)
         Path.NodeDist.RejectCopy();
@@ -248,8 +238,6 @@ void RefSliceMoveClass::MakeMoveSlave()
         Path.NodeDet.RejectCopy();
       //cerr<<Path.CloneStr << " ACCEPTING REF SLICE MOVE"<<endl;
     } else {
-      NodeReject++;
-      //Reject();
       Path.RefPath.RejectCopy();
       if (Path.StoreNodeDist)
         Path.NodeDist.RejectCopy();
@@ -258,8 +246,6 @@ void RefSliceMoveClass::MakeMoveSlave()
       //cerr<<Path.CloneStr << " REJECTING REF SLICE MOVE BY NODECHECK"<<endl;
     }
   } else {
-    NodeReject++;
-    //Reject();
     Path.RefPath.RejectCopy();
     if (Path.StoreNodeDist)
       Path.NodeDist.RejectCopy();

@@ -32,6 +32,8 @@ protected:
   ObservableDouble RatioVar;
   int DumpFreq;
 public:
+  /// Stores the number of moves made and the number accepted
+  int NumAccepted;
   /// Call this in order to make a move.
   virtual void MakeMove()=0;
   ///All moves ought to be able to read
@@ -68,8 +70,6 @@ protected:
   int NumParticlesToMove;
 
  public:
-  /// Stores the number of moves made and the number accepted
-  int NumAccepted;
   /// Desired acceptance ratio
   double DesiredAcceptRatio;
   /// An accumulator used to publish the diffusion value. -jg

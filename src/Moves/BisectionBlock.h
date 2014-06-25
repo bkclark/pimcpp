@@ -42,7 +42,6 @@ private:
   bool HaveRefslice;
   bool Josephson;
   int SpeciesNum;
-  int NumAttempted;
   bool UseApproximateHigherLevelAction;
   void ChooseTimeSlices();
   /// If we do not bisect down to the lowest level, interpolate the
@@ -58,10 +57,6 @@ public:
 
   /// Override base class MakeMove to do a block of moves
   void MakeMove();
-  inline double AcceptanceRatio() 
-  {
-    return (double)(NumAccepted)/(double)NumAttempted;
-  }
   double TimeSpent;
   BisectionBlockClass(PathDataClass &pathData, IOSectionClass &out) : 
     //    PermuteRatioVar("PermuteRatioVar",IOSection,pathData.Path.Communicator),

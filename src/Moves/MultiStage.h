@@ -36,9 +36,16 @@ class MultiStageClass : public ParticleMoveClass
 protected:
   list<StageClass*> Stages;
   int NumSteps;
+  int NumAttempted;
   int Slice1,Slice2;
   double TimeSpent2;
   ObservableDouble CenterOfMassVar;
+
+  inline double AcceptanceRatio() 
+  {
+    return (double)(NumAccepted)/(double)NumAttempted;
+  }
+
 public:
   double cm2;
   void Read(IOSectionClass &io);

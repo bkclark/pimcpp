@@ -16,44 +16,28 @@
 
 #include "MoveBase.h"
 #include "time.h"
-void
-MoveClass::DoEvent()
+
+void MoveClass::DoEvent()
 {
-	PathData.moveClock++;
+  PathData.moveClock++;
   TimesCalled++;
   MakeMove();
-//   if ((PathData.Path.Communicator.MyProc()==0) && 
-//       (TimesCalled % DumpFreq) == 0)
-//     WriteRatio();
 }
 
-
-void 
-MoveClass::WriteRatio()
+void MoveClass::WriteRatio()
 {
   RatioVar.Write(AcceptanceRatio());
+  NumAccepted = TimesCalled = 0;
 }
 
-// void 
-// MoveClass::MakeMove()
-// {
-//   cerr<<"I am making a MoveClass move"<<endl;
-//   if ((PathData.Path.Communicator.MyProc()==0) && 
-//       (TimesCalled % DumpFreq) == 0)
-//     WriteRatio();
-// }
-
-
-void 
-ParticleMoveClass::SetActiveSpecies (Array<int,1> ActSpecies)
+void ParticleMoveClass::SetActiveSpecies (Array<int,1> ActSpecies)
 {
   ActiveSpecies.resize(ActSpecies.size());
   ActiveSpecies = ActSpecies;
   ///This calculates the total number of particles
   TotalParticles = 0;
   for (int i=0; i<ActSpecies.size(); i++) {
-    int CurrentNumPtcls = 
-      PathData.Path.Species(i).NumParticles; 
+    int CurrentNumPtcls = PathData.Path.Species(i).NumParticles; 
     TotalParticles += CurrentNumPtcls;
   }
 }

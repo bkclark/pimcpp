@@ -14,39 +14,43 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#ifndef MOVE_CLASS_H
-#define MOVE_CLASS_H
+#ifndef REF_SLICE_SHIFT_H
+#define REF_SLICE_SHIFT_H
 
-
-#include "BisectionBlock.h"
-#include "BisectionSphereBlock.h"
-#include "CentroidMove.h"
-#include "CenterDropletMove.h"
-#include "MetaMoves.h"
-#include "PermuteTableClass.h"
-#include "RandomPermMove.h"
+#include "../PathDataClass.h"
 #include "MultiStage.h"
-#include "PreSampling.h"
-#include "SPS.h"
-#include "IonMoveManager.h"
-#include "MoleculeMoveManager.h"
 
-#include "CorrelatedBisectionBlock.h"
-#include "CenterofMassMove.h"
-#include "RefSliceMove.h"
-#include "RefSliceShift.h"
-#include "DisplaceMove.h"
-#include "NodalModelMove.h"
-#include "DisplaceMoveFast.h"
-#include "OpenEndMove.h"
-#include "MoleculeMove.h"
-#include "SwapMove.h"
-#include "ClusterMove.h"
-#include "StructureRejectStage.h"
-#include "CouplingMove.h"
+class RefSliceShiftStageClass : public CommonStageClass
+{
+private:
+  int oldRefSlice;
+
+public:
+  int maxShift;
+  void Accept();
+  void Reject();
+
+  double Sample (int &slice1, int &slice2, Array <int,1> &activeParticles);
+  RefSliceShiftStageClass (PathDataClass &pathData,IOSectionClass &outSection) :
+    CommonStageClass (pathData,outSection)
+  {}
+};
 
 
+class RefSliceShiftClass : public MultiStageClass
+{
+private:
+  int maxShift;
+  RefSliceShiftStageClass RefSliceShiftStage;
+  Array<int,1> activeSpecies;
+public:
+  // Read the parameters from the input file
+  void Read (IOSectionClass &in);
+  // Actually attempts the move and accepts or rejects
+  void MakeMove();
+  RefSliceShiftClass (PathDataClass &pathData, IOSectionClass &outSection) :
+    MultiStageClass(pathData, outSection), RefSliceShiftStage(pathData, outSection)
+  {}
+};
 
-#include "WormGrow.h"
-#include "ReadPath.h"
 #endif

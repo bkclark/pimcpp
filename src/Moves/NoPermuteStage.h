@@ -27,16 +27,13 @@ class NoPermuteStageClass : public PermuteStageClass
 private:
   int ChooseParticle();
   int NumLevels;
-  int NumMoves, NumAccepted;
+  int NumMoves;
 public:
-  double Sample (int &slice1, int &slice2,
-		 Array<int,1> &activeParticles);
-  bool Attempt (int &slice1, int &slice2, 
-		 Array<int,1> &activeParticles, double &prevActionChange);
+  double Sample (int &slice1, int &slice2, Array<int,1> &activeParticles);
+  bool Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
 
   void InitBlock(int &slice1,int &slice2);
-  NoPermuteStageClass (PathDataClass &pathData, int speciesNum, int numLevels,
-		       IOSectionClass &outSection) 
+  NoPermuteStageClass (PathDataClass &pathData, int speciesNum, int numLevels, IOSectionClass &outSection) 
     : PermuteStageClass(pathData, speciesNum, numLevels,outSection)
   {
     // do nothing for now

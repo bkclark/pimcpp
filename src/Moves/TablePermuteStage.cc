@@ -28,8 +28,8 @@ void TablePermuteStageClass::Accept()
 {
   if (!HaveBeenAcceptedOrRejected){
     int myLen=Forw->CurrentCycle.Length;
-    NumAccepted(myLen-1)++;
-    NumAttempted(myLen-1)++;
+    NumPermAccepted(myLen-1)++;
+    NumPermAttempted(myLen-1)++;
     ///switched for temporary test on cell method ???
     PermuteTableClass* temp;
     if (myLen!=1){
@@ -49,7 +49,7 @@ void TablePermuteStageClass::Reject()
 {
   if (!HaveBeenAcceptedOrRejected){
     int myLen=Forw->CurrentCycle.Length;
-    NumAttempted(myLen-1)++;
+    NumPermAttempted(myLen-1)++;
     if (myLen!=1 && NeedToUpdateHTableOnReject){
       ModeType currMode = GetMode();
       SetMode(OLDMODE);
@@ -74,8 +74,8 @@ void TablePermuteStageClass::WriteRatio()
    Array<int,1> numAcceptTotal(4);
    Array<double,1> ratioTotal(4);
    int totalAttempts=0;
-   PathData.Path.Communicator.Sum(NumAttempted,numAttemptTotal);
-   PathData.Path.Communicator.Sum(NumAccepted,numAcceptTotal);
+   PathData.Path.Communicator.Sum(NumPermAttempted,numAttemptTotal);
+   PathData.Path.Communicator.Sum(NumPermAccepted,numAcceptTotal);
    for (int len=0;len<4;len++){
      totalAttempts=totalAttempts+numAcceptTotal(len);
      if (numAttemptTotal(len)!=0)
@@ -87,8 +87,8 @@ void TablePermuteStageClass::WriteRatio()
    if (totalAttempts!=0){
      AcceptanceRatioVar.Write(ratioTotal);
      AcceptanceTotalVar.Write(numAttemptTotal);
-     NumAttempted=0;
-     NumAccepted=0;
+     NumPermAttempted=0;
+     NumPermAccepted=0;
    }
 
 }

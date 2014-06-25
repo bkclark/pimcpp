@@ -26,8 +26,7 @@ void StageClass::Read(IOSectionClass &in)
 void StageClass::WriteRatio()
 {
   AcceptRatioVar.Write((double)NumAccepted/(double)NumAttempted);
-  NumAccepted = 0;
-  NumAttempted = 0;
+  NumAccepted = NumAttempted = 0;
   AcceptRatioVar.Flush();
 }
 
@@ -89,12 +88,9 @@ bool LocalStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activePart
 
     prevActionChange = currActionChange;
   } else {
-    toAccept = 0.0 >= log(PathData.Path.Random.Local()); // Accept condition
+    prevActionChange += logSampleRatio;
+    toAccept = true; // Accept condition
   }
-
-  if (toAccept)
-    NumAccepted++;
-  NumAttempted++;
 
   gettimeofday(&end, &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
@@ -107,8 +103,6 @@ bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activePa
 {
   slice1 = 0;
   slice2 = PathData.NumTimeSlices()-1;
-  assert (slice1 == 0);
-  assert (slice2 == PathData.NumTimeSlices()-1);
 
   SetMode(OLDMODE);
   double oldAction = GlobalStageAction(activeParticles);
@@ -139,10 +133,6 @@ bool CommonStageClass::Attempt (int &slice1, int &slice2, Array<int,1> &activePa
     }
   }
 
-  if (toAccept) {
-    NumAccepted++;
-  }
-  NumAttempted++;
   prevActionChange = currActionChange;
 
   return toAccept;

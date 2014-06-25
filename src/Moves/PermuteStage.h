@@ -34,20 +34,16 @@ public:
   /// probablity ratio.  This allows avoiding computing the reverse
   /// probability if the move is rejected before this stage.
 
-  virtual double Sample (int &slice1, int &slice2, 
-			 Array<int,1> &activeParticles) = 0;
-  virtual bool Attempt (int &slice1, int &slice2, 
-			Array<int,1> &activeParticles, double &prevActionChange) = 0;
+  virtual double Sample (int &slice1, int &slice2, Array<int,1> &activeParticles) = 0;
+  virtual bool Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange) = 0;
   virtual void InitBlock(int &slice1,int &slice2);
   virtual void Read (IOSectionClass &in);
   virtual void Accept();
   virtual void Reject();
-  PermuteStageClass(PathDataClass &pathData, int speciesNum,
-		    int numLevels,IOSectionClass &outSection) : 
+  PermuteStageClass(PathDataClass &pathData, int speciesNum, int numLevels,IOSectionClass &outSection) : 
     LocalStageClass (pathData,outSection), 
     SpeciesNum (speciesNum), 
     NumLevels(numLevels)
-
   {
     // do nothing for now 
   }
@@ -62,8 +58,8 @@ private:
   PermuteTableClass *Forw, *Rev;
   ObservableVecDouble1 AcceptanceRatioVar;
   ObservableVecInt1 AcceptanceTotalVar;
-  Array<int,1> NumAccepted;
-  Array<int,1> NumAttempted;
+  Array<int,1> NumPermAccepted;
+  Array<int,1> NumPermAttempted;
   bool NeedToRebuildTable;
   bool HaveBeenAcceptedOrRejected;
   double forwT;
@@ -82,10 +78,8 @@ public:
  
   void InitBlock(int &slice1,int &slice2);
   void Read (IOSectionClass &in);
-  double Sample (int &slice1, int &slice2,
-		 Array<int,1> &activeParticles);
-  bool Attempt (int &slice1, int &slice2, 
-		   Array<int,1> &activeParticles, double &prevActionChange);
+  double Sample (int &slice1, int &slice2, Array<int,1> &activeParticles);
+  bool Attempt (int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
   void Accept ();
   void Reject();
   void WriteRatio();
@@ -97,10 +91,10 @@ public:
   {
     Forw = &Table1;
     Rev  = &Table2;
-    NumAccepted.resize(4);
-    NumAttempted.resize(4);
-    NumAccepted=0;
-    NumAttempted=0;
+    NumPermAccepted.resize(4);
+    NumPermAttempted.resize(4);
+    NumPermAccepted=0;
+    NumPermAttempted=0;
     NeedToRebuildTable=true;
   }
 };

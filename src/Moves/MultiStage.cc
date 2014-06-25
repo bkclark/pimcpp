@@ -27,12 +27,13 @@ void MultiStageClass::Read(IOSectionClass& in)
 void MultiStageClass::WriteRatio()
 {
    list<StageClass*>::iterator stageIter=Stages.begin();
-   double prevActionChange=0.0;
+   double prevActionChange = 0.0;
    while (stageIter!=Stages.end()) {
      (*stageIter)->WriteRatio();
      stageIter++;
    }
    MoveClass::WriteRatio();
+   NumAccepted = NumAttempted = 0;
    CenterOfMassVar.Write(cm2);
    cm2=0;
 }
@@ -69,6 +70,7 @@ void MultiStageClass::Accept()
   for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Accept();
   NumAccepted++;
+  NumAttempted++;
   cm2=cm2+PathData.Path.cm2;
 }
 
@@ -78,5 +80,6 @@ void MultiStageClass::Reject()
   PathData.RejectMove(Slice1,Slice2,ActiveParticles);
   for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Reject();
+  NumAttempted++;
 }
 

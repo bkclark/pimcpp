@@ -81,7 +81,7 @@ bool PIMCClass::Read(IOSectionClass &in)
     /// Write out Actions
     if (myProc == 0) {
       OutFile.NewSection("Actions");
-      //PathData.Actions.WriteInfo(OutFile);
+      PathData.Actions.WriteInfo(OutFile);
       OutFile.CloseSection(); // "Actions"
     }
 
@@ -361,6 +361,8 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new OpenEndMoveClass(PathData,OutFile);
     else if (moveType=="RefSlice")
       move = new RefSliceMoveClass(PathData,OutFile);
+    else if (moveType=="RefSliceShift")
+      move = new RefSliceShiftClass(PathData,OutFile);
     else if (moveType=="Displace")
       move = new DisplaceMoveClass(PathData,OutFile);
     else if (moveType=="NodalModel")
