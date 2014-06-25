@@ -981,17 +981,26 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
   }
   else
     HasLongRange=false;
-  PrintVals(0.0,3.0,0.1);
-}
 
-
-void DavidPAClass::PrintVals(double begin, double end, double dx)
-{
-  double x = begin;
+  // Print and debug
+  double U, dU, v;
+  double x(0.0), end(3.0);
   while (x<=end) {
-    cout << x << " " << Udiag(x,0) << " " << 0.5*(dUdiag(x,0) + dU(x,0.0,0.0,0)) << endl;
-    x += dx;
+    calcUsqz(0,x,0,0,U,dU,v);
+    cout << x << " " << U << " " << dU << " " << v << endl;
+    x += 0.1;
   }
+  dVec r(3), rp(3);
+  r = 0.;
+  rp = 0.;
+  rp(0) = 0.5;
+  double rmag = sqrt(dot(r,r));
+  double rpmag = sqrt(dot(rp,rp));
+  double s2 = dot(r-rp, r-rp);
+  double q = 0.5*(rmag + rpmag);
+  double z = (rmag - rpmag);
+  calcUsqz(sqrt(s2),q,z,0,U,dU,v);
+  cout << sqrt(s2) << " " << q << " " << z << " " << U << " " << dU << " " << v << endl;
 }
 
 

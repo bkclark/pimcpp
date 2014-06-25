@@ -1,5 +1,3 @@
-int Seed = 12345;
-
 Section (Output)
 {
   string OutFileBase = "rawdata/H";
@@ -66,7 +64,7 @@ Section (Observables)
     string Type = "Energy";
     string Name = "Energy";
     string Description="Total Energy";
-    int Frequency = 100;
+    int Frequency = 1;
   }
   Section (Observable)
   {
@@ -74,22 +72,12 @@ Section (Observables)
     string Name = "TimeAnalysis";
     int Frequency = 1;
   }
-
   Section (Observable)
   {
-    string Type = "PairCorrelation";
-    string Name = "PairCorrelation_ep";
-    string Description = "Pair Correlation";
-    string Species1 = "e";
-    string Species2 = "p";
-    Section (Grid)
-    {
-      string Type = "Linear";
-      double start = 0.0;
-      double end = 50.0;
-      int NumPoints = 100;
-    }
-    int Frequency = 100;
+    bool AllClones = true;
+    string Type = "PathDump";
+    string Name = "PathDump";
+    int Frequency = 999999;
   }
 
 }
@@ -108,7 +96,7 @@ Section (Moves)
     Array<string,1> SamplingActions(1)=["ShortRange"];
     string Name="electronBlock";
     string PermuteType="NONE";
-    int NumLevels=3;
+    int NumLevels=5;
     string Species = "e";
     int StepsPerBlock=1;
   }
@@ -120,11 +108,11 @@ Section (Algorithm)
   Section (Loop){ // Start Accumulating observables
     int Steps=100;
     Section (Loop){ //Write Loop
-      int Steps=1000;
+      int Steps=10000;
       Section (Move)  { string Name = "electronBlock"; }
-      Section (Move)    { string Name = "Shift";         }
+      Section (Move)  { string Name = "Shift"; }
       Section (Observe) { string Name = "Energy";        }
-      Section (Observe) { string Name = "PairCorrelation_ep";        }
+      Section (Observe) { string Name = "PathDump";        }
       Section (Observe) { string Name = "TimeAnalysis";  }
     }
     Section (WriteData){}
