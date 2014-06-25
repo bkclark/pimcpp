@@ -48,46 +48,47 @@ void SHONodalActionClass::SetupActions()
   c2.resize(Path.TotalNumSlices);
   c3.resize(Path.TotalNumSlices);
   for (int i = 1; i < Path.TotalNumSlices; ++i) {
-    c1(i) = pow((omega/(2.0*pi*sinh(i*tau*omega))),NDIM/2.0);
-    c2(i) = omega/(2.0*sinh(i*tau*omega));
-    c3(i) = cosh(i*tau*omega);
+    //c1(i) = pow((omega/(2.0*pi*sinh(i*tau*omega))),NDIM/2.0);
+    //c2(i) = omega/(2.0*sinh(i*tau*omega));
+    //c3(i) = cosh(i*tau*omega);
+    c1(i) = omega/(4.*Path.Species(SpeciesNum).lambda*i*tau);
+    c2(i) = 1./tanh(i*tau*omega);
+    c3(i) = 2./sinh(i*tau*omega);
   }
 }
 
 
-double SHONodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl)
+double SHONodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl)
 {
-  double r0r0 = dot(Path.RefPath(refPtcl),Path.RefPath(refPtcl));
-  double r1r1 = dot(Path(slice,ptcl),Path(slice,ptcl));
-  double r0r1 = dot(Path.RefPath(refPtcl),Path(slice,ptcl));
-  //cerr << refSlice << " " << slice << " " << sliceDiff << " " << refPtcl << " " << ptcl << " " << r0r0 << " " << r1r1 << " " << r0r1 << endl;
+  double dist1 = sqrt(dot(Path(slice,ptcl),Path(slice,ptcl)));
+  double dist0 = sqrt(dot(Path.RefPath(refPtcl),Path.RefPath(refPtcl)));
+  double rhoij = exp(-c1(sliceDiff)*(c2(sliceDiff)*(dist0*dist0+dist1*dist1) - c3(sliceDiff)*dist0*dist1));
 
-  return c2(sliceDiff)*(c3(sliceDiff)*(r0r0+r1r1) - 2.*r0r1) + log(c1(sliceDiff));
+  return rhoij;
 }
 
 
-double SHONodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath)
+double SHONodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath)
 {
-  double r0r0 = dot(Path.RefPath(refPtcl),Path.RefPath(refPtcl));
-  double r1r1 = dot(tempPath(ptcl),tempPath(ptcl));
-  double r0r1 = dot(Path.RefPath(refPtcl),tempPath(ptcl));
-  //cerr << refSlice << " " << slice << " " << sliceDiff << " " << refPtcl << " " << ptcl << " " << r0r0 << " " << r1r1 << " " << r0r1 << endl;
+  double dist1 = sqrt(dot(tempPath(slice,ptcl),tempPath(slice,ptcl)));
+  double dist0 = sqrt(dot(Path.RefPath(refPtcl),Path.RefPath(refPtcl)));
+  double rhoij = exp(-c1(sliceDiff)*(c2(sliceDiff)*(dist0*dist0+dist1*dist1) - c3(sliceDiff)*dist0*dist1));
 
-  return c2(sliceDiff)*(c3(sliceDiff)*(r0r0+r1r1) - 2.*r0r1) + log(c1(sliceDiff));
+  return rhoij;
 }
 
 
 void SHONodalActionClass::GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix)
 {
   for (int dim=0; dim<NDIM; dim++)
-    gradPhi[dim] = -GetAction(slice,sliceDiff,refPtcl,ptcl) * detMatrix(refPtcl, ptcl);
+    gradPhi[dim] = -GetRhoij(slice,sliceDiff,refPtcl,ptcl) * detMatrix(refPtcl, ptcl);
 }
 
 
 void SHONodalActionClass::GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath)
 {
   for (int dim=0; dim<NDIM; dim++)
-    gradPhi[dim] = -GetAction(slice,sliceDiff,refPtcl,ptcl,tempPath) * detMatrix(refPtcl, ptcl);
+    gradPhi[dim] = -GetRhoij(slice,sliceDiff,refPtcl,ptcl,tempPath) * detMatrix(refPtcl, ptcl);
 }
 
 

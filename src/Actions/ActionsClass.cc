@@ -424,9 +424,11 @@ void ActionsClass::Energy (map<string,double>& energies)
   int M = PathData.Path.NumTimeSlices()-1;
   std::list<ActionBaseClass*>::iterator actionIt;
   std::list<string>::iterator labelIt = ActionLabels.begin();
+  //Array<int,1> p(1);
+  //p(0) = 0;
   for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
     energies[*labelIt] += (*actionIt) -> d_dBeta(0,M,0);
-    //cout << *labelIt << " " << (*actionIt) -> d_dBeta(0,M,0) << endl;
+    //cout << *labelIt << " " << (*actionIt) -> SingleAction(0,M,p,0) << " " << (*actionIt) -> d_dBeta(0,M,0) << endl;
     labelIt++;
   }
 }
@@ -581,28 +583,11 @@ void ActionsClass::Setk(Vec3 k)
 void ActionsClass::WriteInfo(IOSectionClass &out)
 {
   std::list<ActionBaseClass*>::iterator actionIt;
-  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++)
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
+    string actionName = (*actionIt)->GetName();
+    out.NewSection(actionName);
     (*actionIt)->WriteInfo(out);
-
-  /// If we have nodal actions, have them write any pertinent info to
-  /// the output file.
-  bool haveNodeActions = false;
-  for (int i=0; i<PathData.Path.NumSpecies(); i++) 
-    if (NodalActions(i) != NULL)
-      haveNodeActions = true;
-  if (haveNodeActions) {
-    if (PathData.IntraComm.MyProc() == 0) {
-      out.NewSection("NodalActions");
-      for (int i=0; i<PathData.Path.NumSpecies(); i++) {
-        out.NewSection ("NodeAction");
-        if (NodalActions(i) == NULL) 
-          out.WriteVar("Type", "NONE");
-        else
-          NodalActions(i)->WriteInfo(out);
-        out.CloseSection();
-      }
-      out.CloseSection();
-    }
+    out.CloseSection();
   }
 }
 

@@ -92,7 +92,7 @@ void FreeNodalActionClass::SetupActions()
 }
 
 
-double FreeNodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl)
+double FreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl)
 {
   dVec diff;
   double dist;
@@ -100,11 +100,11 @@ double FreeNodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, in
   double action = 0.0;
   for (int dim=0; dim<NDIM; dim++)
     action += ActionSplines(sliceDiff)[dim](diff[dim]);
-  return action;
+  return exp(-action);
 }
 
 
-double FreeNodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath)
+double FreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath)
 {
   dVec diff;
   double dist;
@@ -112,7 +112,7 @@ double FreeNodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, in
   double action = 0.0;
   for (int dim=0; dim<NDIM; dim++)
     action += ActionSplines(sliceDiff)[dim](diff[dim]);
-  return action;
+  return exp(-action);
 }
 
 

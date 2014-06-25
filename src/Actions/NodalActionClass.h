@@ -66,8 +66,8 @@ public:
   virtual void GradientDet (int slice, double &det, Array<dVec,1> &gradient, Array<dVec,1> &tempPath);
   virtual void GradientDetFD (int slice, double &det, Array<dVec,1> &gradient);
 
-  virtual double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl);
-  virtual double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
+  virtual double GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl);
+  virtual double GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
   virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
   virtual void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
   virtual void WriteInfo(IOSectionClass &out);

@@ -27,6 +27,8 @@ bool SpeciesClass::Read(IOSectionClass &inSection)
   inSection.ReadVar("ChargeSpread",chargeSpread);
   inSection.ReadVar("Epsilon",Epsilon);
   inSection.ReadVar("Sigma",Sigma);
+  if(!inSection.ReadVar("isIon",isIon))
+    isIon = false;
   assert(inSection.ReadVar("NumParticles",NumParticles));
   assert(inSection.ReadVar("NumDim",NumDim));
   assert(inSection.ReadVar("Type",Type));

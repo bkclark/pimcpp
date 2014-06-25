@@ -77,7 +77,6 @@ void NodalModelStageClass::Reject()
 
 double NodalModelStageClass::Sample (int &slice1, int &slice2, Array<int,1> &activeParticles)
 {
-
   for (int i=0; i<activeSpecies.size(); i++) {
     int SpeciesNum = activeSpecies(i);
     if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {

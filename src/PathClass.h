@@ -44,12 +44,10 @@ private:
   /// Path stores the position of all the particles at all time
   /// slices.  The order for access is timeslice, particle
   Mirrored2DClass<dVec> Path;
-  /// This stores the path at the reference slice.
   /// Stores what species a particle belongs to
   Array<int,1> SpeciesNumber;
   Array<SpeciesClass *,1> SpeciesArray;
   int MyNumSlices;
-
 
   ////////////////////////
   /// Class References ///
@@ -300,6 +298,12 @@ public:
   /// weighted by its distance to each ion to the negative fourth power.
   void WarpPaths (int ionSpecies);
 
+  ///////////////////////////////////////////////////////////////////
+  ///                           Ions                               // 
+  ///////////////////////////////////////////////////////////////////
+public:
+  // This array stores the species numbers of particles that are considered ions
+  Array<int,1> IonSpeciesNums;
 
   ///////////////////////////////////////////////////////////////////
   ///                     Correlated Sampling                      // 
@@ -539,10 +543,17 @@ inline void PathClass::SetPos(int slice, int ptcl, const dVec &r)
 
 inline void PathClass::AddSpecies (SpeciesClass *newSpecies)
 {
-  int numSpecies = SpeciesArray.size();
   /// Add an element for the new species
-  SpeciesArray.resizeAndPreserve(numSpecies+1);
-  SpeciesArray(numSpecies) = newSpecies;
+  int nSpecies = SpeciesArray.size();
+  SpeciesArray.resizeAndPreserve(nSpecies+1);
+  SpeciesArray(nSpecies) = newSpecies;
+
+  // Add to list of ions if it is one
+  if (newSpecies -> isIon) {
+    int nIonSpecies = IonSpeciesNums.size();
+    IonSpeciesNums.resizeAndPreserve(nIonSpecies+1);
+    IonSpeciesNums(nIonSpecies) = nSpecies;
+  }
 }
 
 

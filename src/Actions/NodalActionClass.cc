@@ -28,8 +28,8 @@ int NodalActionClass::GetNumModels(){}
 void NodalActionClass::SetupActions(){}
 void NodalActionClass::Setk (Vec3 k){}
 void NodalActionClass::Update(){}
-double NodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl){}
-double NodalActionClass::GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath){}
+double NodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl){}
+double NodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath){}
 void NodalActionClass::GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix){}
 void NodalActionClass::GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath){}
 
@@ -397,9 +397,9 @@ double NodalActionClass::SimpleAction (int startSlice, int endSlice, const Array
         deter[i] = PathData.Path.NodeDet(slice,SpeciesNum);
       if (deter[i] <= 0.0) {
         //#pragma omp critical
-        {
+        //{
             abort = 1;
-        }
+        //}
       }
     }
   }
@@ -690,15 +690,32 @@ double NodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
 
   int N = last - first + 1;
   Array<double,2> detMatrix(N,N);
-  // Fill up determinant matrix
-  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-      double action = GetAction(slice,sliceDiff,refPtcl-first,ptcl-first,tempPath);
-      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
-    }
-  }
+  double det = 0.;
+  double scale = 1.;
+  //do {
 
-  return Determinant (detMatrix);
+    // Fill up determinant matrix
+    for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+      for (int ptcl=first; ptcl<=last; ptcl++) {
+        double rhoij = GetRhoij(slice,sliceDiff,refPtcl,ptcl,tempPath);
+        detMatrix(refPtcl-first, ptcl-first) = scale*rhoij;
+      }
+    }
+
+    // Take determinant
+    det = Determinant (detMatrix);
+
+    // Decide scaling
+    if (fabs(det) < 1.e-10)
+      scale *= 2;
+    else if (fabs(det) > 1.e10)
+      scale = pow(scale,-1./N);
+    //if (scale > 1e100 || scale < 1e-100)
+    //  return 0;// = 2.e-10;
+
+  //} while (fabs(det) < 1.e-10 || fabs(det) > 1.e10);
+
+  return det;
 }
 
 
@@ -719,15 +736,36 @@ double NodalActionClass::Det (int slice)
 
   int N = last - first + 1;
   Array<double,2> detMatrix(N,N);
-  // Fill up determinant matrix
-  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-      double action = GetAction(slice,sliceDiff,refPtcl-first,ptcl-first);
-      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
-    }
-  }
+  double det = 0.;
+  double scale = 1.;
+  //do {
 
-  return Determinant (detMatrix);
+    // Fill up determinant matrix
+    for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+      for (int ptcl=first; ptcl<=last; ptcl++) {
+        double rhoij = GetRhoij(slice,sliceDiff,refPtcl,ptcl);
+      //  cout << refPtcl << " " << ptcl << " " << rhoij << endl;
+        detMatrix(refPtcl-first, ptcl-first) = scale*rhoij;
+      }
+    }
+
+    // Take determinant
+    det = Determinant (detMatrix);
+    //cout << detMatrix << endl;
+
+  //cout << scale << " " << slice << " " << det << endl;
+    // Decide scaling
+    if (fabs(det) < 1.e-50)
+      scale *= 2;
+    else if (fabs(det) > 1.e50)
+      scale = pow(scale,1./N);
+
+    //if (scale > 1e100 || scale < 1e-100) {
+    //  det = 2.e-10;
+    //}
+
+  //} while (fabs(det) < 1.e-50 || fabs(det) > 1.e50);
+  return det;
 }
 
 
@@ -750,10 +788,10 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   Array<double,2> detMatrix(N,N), cofactors(N,N);
 
   // Fill up determinant matrix
-  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-      double action = GetAction(slice,sliceDiff,refPtcl-first,ptcl-first,tempPath);
-      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
+  for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+    for (int ptcl=first; ptcl<=last; ptcl++) {
+      double rhoij = GetRhoij(slice,sliceDiff,refPtcl,ptcl,tempPath);
+      detMatrix(refPtcl-first, ptcl-first) = rhoij;
     }
   }
 
@@ -769,7 +807,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
     if (((nSingular)%100000) == 99999) {
       cerr << "Warning: Num Singular Matrices = " << nSingular << endl;
     }
-    cerr << "Warning: Singular Matrix at slice: " << slice << endl;
+    //cerr << "Warning: Singular Matrix at slice: " << slice << endl;
     nSingular++;
     det = -1.0;
     gradient(0)[0] = sqrt(-1.0);
@@ -779,11 +817,11 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   cofactors = det * cofactors;
 
   // Now compute gradient of determinant
-  for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+  for (int ptcl=first; ptcl<=last; ptcl++) {
     gradient(ptcl-first) = 0.0;
     dVec gradPhi;
-    for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-      GetActionDeriv(slice,sliceDiff,refPtcl-first,ptcl-first,gradPhi,detMatrix,tempPath);
+    for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+      GetActionDeriv(slice,sliceDiff,refPtcl,ptcl,gradPhi,detMatrix,tempPath);
       gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*cofactors(refPtcl-first, ptcl-first);
     }
   }
@@ -809,10 +847,10 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   Array<double,2> detMatrix(N,N), cofactors(N,N);
 
   // Fill up determinant matrix
-  for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-    for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
-      double action = GetAction(slice,sliceDiff,refPtcl,ptcl);
-      detMatrix(refPtcl-first, ptcl-first) = exp(-action);
+  for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+    for (int ptcl=first; ptcl<=last; ptcl++) {
+      double rhoij = GetRhoij(slice,sliceDiff,refPtcl,ptcl);
+      detMatrix(refPtcl-first, ptcl-first) = rhoij;
     }
   }
 
@@ -828,7 +866,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
     if (((nSingular)%100000) == 99999) {
       cerr << "Warning: Num Singular Matrices = " << nSingular << endl;
     }
-    cerr << "Warning: Singular Matrix at slice: " << slice << endl;
+    //cerr << "Warning: Singular Matrix at slice: " << slice << endl;
     nSingular++;
     det = -1.0;
     gradient(0)[0] = sqrt(-1.0);
@@ -838,12 +876,12 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   cofactors = det * cofactors;
 
   // Now compute gradient of determinant
-  for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+  for (int ptcl=first; ptcl<=last; ptcl++) {
     gradient(ptcl-first) = 0.0;
     dVec gradPhi;
-    for (int refPtcl=species.FirstPtcl; refPtcl<=species.LastPtcl; refPtcl++) {
-      GetActionDeriv(slice,sliceDiff,refPtcl-first,ptcl-first,gradPhi,detMatrix);
-      gradient(ptcl-first) = gradient(ptcl-first)+ gradPhi*cofactors(refPtcl-first, ptcl-first);
+    for (int refPtcl=first; refPtcl<=last; refPtcl++) {
+      GetActionDeriv(slice,sliceDiff,refPtcl,ptcl,gradPhi,detMatrix);
+      gradient(ptcl-first) = gradient(ptcl-first) + gradPhi*cofactors(refPtcl-first, ptcl-first);
     }
   }
 }

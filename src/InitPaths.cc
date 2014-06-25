@@ -164,7 +164,7 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
           } else if (slice>=oldPaths.extent(1)) {
             pos(dim) = oldPaths(ptcl,oldPaths.extent(1)-1,dim)*(Box[dim]/oldBox(dim));
           } else {
-            pos(dim) = oldPaths(ptcl,slice,dim)*(Box[dim]/oldBox(dim));
+            pos(dim) = oldPaths(ptcl,slice,dim);//*(Box[dim]/oldBox(dim));
           }
         Path(relSlice,ptcl) = pos;
       }
@@ -176,7 +176,7 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        pos(dim) = oldPaths(Permutation(ptcl),0,dim)*(Box[dim]/oldBox(dim));
+        pos(dim) = oldPaths(Permutation(ptcl),0,dim);//*(Box[dim]/oldBox(dim));
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
   }
@@ -188,12 +188,12 @@ void PathClass::Restart(IOSectionClass &in, string fileName, bool replicate, Spe
   inFile.CloseSection();
   inFile.CloseFile();
 
-//   ofstream outfile;
-//   outfile.open("positions.dat");
-//   for (int slice=0;slice<NumTimeSlices();slice++)
-//     for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//       outfile<<slice<<" "<<ptcl<<"  "<<Path(slice,ptcl)[0]<<" "<<Path(slice,ptcl)[1]<<endl;
-//   outfile.close();
+   ofstream outfile;
+   outfile.open("positions.dat");
+   for (int slice=0;slice<NumTimeSlices();slice++)
+     for (int ptcl=0;ptcl<NumParticles();ptcl++)
+       outfile<<slice<<" "<<ptcl<<"  "<<Path(slice,ptcl)[0]<<" "<<Path(slice,ptcl)[1]<<" "<<Path(slice,ptcl)[2]<<endl;
+   outfile.close();
 }
 
 
@@ -628,6 +628,50 @@ void PathClass::InitPaths (IOSectionClass &in)
         }
       }
     }
+    else if (InitPaths == "HYDROGENBCC") {
+      int num = species.NumParticles;
+      bool isCubic = 0;
+#if NDIM==2
+      isCubic = (Box[0]==Box[1]);
+#endif
+#if NDIM==3
+      isCubic = (Box[0]==Box[1]) && (Box[1]==Box[2]);
+#endif
+      if (!isCubic) {
+        perr << "A cubic box is current required for cubic initilization\n";
+        abort();
+      }
+      int numPerDim = (int) ceil (pow(0.5*(double)num, 1.0/NDIM)-1.0e-6);
+      double delta = Box[0] / numPerDim;
+      for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+        int ip = (ptcl-species.FirstPtcl)/2;
+        int ix, iy, iz;
+#if NDIM==2
+        ix = ip/(numPerDim);
+        iy = ip-(ix*numPerDim);
+#endif
+#if NDIM==3
+        ix = ip/(numPerDim*numPerDim);
+        iy = (ip-(ix*numPerDim*numPerDim))/numPerDim;
+        iz = ip - ix*numPerDim*numPerDim - iy*numPerDim;
+#endif
+        dVec r;
+        r[0] = ix*delta-0.5*Box[0];
+        r[1] = iy*delta-0.5*Box[1];
+#if NDIM==3
+        r[2] = iz*delta-0.5*Box[2];
+#endif
+        if (ptcl % 2)
+          r += 0.5*delta;
+        if ( speciesIndex == 1 ) {
+          r[0] += 0.5;
+        }
+        cerr<<"S"<<"  "<<r[0]<<" "<<r[1]<<" "<<r[2]<<endl;
+        for (int slice=0; slice<NumTimeSlices(); slice++)
+          Path(slice,ptcl) = r;
+      }
+    }
+
     else if (InitPaths=="ALLFIXED"){
       int myFirstSlice, myLastSlice, myProc;
       myProc = Communicator.MyProc();

@@ -32,8 +32,8 @@ private:
   PathClass &Path;
 
   void SetupActions();
-  double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl);
-  double GetAction(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
+  double GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl);
+  double GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath);
   void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix);
   void GetActionDeriv(int slice, int sliceDiff, int refPtcl, int ptcl, dVec &gradPhi, Array<double,2> &detMatrix, Array<dVec,1> &tempPath);
 

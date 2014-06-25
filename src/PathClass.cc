@@ -96,9 +96,6 @@ void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVe
   for (int i=0; i<NDIM; i++) {
     double n = -floor(disp(i)*BoxInv(i)+0.5);
     disp(i) += n*IsPeriodic(i)*Box(i);
-    if (!(-Box(i)/2.0<=disp(i)+0.00001)){
-      perr<<"ERROR: "<<Box(i)<<" "<<disp(i)<<" "<<slice<<" "<<ptcl<<" "<<refPtcl<<" "<<BoxInv(i)<<Path(slice,ptcl)<<" "<<endl;
-    }
   }
   dist = sqrt(dot(disp,disp));
 
@@ -124,9 +121,6 @@ void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVe
   for (int i=0; i<NDIM; i++) {
     double n = -floor(disp(i)*BoxInv(i)+0.5);
     disp(i) += n*IsPeriodic(i)*Box(i);
-    if (!(-Box(i)/2.0<=disp(i)+0.00001)){
-      perr<<"ERROR: "<<Box(i)<<" "<<disp(i)<<" "<<slice<<" "<<ptcl<<" "<<refPtcl<<" "<<BoxInv(i)<<Path(slice,ptcl)<<" "<<endl;
-    }
   }
   dist = sqrt(dot(disp,disp));
 
@@ -259,7 +253,9 @@ void PathClass::Read (IOSectionClass &inSection)
     verr<<"The BOX I am setting is "<<Box<<endl;
     SetBox (Box);
   } else {
-    Box = 0;
+    assert(tempBox.size()==NDIM);
+    for (int counter=0;counter<tempBox.size();counter++)
+      Box(counter)=tempBox(counter);
     SetBox (Box);
     verr << "Using free boundary conditions.\n";
   }
@@ -271,10 +267,6 @@ void PathClass::Read (IOSectionClass &inSection)
     inSection.OpenSection("Species", Species);
     SpeciesClass *newSpecies = ReadSpecies(inSection);
     inSection.CloseSection();
-    bool manyParticles = false;
-    inSection.ReadVar("ManyParticles",manyParticles);
-    if (manyParticles) // HACK: Really ugly
-      newSpecies->NumParticles=newSpecies->NumParticles-MyClone;
     AddSpecies (newSpecies);
   }
   inSection.CloseSection(); // Particles
