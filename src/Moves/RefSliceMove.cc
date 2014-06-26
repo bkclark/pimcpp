@@ -259,18 +259,11 @@ void RefSliceMoveClass::MakeMoveSlave()
 
 void RefSliceMoveClass::MakeMove()
 {
-  //cerr << "RefSlice Move" << endl;
-  PathClass &Path = PathData.Path;
+  NumAttempted++;
   MasterProc = Path.SliceOwner (Path.GetRefSlice());
-  //cerr<<"Starting RefSlice move."<<endl;
-  if (PathData.Path.Communicator.MyProc() == MasterProc){
-    //cout<<"MakeMoveMaster();"<<endl;
+  if (Path.Communicator.MyProc() == MasterProc){
     MakeMoveMaster();
   } else {
-    //cout<<"MakeMoveSlave();"<<endl;
     MakeMoveSlave();
   }
-  //if ((NodeAccept+NodeReject) % 10000 == 9999)
-  //  cout << PathData.Path.CloneStr <<  " Node accept ratio = " << (double)NodeAccept/(double)(NodeAccept+NodeReject);
-  //cerr<<"Finished RefSlice move."<<endl;
 }
