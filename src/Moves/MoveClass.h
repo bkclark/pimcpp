@@ -17,12 +17,11 @@
 #ifndef MOVE_CLASS_H
 #define MOVE_CLASS_H
 
-
 #include "BisectionBlock.h"
 #include "BisectionSphereBlock.h"
 #include "CentroidMove.h"
 #include "CenterDropletMove.h"
-#include "MetaMoves.h"
+#include "ShiftMove.h"
 #include "PermuteTableClass.h"
 #include "RandomPermMove.h"
 #include "MultiStage.h"
@@ -35,18 +34,16 @@
 #include "CenterofMassMove.h"
 #include "RefSliceMove.h"
 #include "RefSliceShift.h"
+#include "RefSliceReset.h"
 #include "DisplaceMove.h"
 #include "NodalModelMove.h"
-#include "DisplaceMoveFast.h"
 #include "OpenEndMove.h"
 #include "MoleculeMove.h"
-#include "SwapMove.h"
 #include "ClusterMove.h"
 #include "StructureRejectStage.h"
 #include "CouplingMove.h"
 
-
-
 #include "WormGrow.h"
 #include "ReadPath.h"
+
 #endif

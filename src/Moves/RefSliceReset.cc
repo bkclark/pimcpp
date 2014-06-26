@@ -14,29 +14,29 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#include "MetaMoves.h"
+#include "RefSliceReset.h"
 
-void ShiftMoveClass::Read(IOSectionClass &theInput)
+void RefSliceResetClass::Read(IOSectionClass &in)
 {
-  string typeCheck;
-  assert(theInput.ReadVar("Type",typeCheck));
-  assert(typeCheck=="ShiftMove");
+  // Read in the active species.
+  Array<string,1> activeSpeciesNames;
+  assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
+  SetActiveSpecies (activeSpeciesNames);
 }
 
-void ShiftMoveClass::MakeMove()
+void RefSliceResetClass::MakeMove()
 {
-  // The last processor will have the least number of slices possible.  Use that for the maximum shift.
-  int slice1, slice2;
-  PathData.Path.SliceRange(PathData.Path.Communicator.NumProcs()-1,slice1,slice2);
+  // Reset to reference point position
+  SetMode(NEWMODE);
+  for (int ptclIndex=0; ptclIndex<ActiveParticles.size(); ptclIndex++) {
+    int ptcl = ActiveParticles(ptclIndex);
+    for (int slice=0; slice<Path.TotalNumSlices; slice++)
+      Path(slice, ptcl) = Path.RefPath(ptcl);
+    Path.Permutation(ptcl) = ptcl;
+  }
 
-  int maxSlices=slice2-slice1;
-  int numTimeSlicesToShift = PathData.Path.Random.CommonInt(maxSlices);
-
-  //  There is no point in shifting more than maxSlices/2
-  if (numTimeSlicesToShift > (maxSlices>>1))
-    numTimeSlicesToShift -= (maxSlices>>1);
-
-  PathData.MoveJoin(0);
-  PathData.ShiftData(numTimeSlicesToShift);
-  PathData.Join = numTimeSlicesToShift;
+  // Always accepted
+  Path.AcceptCopy(0,Path.TotalNumSlices,ActiveParticles);
+  NumAccepted++;
+  NumAttempted++;
 }

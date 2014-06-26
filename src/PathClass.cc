@@ -19,11 +19,7 @@
 
 double PathClass::MinImageDistance(dVec v1, dVec v2)
 {
-  dVec disp = v2-v1;
-  for (int i=0; i<NDIM; i++) {
-    double n = -floor(disp(i)*BoxInv(i)+0.5);
-    disp(i) += n*IsPeriodic(i)*Box(i);
-  }
+  dVec disp = MinImageDisp(v1, v2);
   double dist = sqrt(dot(disp,disp));
   return dist;
 }
@@ -38,7 +34,6 @@ dVec PathClass::MinImageDisp(dVec v1, dVec v2)
   return disp;
 }
 
-
 const dVec& PathClass::GetOpenTail()
 {
   return Path(OpenLink,NumParticles());
@@ -48,13 +43,6 @@ const dVec PathClass::ReturnOpenHead()
 {
   return Path(OpenLink,OpenPtcl);
 }
-
-// //NOTE: Be careful.  
-// const dVec& 
-// PathClass::GetOpenHead()
-// {
-//   return Path(OpenLink,OpenPtcl);
-// }
 
 void PathClass::SetHead(const dVec &r,int join)
 {
@@ -76,9 +64,8 @@ void PathClass::BackflowRefDistDisp (int slice, int refPtcl, int ptcl, double &d
 {
   dVec pathPos = Path(slice,ptcl);
   dVec refPos = RefPath(refPtcl);
-  for (int i=0; i<NumParticles(); i++){
+  for (int i=0; i<NumParticles(); i++) {
     // add in backflow coordinates
-    
   }
   disp = pathPos - refPos;
 
@@ -113,7 +100,6 @@ void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVe
 #endif
 }
 
-
 void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVec &disp, Array<dVec,1> &tempPath)
 {
   disp = tempPath(ptcl) - RefPath(refPtcl);
@@ -138,7 +124,6 @@ void PathClass::RefDistDisp (int slice, int refPtcl, int ptcl, double &dist, dVe
 #endif
 }
 
-
 void PathClass::SetIonConfig(int config)
 {
   ConfigNum = config;
@@ -154,7 +139,6 @@ void PathClass::SetIonConfig(int config)
     for (int slice=0; slice<NumTimeSlices(); slice++)
       SetPos(slice, ptcl+first, IonConfigs[config](ptcl));
 }
-
 
 void PathClass::Read (IOSectionClass &inSection)
 {
@@ -771,12 +755,12 @@ void PathClass::MoveJoin(int oldJoin, int newJoin)
 
 void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &activeParticles)
 {
+  // Accept Weights
   Sign.AcceptCopy();
-  cm2=0.0;
-  static int numAccepts=0;
   ExistsCoupling.AcceptCopy();
   SignWeight.AcceptCopy();
-  NowOpen.AcceptCopy();
+
+  cm2 = 0.0;
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
     // HACK!! Though not really, I commented this out b/c I believe it's not necessary
@@ -785,110 +769,103 @@ void PathClass::AcceptCopy(int startSlice,int endSlice, const Array <int,1> &act
     //for (int slice=startSlice;slice<=endSlice;slice++)
     //  PutInBoxFast(Path(slice,ptcl));
 
-    dVec cmPart=0.0;
+    // Calculate center of mass movement
+    dVec cmPart = 0.0;
     for (int slice=startSlice;slice<endSlice;slice++){
-      dVec newLoc=Path[NEWMODE](slice,ptcl);
-      dVec oldLoc=Path[OLDMODE](slice,ptcl);
-      dVec minDisp=MinImageDisp(oldLoc,newLoc);
-      CenterOfMass=CenterOfMass+minDisp;
-      cmPart=cmPart+minDisp;
+      dVec newLoc = Path[NEWMODE](slice,ptcl);
+      dVec oldLoc = Path[OLDMODE](slice,ptcl);
+      dVec minDisp = MinImageDisp(oldLoc,newLoc);
+      CenterOfMass = CenterOfMass + minDisp;
+      cmPart = cmPart + minDisp;
     }
-    cm2=cm2+dot(cmPart,cmPart);
+    cm2 += dot(cmPart,cmPart)/TotalNumSlices;
 
-    Path[OLDMODE](Range(startSlice, endSlice), ptcl) = 
-      Path[NEWMODE](Range(startSlice, endSlice), ptcl);
+    // Accept new coordinates and permutation
+    Path[OLDMODE](Range(startSlice, endSlice), ptcl) = Path[NEWMODE](Range(startSlice, endSlice), ptcl);
     if (WormOn)
       ParticleExist[OLDMODE](Range(startSlice, endSlice), ptcl) = ParticleExist[NEWMODE](Range(startSlice, endSlice), ptcl);
-
     Permutation.AcceptCopy(ptcl);
-
   }
-  //I had this accepting the whole permutation.  Not sure why but have commented it out.  
-// <<<<<<< .mine
-//   for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//     Permutation.AcceptCopy(ptcl);
-// =======
+
+  // Accept new rho_k
   Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
+  // Accept new nodal distances
   if (StoreNodeDist)
     for (int species=0; species<NumSpecies(); species++)
-      NodeDist[OLDMODE](Range(startSlice,endSlice), species) =
-        NodeDist[NEWMODE](Range(startSlice,endSlice), species);
+      NodeDist[OLDMODE](Range(startSlice,endSlice), species) = NodeDist[NEWMODE](Range(startSlice,endSlice), species);
   if (StoreNodeDet)
     for (int species=0; species<NumSpecies(); species++)
-      NodeDet[OLDMODE](Range(startSlice,endSlice), species) =
-        NodeDet[NEWMODE](Range(startSlice,endSlice), species);
+      NodeDet[OLDMODE](Range(startSlice,endSlice), species) = NodeDet[NEWMODE](Range(startSlice,endSlice), species);
 
-  if (OpenPaths){
+  // Accept open paths
+  if (OpenPaths) {
+    NowOpen.AcceptCopy();
     OpenPtcl.AcceptCopy();
     OpenLink.AcceptCopy();
 
-    for (int counter=0;counter<NumTimeSlices();counter++){
-      Path[OLDMODE](counter,NumParticles())=Path[NEWMODE](counter,NumParticles());
-    }
-    for (int ptcl=0;ptcl<NumParticles();ptcl++){
-      Path[OLDMODE](OpenLink[NEWMODE],ptcl)=Path[NEWMODE](OpenLink[NEWMODE],ptcl);
-      Path[OLDMODE](0,ptcl)=Path[NEWMODE](0,ptcl);
+    for (int counter=0; counter<NumTimeSlices(); counter++)
+      Path[OLDMODE](counter,NumParticles()) = Path[NEWMODE](counter,NumParticles());
+
+    for (int ptcl=0;ptcl<NumParticles();ptcl++) {
+      Path[OLDMODE](OpenLink[NEWMODE],ptcl) = Path[NEWMODE](OpenLink[NEWMODE],ptcl);
+      Path[OLDMODE](0,ptcl) = Path[NEWMODE](0,ptcl);
       Permutation.AcceptCopy(ptcl);
     }
-    //    Path[OLDMODE](Range(startSlice,endSlice),NumParticles())=
-    //      Path[NEWMODE](Range(startSlice,endSlice),NumParticles());
   }
-  //  cerr<<"I am binning from "<<startSlice<<" to "<<endSlice<<endl;
-  if (OrderN){
-    for (int slice=startSlice;slice<=endSlice;slice++){
-      for (int ptclIndex=0;ptclIndex<activeParticles.size();ptclIndex++){
-	int ptcl=activeParticles(ptclIndex);
-	Cell.ReGrid(slice,ptcl);
-	//      Cell.BinParticles(slice);
+
+  // Regrid for O(N)
+  if (OrderN) {
+    for (int slice=startSlice; slice<=endSlice; slice++) {
+      for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
+        int ptcl = activeParticles(ptclIndex);
+        Cell.ReGrid(slice,ptcl);
+        //      Cell.BinParticles(slice);
       }
     }
   }
-  numAccepts++;
-  // cerr<<"Center of mass: "<<cm2<<" "<<numAccepts<<endl;
 }
 
 
 void PathClass::RejectCopy(int startSlice,int endSlice, const Array <int,1> &activeParticles)
 {
+  // Reject Weights
   Sign.RejectCopy();
   ExistsCoupling.RejectCopy();
   SignWeight.RejectCopy();
-  NowOpen.RejectCopy();
+
+  // Reject particle coordinates and permutation
   for (int ptclIndex=0; ptclIndex<activeParticles.size(); ptclIndex++) {
     int ptcl = activeParticles(ptclIndex);
-    Path[NEWMODE](Range(startSlice, endSlice), ptcl) = 
-      Path[OLDMODE](Range(startSlice, endSlice), ptcl);
+    Path[NEWMODE](Range(startSlice, endSlice), ptcl) = Path[OLDMODE](Range(startSlice, endSlice), ptcl);
     if (WormOn)
       ParticleExist[NEWMODE](Range(startSlice, endSlice), ptcl) = ParticleExist[OLDMODE](Range(startSlice, endSlice), ptcl);
     Permutation.RejectCopy(ptcl);
   }
-  //For some reason rejecting the entire permutation?
-//   for (int ptcl=0;ptcl<NumParticles();ptcl++)
-//     Permutation.RejectCopy(ptcl);
 
+  // Reject rho_k
   Rho_k[NEWMODE](Range(startSlice,endSlice), Range::all(), Range::all()) =
     Rho_k[OLDMODE](Range(startSlice,endSlice), Range::all(), Range::all());
 
+  // Reject nodal distances
   if (StoreNodeDist)
     for (int species=0; species<NumSpecies(); species++)
-      NodeDist[NEWMODE](Range(startSlice,endSlice), species) =
-        NodeDist[OLDMODE](Range(startSlice,endSlice), species);
+      NodeDist[NEWMODE](Range(startSlice,endSlice), species) = NodeDist[OLDMODE](Range(startSlice,endSlice), species);
   if (StoreNodeDet)
     for (int species=0; species<NumSpecies(); species++)
-      NodeDet[NEWMODE](Range(startSlice,endSlice), species) =
-        NodeDet[OLDMODE](Range(startSlice,endSlice), species);
+      NodeDet[NEWMODE](Range(startSlice,endSlice), species) = NodeDet[OLDMODE](Range(startSlice,endSlice), species);
 
-  if (OpenPaths){
+  // Reject open paths
+  if (OpenPaths) {
+    NowOpen.RejectCopy();
     OpenPtcl.RejectCopy();
     OpenLink.RejectCopy();
 
-    Path[NEWMODE](Range(startSlice,endSlice),NumParticles())=
-      Path[OLDMODE](Range(startSlice,endSlice),NumParticles());
-    for (int ptcl=0;ptcl<NumParticles();ptcl++){
-      Path[NEWMODE](OpenLink[NEWMODE],ptcl)=Path[OLDMODE](OpenLink[NEWMODE],ptcl);
-      Path[NEWMODE](0,ptcl)=Path[OLDMODE](0,ptcl);
+    Path[NEWMODE](Range(startSlice,endSlice),NumParticles()) = Path[OLDMODE](Range(startSlice,endSlice),NumParticles());
+    for (int ptcl=0;ptcl<NumParticles();ptcl++) {
+      Path[NEWMODE](OpenLink[NEWMODE],ptcl) = Path[OLDMODE](OpenLink[NEWMODE],ptcl);
+      Path[NEWMODE](0,ptcl) = Path[OLDMODE](0,ptcl);
       Permutation.RejectCopy(ptcl);
     }
 

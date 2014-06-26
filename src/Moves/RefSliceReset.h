@@ -14,29 +14,23 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#include "MetaMoves.h"
+#ifndef REF_SLICE_RESET_H
+#define REF_SLICE_RESET_H
 
-void ShiftMoveClass::Read(IOSectionClass &theInput)
+#include "MoveBase.h"
+
+// Puts all particle positions at the reference slice particle position
+class RefSliceResetClass : public ParticleMoveClass
 {
-  string typeCheck;
-  assert(theInput.ReadVar("Type",typeCheck));
-  assert(typeCheck=="ShiftMove");
-}
+public:
+  void MakeMove();
+  void Read(IOSectionClass &in);
 
-void ShiftMoveClass::MakeMove()
-{
-  // The last processor will have the least number of slices possible.  Use that for the maximum shift.
-  int slice1, slice2;
-  PathData.Path.SliceRange(PathData.Path.Communicator.NumProcs()-1,slice1,slice2);
+  RefSliceResetClass (PathDataClass &myPathData, IOSectionClass outSection) :
+    ParticleMoveClass(myPathData, outSection)
+  {}
 
-  int maxSlices=slice2-slice1;
-  int numTimeSlicesToShift = PathData.Path.Random.CommonInt(maxSlices);
+};
 
-  //  There is no point in shifting more than maxSlices/2
-  if (numTimeSlicesToShift > (maxSlices>>1))
-    numTimeSlicesToShift -= (maxSlices>>1);
 
-  PathData.MoveJoin(0);
-  PathData.ShiftData(numTimeSlicesToShift);
-  PathData.Join = numTimeSlicesToShift;
-}
+#endif

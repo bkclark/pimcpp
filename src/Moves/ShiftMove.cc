@@ -14,12 +14,12 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#include "MetaMoves.h"
+#include "ShiftMove.h"
 
-void ShiftMoveClass::Read(IOSectionClass &theInput)
+void ShiftMoveClass::Read(IOSectionClass &in)
 {
   string typeCheck;
-  assert(theInput.ReadVar("Type",typeCheck));
+  assert(in.ReadVar("Type",typeCheck));
   assert(typeCheck=="ShiftMove");
 }
 
@@ -39,4 +39,8 @@ void ShiftMoveClass::MakeMove()
   PathData.MoveJoin(0);
   PathData.ShiftData(numTimeSlicesToShift);
   PathData.Join = numTimeSlicesToShift;
+
+  // Always accepted
+  NumAccepted++;
+  NumAttempted++;
 }

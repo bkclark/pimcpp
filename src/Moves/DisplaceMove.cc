@@ -109,23 +109,17 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
 
   // Read in the active species.
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
-  activeSpecies.resize(activeSpeciesNames.size());
-  for (int i=0; i<activeSpecies.size(); i++)
-    activeSpecies(i) = PathData.Path.SpeciesNum(activeSpeciesNames(i));
-  SetActiveSpecies (activeSpecies);
+  SetActiveSpecies (activeSpeciesNames);
 
   // Determine number of particles to move
-  int numToMove = 0;
-  MoveAllParticles = false;
-  in.ReadVar("MoveAll",MoveAllParticles);
-  if (MoveAllParticles) {
-    for (int i=0; i<activeSpecies.size(); i++) {
-      int speciesNum = activeSpecies(i);
-      numToMove += PathData.Path.Species(speciesNum).NumParticles;
-    }
-  } else
-    assert(in.ReadVar("NumToMove", numToMove));
-  SetNumParticlesToMove(numToMove);
+  if(!in.ReadVar("MoveAll",MoveAllParticles))
+    MoveAllParticles = false;
+  if (!MoveAllParticles) {
+    int numToMove;
+    if(!in.ReadVar("NumToMove", numToMove))
+      numToMove = 1;
+    ActiveParticles.resize(numToMove);
+  }
 
   DesiredAcceptRatio=-1;
   in.ReadVar("DesiredAcceptRatio",DesiredAcceptRatio);
@@ -153,8 +147,8 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   // else
   //   //  DisplaceStage.Actions.push_back(&PathData.Actions.DiagonalAction);
   //   DisplaceStage.Actions.push_back(&PathData.Actions.ShortRange);
-  for (int i=0; i<activeSpecies.size(); i++) {
-    int speciesNum = activeSpecies(i);
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    int speciesNum = ActiveSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
       if (myProc == 0)
         cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
@@ -164,19 +158,6 @@ void DisplaceMoveClass::Read (IOSectionClass &in)
   // Now construct stage list
   Stages.push_back(&DisplaceStage);
 
-  ActiveParticles.resize(numToMove);
-  if (MoveAllParticles) {
-    int k = 0;
-    for (int i=0; i<activeSpecies.size(); i++) {
-      int speciesNum = activeSpecies(i);
-      for (int j=0; j<PathData.Path.Species(speciesNum).NumParticles; j++) {
-        ActiveParticles(k) = PathData.Path.Species(speciesNum).FirstPtcl + j;
-        k += 1;
-      }
-    }
-  }
-
-  NumAttempted = 0;
 }
 
 
@@ -196,7 +177,7 @@ void DisplaceMoveClass::MakeMove()
   if (!MoveAllParticles) {
     for (int j = 0; j < ActiveParticles.size(); j++) {
       while (1) {
-        int speciesNum = activeSpecies(Path.Random.CommonInt(activeSpecies.size()));
+        int speciesNum = ActiveSpecies(Path.Random.CommonInt(ActiveSpecies.size()));
         int ptclNum = Path.Species(speciesNum).FirstPtcl + Path.Random.CommonInt(Path.Species(speciesNum).NumParticles);
         if (!ptclChecker(ptclNum)) {
           ActiveParticles(j) = ptclNum;

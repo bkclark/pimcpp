@@ -331,14 +331,10 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       OutFile.NewSection(moveType);
     if (moveType=="ShiftMove")
       move = new ShiftMoveClass(PathData, OutFile);
-    else if (moveType=="PrintMove")
-      move = new PrintMoveClass(PathData, OutFile);
     else if (moveType=="BisectionBlock")
       move = new BisectionBlockClass(PathData,OutFile);
     else if (moveType=="Centroid")
       move = new CentroidMoveClass(PathData,OutFile);
-    else if (moveType=="SwapMove")
-      move = new SwapMoveClass(PathData,OutFile);
     else if (moveType=="CorrelatedBisectionBlock")
       move = new CorrelatedBisectionBlockClass(PathData,OutFile);
     else if (moveType=="CouplingMove")
@@ -363,12 +359,12 @@ void PIMCClass::ReadMoves(IOSectionClass &in)
       move = new RefSliceMoveClass(PathData,OutFile);
     else if (moveType=="RefSliceShift")
       move = new RefSliceShiftClass(PathData,OutFile);
+    else if (moveType=="RefSliceReset")
+      move = new RefSliceResetClass(PathData,OutFile);
     else if (moveType=="Displace")
       move = new DisplaceMoveClass(PathData,OutFile);
     else if (moveType=="NodalModel")
       move = new NodalModelMoveClass(PathData,OutFile);
-    else if (moveType=="DisplaceFast")
-      move = new DisplaceFastMoveClass(PathData,OutFile);
     //     else if (moveType=="WaterRotate")
 //     else if (moveType=="VariationalDisplace")
 //        move = new VariationalDisplaceMoveClass(PathData,OutFile);

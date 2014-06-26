@@ -24,13 +24,16 @@ class RefSliceShiftStageClass : public CommonStageClass
 {
 private:
   int oldRefSlice;
-
 public:
   int maxShift;
+  int shiftDistance;
+  bool alwaysAccept;
+
   void Accept();
   void Reject();
-
+  bool Attempt(int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
   double Sample (int &slice1, int &slice2, Array <int,1> &activeParticles);
+
   RefSliceShiftStageClass (PathDataClass &pathData,IOSectionClass &outSection) :
     CommonStageClass (pathData,outSection)
   {}
@@ -42,7 +45,6 @@ class RefSliceShiftClass : public MultiStageClass
 private:
   int maxShift;
   RefSliceShiftStageClass RefSliceShiftStage;
-  Array<int,1> activeSpecies;
 public:
   // Read the parameters from the input file
   void Read (IOSectionClass &in);

@@ -79,7 +79,7 @@ public:
 class CommonStageClass : public StageClass
 {
 public:
-  bool Attempt(int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
+  virtual bool Attempt(int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange);
   CommonStageClass(PathDataClass &pathData,IOSectionClass &outSection) :
     StageClass(pathData,outSection)
   {

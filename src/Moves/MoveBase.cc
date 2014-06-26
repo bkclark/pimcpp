@@ -19,7 +19,6 @@
 
 void MoveClass::DoEvent()
 {
-  PathData.moveClock++;
   TimesCalled++;
   MakeMove();
 }
@@ -27,65 +26,29 @@ void MoveClass::DoEvent()
 void MoveClass::WriteRatio()
 {
   RatioVar.Write(AcceptanceRatio());
-  NumAccepted = TimesCalled = 0;
+  NumAccepted = NumAttempted = 0;
 }
 
-void ParticleMoveClass::SetActiveSpecies (Array<int,1> ActSpecies)
+void ParticleMoveClass::SetActiveSpecies (Array<string,1> activeSpeciesNames)
 {
-  ActiveSpecies.resize(ActSpecies.size());
-  ActiveSpecies = ActSpecies;
-  ///This calculates the total number of particles
-  TotalParticles = 0;
-  for (int i=0; i<ActSpecies.size(); i++) {
-    int CurrentNumPtcls = PathData.Path.Species(i).NumParticles; 
-    TotalParticles += CurrentNumPtcls;
-  }
-}
+  ActiveSpecies.resize(activeSpeciesNames.size());
+  for (int i=0; i<activeSpeciesNames.size(); i++)
+    ActiveSpecies(i) = Path.SpeciesNum(activeSpeciesNames(i));
 
-/// So do we still want to choose particles by dumping everything
-/// into some mapping array from the active particles and dealing 
-// with it that way? I think this is doing duplicate stuff in here.
-void ParticleMoveClass::ChooseParticles()
-{
-  for (int i=0; i<NumParticlesToMove; i++) { 
-    bool Redundant;
-    do {
-      MyParticleIndices(i) = PathData.Path.Random.LocalInt(TotalParticles);
-      while (PathData.Path.OpenPaths && 
-	     MyParticleIndices(i)==(int)(PathData.Path.OpenPtcl)){ 
-	MyParticleIndices(i) = PathData.Path.Random.LocalInt(TotalParticles);
-      } 
-      Redundant = false;
-      for (int j=0; j<i; j++){
-	if (MyParticleIndices(i) == MyParticleIndices(j)){
-	  Redundant = true;
-	  break;
-	}
-      }      
-    } while (Redundant); 
+  // Set number of particles to move
+  int numToMove = 0;
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    int speciesNum = ActiveSpecies(i);
+    numToMove += Path.Species(speciesNum).NumParticles;
   }
-  for (int i=0; i<NumParticlesToMove; i++) 
-    ActiveParticles(i) = MyParticleIndices(i);
-}
+  ActiveParticles.resize(numToMove);
+  int k = 0;
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    int speciesNum = ActiveSpecies(i);
+    for (int j=0; j<Path.Species(speciesNum).NumParticles; j++) {
+      ActiveParticles(k) = Path.Species(speciesNum).FirstPtcl + j;
+      k += 1;
+    }
+  }
 
-/// So do we still want to choose particles by dumping everything
-/// into some mapping array from teh active particles and dealing 
-// with it that way? I think this is doing duplicate stuff in here.
-void ParticleMoveClass::ChooseParticlesOpen()
-{
-  for (int i=0; i<NumParticlesToMove; i++) { 
-    bool Redundant;
-    do {
-      MyParticleIndices(i) = PathData.Path.Random.LocalInt(TotalParticles);
-      Redundant = false;
-      for (int j=0; j<i; j++){
-	if (MyParticleIndices(i) == MyParticleIndices(j)){
-	  Redundant = true;
-	  break;
-	}
-      }      
-    } while (Redundant); 
-  }
-  for (int i=0; i<NumParticlesToMove; i++) 
-    ActiveParticles(i) = MyParticleIndices(i);
 }

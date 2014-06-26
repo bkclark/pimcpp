@@ -55,7 +55,6 @@ private:
   ObservableInt NumAttemptedVar;
   ObservableInt NumAcceptedVar;
   int NumAttempted;
-  Array<int,1> activeSpecies;
 public:
   // Read the parameters from the input file
   int CurrentPtcl;

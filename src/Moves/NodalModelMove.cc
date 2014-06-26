@@ -101,14 +101,11 @@ void NodalModelMoveClass::Read (IOSectionClass &in)
   // Read in the active species.
   Array<string,1> activeSpeciesNames;
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
-  activeSpecies.resize(activeSpeciesNames.size());
-  for (int i=0; i<activeSpecies.size(); i++)
-    activeSpecies(i) = PathData.Path.SpeciesNum(activeSpeciesNames(i));
-  SetActiveSpecies (activeSpecies);
+  SetActiveSpecies(activeSpeciesNames);
 
   int NumModels;
-  for (int i=0; i<activeSpecies.size(); i++) {
-    int SpeciesNum = activeSpecies(i);
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    int SpeciesNum = ActiveSpecies(i);
     if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
       if (myProc == 0)
         cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
@@ -117,10 +114,10 @@ void NodalModelMoveClass::Read (IOSectionClass &in)
     NumModels = PathData.Actions.NodalActions(SpeciesNum) -> GetNumModels();
   }
 
-  NodalModelStage.activeSpecies.resize(activeSpecies.size());
-  for (int i=0; i<activeSpecies.size(); i++) {
-    NodalModelStage.activeSpecies(i) = activeSpecies(i);
-    int SpeciesNum = activeSpecies(i);
+  NodalModelStage.activeSpecies.resize(ActiveSpecies.size());
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    NodalModelStage.activeSpecies(i) = ActiveSpecies(i);
+    int SpeciesNum = ActiveSpecies(i);
     if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
       NodalModelStage.oldModel = PathData.Actions.NodalActions(SpeciesNum) -> GetModel();
     }
@@ -133,7 +130,6 @@ void NodalModelMoveClass::Read (IOSectionClass &in)
   Stages.push_back(&NodalModelStage);
 
   ActiveParticles.resize(0);
-  NumAttempted = 0;
 }
 
 

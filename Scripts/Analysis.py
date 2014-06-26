@@ -313,10 +313,33 @@ class Observable:
             g.write(''.join(str(x).split())+' '+' '.join([str(x) for x in stat])+'\n')
         g.close()
 
-class Moves(Observable):
+def GetMove(basename,startCuts,section,cloneStrs):
+    sectionInfo = [basename,startCuts,section,cloneStrs]
+    if "BisectionBlock" in section:
+        return BisectionBlock(*sectionInfo), 0
+    elif "RefSliceShift" in section:
+        return RefSliceShift(*sectionInfo), 0
+    elif "RefSlice" in section:
+        return RefSlice(*sectionInfo), 0
+    else:
+        return Observable(*sectionInfo), 0
+
+class BisectionBlock(Observable):
     def GetData(self, files):
-        Sections = [x+'/AcceptRatio' for x in GetSubSections(files,'Moves')]
-        data,Sections = FetchDataList(files,'Observables/Sign',Sections,self.startCut,0)
+        Sections = ['AcceptRatio']
+        data,Sections = FetchDataList(files,'Moves/BisectionBlock',Sections,self.startCut,0)
+        return Sections, data
+
+class RefSlice(Observable):
+    def GetData(self, files):
+        Sections = ['AcceptRatio']
+        data,Sections = FetchDataList(files,'Moves/RefSlice',Sections,self.startCut,0)
+        return Sections, data
+
+class RefSliceShift(Observable):
+    def GetData(self, files):
+        Sections = ['AcceptRatio']
+        data,Sections = FetchDataList(files,'Moves/RefSliceShift',Sections,self.startCut,0)
         return Sections, data
 
 class Energy(Observable):
@@ -795,6 +818,16 @@ def main():
                 AllSections.append(Section)
             if adj:
                 AdjSections.append(Section)
+
+        # Process Moves
+        Sections = GetSubSections(h5files,'Moves')
+        for Section in Sections:
+            M, adj = GetMove(basename,StartCuts[i],Section,cloneStrs[i])
+            if opts.DoAnalysis:
+                if M.Process(h5files):
+                    AllSections.append(Section)
+            else:
+                AllSections.append(Section)
 
         # Adjust by sign
         if opts.TrackSign:

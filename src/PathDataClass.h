@@ -79,10 +79,6 @@ public:
   string QMCMethod;
 #endif
 
-  // global clock for number of moves made
-  // incremented (by ALL moves) in MoveBase::DoEvent()
-  int moveClock;
-
   ///////////////////////////////////////////////////////////////////
   ///                        Wall Time Data                        //
   ///////////////////////////////////////////////////////////////////

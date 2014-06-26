@@ -241,6 +241,7 @@ src/Moves/RandomPermClass.cc
 src/Moves/ReadPath.cc
 src/Moves/RefSliceMove.cc
 src/Moves/RefSliceShift.cc
+src/Moves/RefSliceReset.cc
 src/Actions/LongRangeClass.cc
 src/Moves/SPS.cc
 src/SwitchClass.cc
@@ -251,7 +252,6 @@ src/Moves/StageClass.cc
 src/Actions/LongRangeRPAClass.cc
 src/Moves/StructureRejectStage.cc
 src/Actions/MoleculeInteractionsClass.cc
-src/Moves/SwapMove.cc
 src/Actions/Mu.cc
 src/Moves/TablePermuteStage.cc
 src/Actions/NodalActionClass.cc
@@ -360,7 +360,6 @@ src/Moves/CouplingStage.cc
 src/SpeciesClass.cc
 src/Moves/DisplaceMove.cc
 src/Moves/NodalModelMove.cc
-src/Moves/DisplaceMoveFast.cc
 src/Moves/EmptyStage.cc
 src/Splines/CubicSpline.cc
 src/Splines/BicubicSpline.cc
@@ -370,7 +369,7 @@ src/Moves/IonMoveManager.cc
 src/Moves/IonMoveStage.cc
 src/Splines/Grid.cc
 src/Moves/LeviFlightStage.cc
-src/Moves/MetaMoves.cc
+src/Moves/ShiftMove.cc
 src/Moves/MoleculeBias.cc
 src/Moves/MoleculeMove.cc
 src/Moves/MoleculeMoveBase.cc

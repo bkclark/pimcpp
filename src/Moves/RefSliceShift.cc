@@ -24,30 +24,23 @@ void RefSliceShiftClass::Read(IOSectionClass &in)
   // Read in the active species.
   Array<string,1> activeSpeciesNames;
   assert(in.ReadVar ("ActiveSpecies", activeSpeciesNames));
-  activeSpecies.resize(activeSpeciesNames.size());
-  for (int i=0; i<activeSpecies.size(); i++)
-    activeSpecies(i) = PathData.Path.SpeciesNum(activeSpeciesNames(i));
-  SetActiveSpecies (activeSpecies);
+  SetActiveSpecies (activeSpeciesNames);
 
-  // Set number of particles to move
-  int numToMove = 0;
-  for (int i=0; i<activeSpecies.size(); i++) {
-    int speciesNum = activeSpecies(i);
-    numToMove += PathData.Path.Species(speciesNum).NumParticles;
-  }
-  SetNumParticlesToMove(numToMove);
-  int k = 0;
-  for (int i=0; i<activeSpecies.size(); i++) {
-    int speciesNum = activeSpecies(i);
-    for (int j=0; j<PathData.Path.Species(speciesNum).NumParticles; j++) {
-      ActiveParticles(k) = PathData.Path.Species(speciesNum).FirstPtcl + j;
-      k += 1;
-    }
-  }
+  // Whether or not to always accept the move
+  bool alwaysAccept;
+  if(!in.ReadVar ("AlwaysAccept", alwaysAccept))
+    alwaysAccept = false;
+  RefSliceShiftStage.alwaysAccept = alwaysAccept;
+
+  // Distance to shift reference slice
+  int shiftDistance;
+  if(!in.ReadVar ("ShiftDistance", shiftDistance))
+    shiftDistance = -1;
+  RefSliceShiftStage.shiftDistance = shiftDistance;
 
   // Construct action list
-  for (int i=0; i<activeSpecies.size(); i++) {
-    int speciesNum = activeSpecies(i);
+  for (int i=0; i<ActiveSpecies.size(); i++) {
+    int speciesNum = ActiveSpecies(i);
     if ((PathData.Actions.NodalActions(speciesNum)!=NULL)) {
       if (myProc == 0)
         cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<activeSpeciesNames(i)<<" Adding Node Action"<<endl;
@@ -60,6 +53,14 @@ void RefSliceShiftClass::Read(IOSectionClass &in)
   // Reset counter
   NumAttempted = 0;
 
+}
+
+bool RefSliceShiftStageClass::Attempt(int &slice1, int &slice2, Array<int,1> &activeParticles, double &prevActionChange)
+{
+  if(alwaysAccept)
+    return true;
+  else
+    return CommonStageClass::Attempt(slice1,slice2,activeParticles,prevActionChange);
 }
 
 void RefSliceShiftStageClass::Accept()
@@ -90,7 +91,11 @@ double RefSliceShiftStageClass::Sample (int &slice1, int &slice2, Array<int,1> &
 
   // Pick new reference slice and broadcast it to all the other processors
   oldRefSlice = Path.GetRefSlice();
-  int newRefSlice = Path.Random.CommonInt(Path.TotalNumSlices/2);
+  int newRefSlice;
+  if(shiftDistance == -1)
+    newRefSlice = Path.Random.CommonInt(Path.TotalNumSlices/2);
+  else
+    newRefSlice = (oldRefSlice + shiftDistance) % Path.TotalNumSlices;
   Path.RefSlice = newRefSlice;
   Path.BroadcastRefPath();
 

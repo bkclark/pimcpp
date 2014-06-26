@@ -16,13 +16,6 @@
 
 
 #include "MultiStage.h"
-#include "sys/time.h"
-
-void MultiStageClass::Read(IOSectionClass& in)
-{
-  cm2=0.0;
-}
-
 
 void MultiStageClass::WriteRatio()
 {
@@ -33,34 +26,28 @@ void MultiStageClass::WriteRatio()
      stageIter++;
    }
    MoveClass::WriteRatio();
-   NumAccepted = NumAttempted = 0;
+
+   // Center of mass movement
    CenterOfMassVar.Write(cm2);
-   cm2=0;
+   cm2 = 0.;
 }
 
 
 void MultiStageClass::MakeMove()
 {
-  bool toAccept=true;
+  bool toAccept = true;
   list<StageClass*>::iterator stageIter=Stages.begin();
-  double prevActionChange=0.0;
-  struct timeval start, end;
-  struct timezone tz;
-
+  double prevActionChange = 0.0;
   while (stageIter!=Stages.end() && toAccept) {
-    gettimeofday(&start, &tz);
     toAccept = (*stageIter)->Attempt(Slice1,Slice2,ActiveParticles,prevActionChange);
-    gettimeofday(&end, &tz);
-    TimeSpent2 += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
     stageIter++;
   }
 
-  if (toAccept){
+  NumAttempted++;
+  if (toAccept)
     Accept();
-  }
-  else {
+  else
     Reject();
-  }
 }
 
 
@@ -70,8 +57,9 @@ void MultiStageClass::Accept()
   for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Accept();
   NumAccepted++;
-  NumAttempted++;
-  cm2=cm2+PathData.Path.cm2;
+
+  // Center of mass
+  cm2 += PathData.Path.cm2;
 }
 
 
@@ -80,6 +68,5 @@ void MultiStageClass::Reject()
   PathData.RejectMove(Slice1,Slice2,ActiveParticles);
   for (list<StageClass*>::iterator stageIter=Stages.begin();stageIter!=Stages.end();stageIter++)
     (*stageIter)->Reject();
-  NumAttempted++;
 }
 

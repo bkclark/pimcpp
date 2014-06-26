@@ -389,7 +389,6 @@ void PathDataClass::Read (IOSectionClass &in)
     in.CloseSection();
   }
 
-  moveClock = 0;
 }
 
 

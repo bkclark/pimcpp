@@ -14,29 +14,31 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#include "MetaMoves.h"
+#ifndef SHIFT_MOVE_H
+#define SHIFT_MOVE_H
 
-void ShiftMoveClass::Read(IOSectionClass &theInput)
+#include "MoveBase.h"
+
+///This is a "psuedo-move" that is inherited from MoveClass.
+///"Pseudo-moves do not increment the monte-carlo time slice. It
+///shifts the data in memory by numTimeSlicesToShift. We do this to
+///shift data between processors, etc.
+class ShiftMoveClass : public MoveClass
 {
-  string typeCheck;
-  assert(theInput.ReadVar("Type",typeCheck));
-  assert(typeCheck=="ShiftMove");
-}
+ public:
+  /// Contains the number of time slices to shift at a time. We have this change itself randomly from other objects.
+  int numTimeSlicesToShift;
 
-void ShiftMoveClass::MakeMove()
-{
-  // The last processor will have the least number of slices possible.  Use that for the maximum shift.
-  int slice1, slice2;
-  PathData.Path.SliceRange(PathData.Path.Communicator.NumProcs()-1,slice1,slice2);
+  /// Function to actually make a shift move.
+  void MakeMove();
 
-  int maxSlices=slice2-slice1;
-  int numTimeSlicesToShift = PathData.Path.Random.CommonInt(maxSlices);
+  //Currently we don't read anything for the shift move class.
+  void Read(IOSectionClass &in);
+  ShiftMoveClass (PathDataClass &myPathData, IOSectionClass outSection) : 
+    MoveClass(myPathData, outSection)
+  {}
 
-  //  There is no point in shifting more than maxSlices/2
-  if (numTimeSlicesToShift > (maxSlices>>1))
-    numTimeSlicesToShift -= (maxSlices>>1);
+};
 
-  PathData.MoveJoin(0);
-  PathData.ShiftData(numTimeSlicesToShift);
-  PathData.Join = numTimeSlicesToShift;
-}
+
+#endif

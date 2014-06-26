@@ -32,13 +32,14 @@ class EventClass
  public:
   /// Stores the number of times called
   int TimesCalled;
-  
+
   /// This stores the location in the output file where this
   /// observable or move puts its output
   IOSectionClass IOSection;
-  
+
   /// Stores a reference to PathData
   PathDataClass &PathData;
+
   /// And a reference to Path for convenience
   PathClass &Path;
 
@@ -50,9 +51,11 @@ public:
   /// event
   string Name;
 
-  virtual void DoEvent()=0;
-  virtual void Read(IOSectionClass& IO)=0;
-  EventClass(PathDataClass &pathData, IOSectionClass& out);
- };
+  virtual void DoEvent() = 0;
+  virtual void Read(IOSectionClass& IO) = 0;
+  EventClass(PathDataClass &pathData, IOSectionClass& out) :
+    PathData(pathData), IOSection(out), TimeSpent(0.0), TimesCalled(0), Path(pathData.Path)
+  {}
+};
 
 #endif

@@ -35,30 +35,20 @@ class MultiStageClass : public ParticleMoveClass
 {
 protected:
   list<StageClass*> Stages;
-  int NumSteps;
-  int NumAttempted;
-  int Slice1,Slice2;
-  double TimeSpent2;
+  int Slice1, Slice2;
+
+  // Center of mass
+  double cm2;
   ObservableDouble CenterOfMassVar;
 
-  inline double AcceptanceRatio() 
-  {
-    return (double)(NumAccepted)/(double)NumAttempted;
-  }
-
 public:
-  double cm2;
-  void Read(IOSectionClass &io);
   void Accept();
   void Reject();
-  virtual void WriteRatio();
-  double NewMoveProb;
-  double OldMoveProb;
-  ///Why was this MakeMove()=0 and virtual?
   void MakeMove();
+  virtual void WriteRatio();
   MultiStageClass(PathDataClass &pathData, IOSectionClass &outSection) : 
     CenterOfMassVar("CenterOfMassDrift",IOSection,pathData.Path.Communicator),
-    ParticleMoveClass(pathData,outSection) , TimeSpent2(0)
+    ParticleMoveClass(pathData,outSection), cm2(0)
   {
     //do nothing for now
   }

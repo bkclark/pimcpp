@@ -28,83 +28,63 @@ class MoveClass : public EventClass
 {
 protected:
   double SecondsInMove;
+
   /// This variable stores the acceptance ratio for the move
   ObservableDouble RatioVar;
   int DumpFreq;
 public:
   /// Stores the number of moves made and the number accepted
-  int NumAccepted;
+  int NumAccepted, NumAttempted;
+
   /// Call this in order to make a move.
   virtual void MakeMove()=0;
+
   ///All moves ought to be able to read
   virtual void Read(IOSectionClass &input)=0;
-  virtual double AcceptanceRatio() {return sqrt((double)-1.0);}
+
+  /// This returns the Acceptance Ratio.
+  inline double AcceptanceRatio()
+  {
+    if (NumAttempted == 0)
+      return 1.;
+    else
+      return (double)(NumAccepted)/(double)NumAttempted;
+  }
+
   virtual void WriteRatio();
   void DoEvent();
-  
-  /// MoveClass constructor. Sets reference to the PathData object
-  MoveClass(PathDataClass &pathData, IOSectionClass &out) : 
-    EventClass(pathData, out), DumpFreq(10000), 
-    RatioVar("AcceptRatio", IOSection, pathData.Path.Communicator)
-    {
-      ///		cerr << "MoveClass construct" << endl;
-      // do nothing 
-    }
-};
-  
 
-/// This is a specialization of MoveClass which actually physically moves
-/// particles.
+  /// MoveClass constructor. Sets reference to the PathData object
+  MoveClass(PathDataClass &pathData, IOSectionClass &out) :
+    EventClass(pathData, out), DumpFreq(10000),
+    RatioVar("AcceptRatio", IOSection, pathData.Path.Communicator),
+    NumAccepted(0), NumAttempted(0)
+    {}
+};
+
+/// This is a specialization of MoveClass which actually physically moves particles.
 class ParticleMoveClass : public MoveClass
 {
 protected:
   /// Stores which species of particles this moves will work on
   Array<int,1> ActiveSpecies;
-  /// Total number of particles in the active species
-  int TotalParticles;
 
-  /// Scratch Array holding a random subset of particles
-  Array<int,1> MyParticleIndices; 
-  /// Our move class takes the number of particles to move at a
-  /// time. This is stored here. 
-  int NumParticlesToMove;
+  /// This array contains the int's of particles that you are currently moving
+  Array<int,1> ActiveParticles;
 
- public:
+  /// When we choose particles we select the  particles (randomly) from the set of species enumerated in ActiveSpecies
+  void SetActiveSpecies(Array<string,1> ActSpecies);
+
+public:
   /// Desired acceptance ratio
   double DesiredAcceptRatio;
+
   /// An accumulator used to publish the diffusion value. -jg
   double total_r_squared;
-  /// This returns the Acceptance Ratio.
-  inline double AcceptanceRatio() 
-  {
-    return (double)(NumAccepted)/(double)TimesCalled;
-  }
-  /// Call this to make a move
-  //  virtual void MakeMove()=0;
 
-  /// This array contains the int's of particles that you are 
-  /// currently moving (i.e. NumParticlesToMove of them
-  Array<int,1> ActiveParticles;
-  /// When we choose particles we select the  particles (randomly)
-  /// from the set of species enumerated in ActiveSpecies 
-  void SetActiveSpecies(Array<int,1> ActSpecies);
-  /// Function that sets the number of particles to move
-  inline void SetNumParticlesToMove(int i)
-  {
-    NumParticlesToMove = i;
-    MyParticleIndices.resize(i);
-    ActiveParticles.resize(i);
-  }
-  /// Function that chooses the particles that you should move and
-  /// places them in ActiveParticles; 
-  void ChooseParticles();
-  void ChooseParticlesOpen();
-  ParticleMoveClass(PathDataClass &myPathData, IOSectionClass outSection) : 
+  ParticleMoveClass(PathDataClass &myPathData, IOSectionClass outSection) :
     MoveClass (myPathData, outSection)
-  { 
-    NumAccepted=0;
-    /* Do nothing for now.*/  
-  }
+  {}
 };
 
 
