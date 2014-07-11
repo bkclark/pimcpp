@@ -278,7 +278,7 @@ class GKIntegration {
 		   const bool andFlag) {
     ir.clear();
 
-    // #define PRINT_IT
+//#define PRINT_IT
 #ifdef PRINT_IT
     cout << "Beginning integration" << endl;
 #endif

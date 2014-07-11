@@ -13,47 +13,43 @@ class UshortIntegrand
 {
 private:
   CubicSpline &Vl, &V;
-  int Level;
-  inline double Vintegrand(double r)
-  {
-    return r*r*(V(r) - Vl(r));
-  }
-
+  inline double Vintegrand(double r) { return r*r*(V(r) - Vl(r)); }
 public:
-  inline double operator()(double r)
-  {
-    return Vintegrand(r);
-  }
+  inline double operator()(double r) { return Vintegrand(r); }
   UshortIntegrand (CubicSpline &t_Vl, CubicSpline &t_V) :
     Vl(t_Vl), V(t_V)
-  { /* do nothing else */ }
+  {}
 };
-
 
 class UlongIntegrand
 {
 private:
   CubicSpline &Vl, &V;
-  inline double Vintegrand(double r)
-  {
-    return r*r*(Vl(r));
-  }
-
+  inline double Vintegrand(double r) { return r*r*(Vl(r)); }
 public:
-  inline double operator()(double r)
-  {
-      return Vintegrand(r);
-  }
+  inline double operator()(double r) { return Vintegrand(r); }
   UlongIntegrand (CubicSpline &t_Vl, CubicSpline &t_V) :
     Vl(t_Vl), V(t_V)
-  { /* do nothing else */ }
+  {}
 };
-
 
 bool same(pair<double,double> &a, pair<double,double> &b)
 {
   return fabs(a.first-b.first)<1e-6;
 }
+
+class XkIntegrand
+{
+private:
+  CubicSpline &V;
+  double k;
+  inline double Vintegrand(double r) { return r*sin(k*r)*V(r); }
+public:
+  inline double operator()(double r) { return Vintegrand(r); }
+  XkIntegrand (CubicSpline &t_V, double t_k) :
+    V(t_V), k(t_k)
+  {}
+};
 
 class EwaldClass
 {
@@ -64,13 +60,13 @@ public:
   Array<double,1> MagK;
   double kCut;
   int nMax, nPoints, nKnots;
-  int gridType, breakupType;
+  int gridType, breakupType, breakupObject, paIndex;
   Grid &grid;
 
   EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rMax, int t_nPoints,
-             Grid &t_grid, int t_breakupType, int t_nKnots, double t_tau)
+             Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau)
     : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rMax(t_rMax), nPoints(t_nPoints),
-      grid(t_grid), breakupType(t_breakupType), nKnots(t_nKnots), tau(t_tau)
+      grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau)
   {
     if (rMin == 0.)
       cerr << "Warning: rMin = 0!" << endl;
@@ -91,10 +87,31 @@ public:
       cerr << "ERROR: Unrecognized breakup type." << endl;
   }
 
-  double Xk_V (double k,double rMaxut)
+  double Xk_Coul(double k, double r)
   {
-    double C0 = -4.0*M_PI/(k*k) * cos(k*rMaxut);
-    return (Z1Z2*C0);
+    double Xk = -(4.0*M_PI*Z1Z2/(k*k))*cos(k*r);
+    if (breakupObject == 1)
+      Xk *= tau;
+    return Xk;
+  }
+
+  /// This calculates the quantity 
+  /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
+  double CalcXk(CubicSpline &V, double k)
+  {
+     double absTol = 1.0e-5;
+     double relTol = 1.0e-3;
+
+     XkIntegrand integrand(V, k);
+     GKIntegration<XkIntegrand, GK31> integrator(integrand);
+     double Xk = -(4.0*M_PI/k) * integrator.Integrate(rMax, 20*rMax, absTol, relTol, false);
+
+     /// Add in the analytic part that I ignored
+     /// Multiply analytic term by tau only for U -- do not multiply
+     /// for dU or V.
+     Xk += Xk_Coul(k, 20*rMax);
+
+     return Xk;
   }
 
   inline bool Include(dVec k, bool includeAll=false)
@@ -202,9 +219,22 @@ public:
     double kavg = pow(kvol,1.0/3.0);
 
     // Read potential
+    stringstream fileName;
+    if (breakupObject == 2)
+      fileName << "dud";
+    else if (breakupObject == 1)
+      fileName << "ud";
+    else if (breakupObject == 0)
+      fileName << "v";
+    else {
+      cerr << "ERROR: Unrecognized breakup object type!" << endl;
+      abort();
+    }
+    fileName << "." << paIndex << ".txt";
     ifstream pointFile;
-    pointFile.open("Vr.dat");
-    Array<double,1> rs(nPoints), v(nPoints);
+    string fileNameStr = fileName.str();
+    pointFile.open(fileNameStr.c_str());
+    Array<double,1> rs(20*nPoints), v(20*nPoints);
     int ri = 0;
     while (!pointFile.eof()) {
       double r, V;
@@ -236,25 +266,20 @@ public:
     breakup.SetkVecs (kCut, kCont, kMax);
     int numk = breakup.kpoints.size();
     int N = basis.NumElements();
-    Array<double,1> t(N);
-    Array<bool,1> adjust (N);
-    Array<double,1> Xk(numk);
-    Array<double,1> fVl;
-
-    // Would be 0.5, but with two timeslice distdisp, it could be a
-    // little longer
-    Array<double,1> Vl(nPoints), r(nPoints), Vs(nPoints);
+    Array<bool,1> adjust(N);
+    Array<double,1> t(N), Xk(numk), fVl(kVecs.size()), Vl(nPoints), r(nPoints), Vs(nPoints);
     for (int i=0; i<nPoints; i++)
       r(i) = grid(i);
-    fVl.resize(kVecs.size()); //need actual number of ks
     fVl = 0.0;
     Vl = 0.0;
 
     // Calculate Xk's
+    cout << "Calculating Xk's" << endl;
     for (int ki=0; ki<numk; ki++) {
-      //Xk(ki) = CalcXk(paIndex, 0, breakup.kpoints(ki)[0], rMax, JOB_V);
       double k = breakup.kpoints(ki)[0];
-      Xk(ki) = Xk_V (k,rMax) / boxVol;
+      Xk(ki) = CalcXk(VSpline, k) / boxVol;
+      cout << k << " " << Xk(ki)*boxVol << " " << Xk_Coul(k, rMax) << endl;
+      //Xk(ki) = Xk_Coul(k, rMax) / boxVol;
     }
 
     // Set boundary conditions at rMax:  ForMaxe value and first and
@@ -275,6 +300,7 @@ public:
 
     // Now, do the optimal breakup:  this gives me the coefficents
     // of the basis functions, h_n in the array t.
+    cout << "Performing breakup" << endl;
     double chi = breakup.DoBreakup (Xk, t, adjust);
     cerr<<"Chi = "<<chi<<endl;
 
@@ -298,6 +324,7 @@ public:
     }
 
     // Calculate FT of Ushort at k=0
+    cout << "Calculating fVs0" << endl;
     CubicSpline VlSpline(&grid,Vl);
     UshortIntegrand shortIntegrand(VlSpline,VSpline);
     GKIntegration<UshortIntegrand, GK31> shortIntegrator(shortIntegrand);
@@ -306,6 +333,7 @@ public:
     cerr << "fVs0 = " << fVs0 << endl;
 
     // Calculate FT of Vl at k=0
+    cout << "Calculating fVl0" << endl;
     UlongIntegrand longIntegrand(VlSpline,VSpline);
     GKIntegration<UlongIntegrand, GK31> longIntegrator(longIntegrand);
     longIntegrator.SetRelativeErrorMode();
@@ -331,8 +359,8 @@ public:
       for (int n=0; n<N; n++)
         fVl(ki) += t(n) * basis.c(n,k);
       // Now add on part from rMax to infinity
-      //pa.fVl(ki) -= CalcXk(paIndex, 0, k, rMax, JOB_V);
-      fVl(ki) -= Xk_V(k,rMax) / boxVol;
+      fVl(ki) -= CalcXk(VSpline, k) / boxVol;
+      //fVl(ki) -= Xk_Coul(k, rMax) / boxVol;
       fVls.push_back(make_pair(k, fVl(ki)));
     }
     sort(fVls.begin(), fVls.end());
@@ -344,7 +372,6 @@ public:
     }
     outfile.close();
   }
-
 
   void BasicEwald(double alpha)
   {
@@ -371,8 +398,8 @@ public:
       dVec k = kVecs(i);
       double k2 = dot(k,k);
       double kMag = sqrt(k2);
-      double val = (4.*M_PI*Z1Z2/(k2*vol)) * exp(-k2/(4.*alpha*alpha));
-      fVls.push_back(make_pair(kMag, val));
+      double fVl = (4.*M_PI*Z1Z2/(k2*vol)) * exp(-k2/(4.*alpha*alpha));
+      fVls.push_back(make_pair(kMag, fVl));
     }
     sort(fVls.begin(), fVls.end());
     vector<pair<double, double> >::iterator new_end = unique(fVls.begin(), fVls.end(), same);
@@ -384,7 +411,6 @@ public:
     outfile.close();
 
   }
-
 
   void TestMadelung()
   {
@@ -559,11 +585,13 @@ int main(int argc, char* argv[])
   }
 
   double Z1Z2 = atof(argv[7]);
-  bool breakupType = atoi(argv[8]);
-  int nKnots = atoi(argv[9]);
-  double tau = atof(argv[10]);
+  int breakupType = atoi(argv[8]);
+  int breakupObject = atoi(argv[9]);
+  int paIndex = atoi(argv[10]);
+  int nKnots = atoi(argv[11]);
+  double tau = atof(argv[12]);
 
-  EwaldClass e(Z1Z2, box, nMax, rMin, rMax, nPoints, *grid, breakupType, nKnots, tau);
+  EwaldClass e(Z1Z2, box, nMax, rMin, rMax, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
   e.DoBreakup();
   e.TestMadelung();
 

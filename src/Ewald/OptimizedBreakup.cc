@@ -193,9 +193,7 @@ double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk,
   return (chi2);
 }
 
-double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk, 
-					Array<double,1> &t,
-					const Array<bool,1> &adjust)
+double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk, Array<double,1> &t, const Array<bool,1> &adjust)
 {
   const double tolerance = 1.0e-16;
   //const double tolerance = 0.0;

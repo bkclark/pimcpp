@@ -68,8 +68,7 @@ public:
   /// t is the set of coefficients of the breakup.
   /// inFit is a boolean array telling whether t_n should be optimized
   /// or left at its initial value.  Returns chi-squared for the breakup.
-  double DoBreakup (const Array<double,1> &Vk, Array<double,1> &t, 
-		    const Array<bool,1> &adjust);
+  double DoBreakup (const Array<double,1> &Vk, Array<double,1> &t, const Array<bool,1> &adjust);
   /// Same as above, but we assume that all t's are adjusted.
   double DoBreakup (const Array<double,1> &Vk, Array<double,1> &t);
   OptimizedBreakupClass (BasisClass &basis) : Basis(basis)
@@ -210,8 +209,6 @@ inline complex<double> LPQHI_BasisClass::dEminus_dk(int i, double k, int n)
     return ((eye/(k*k))*(t1+t2) -(eye/k)*(dt1+dt2));
   }
 }
-
-
 
 inline double LPQHI_BasisClass::Dplus(int i, double k, int n)
 {
