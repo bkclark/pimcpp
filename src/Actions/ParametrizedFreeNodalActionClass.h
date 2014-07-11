@@ -36,7 +36,7 @@ private:
   /// separation from the reference slice.
   Array<TinyVector<CubicSpline,NDIM>,2> ActionSplines;
   TinyVector<LinearGrid,NDIM> ActionGrids;
-  double ActionImageSum (double L, double lambdaTau, double disp, int periodic);
+  double ActionImageSum (double L, double fourLambdaBetaInv, double disp, int periodic);
   double ActionkSum (double L, double lambdaTau, double disp);
 
   double GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl);

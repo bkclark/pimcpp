@@ -26,7 +26,7 @@ typedef enum {FERMION, BOSON, BOLTZMANNON, ANYON} ParticleType;
 
 
 /// This is an base class that holds all the information about
-/// identical particles.  It may be specialized to hold specialized
+/// identical particles. It may be specialized to hold specialized
 /// information about particular types of particles.
 class SpeciesClass
 {
@@ -41,8 +41,7 @@ public:
   TinyVector <bool,NDIM> DimensionActive;
   virtual bool Read(IOSectionClass &inSection);
   bool isIon; // flag which designates an ion
-  /// \$ \lambda \equiv \frac{\hbar^2}{2m} \$.  This is zero for a
-  /// classical particle.
+  /// \$ \lambda \equiv \frac{\hbar^2}{2m} \$.  This is zero for a classical particle.
   double lambda;
   dVec assymetric_lambda;
   double Charge;
@@ -53,25 +52,13 @@ public:
   double pseudoCharge;
   /// sigma and epsilon are parameters for the Lennard-Jones potential used in the TIP5P water model. -jg
   double Sigma;
-  double Epsilon; 
-
-  // OBSOLETE
-	////  If specified in the input file,
-	////  molecule holds the name of a "molecule"
-  ////  to which particles of this species belong
-	//// 	formula holds an integer to designate
-	////	the corresponding	chemical formula
-	//string molecule; 
-	//int formula;
-	//bool AssignMoleculeIndex;
+  double Epsilon;
 
   /// Returns the nodal action for fermions.  Returns 0 for bosons.
   virtual ParticleType GetParticleType() = 0;
 };
 
 SpeciesClass* ReadSpecies(IOSectionClass &inSection);
-
-
 
 ///This is the inherited class that holds the information about
 ///the electrons. Eventually this will probably be turned into
@@ -88,7 +75,6 @@ public:
   ~FermionClass() { };
   ParticleType GetParticleType(){ return FERMION; }
 };
-
 
 ///This is the inherited class that holds the information about
 ///the protons.  Currently no useful information about protons is contained

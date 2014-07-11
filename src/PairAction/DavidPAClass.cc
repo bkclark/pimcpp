@@ -983,24 +983,24 @@ void DavidPAClass::ReadDavidSquarerFileHDF5(string DMFile)
     HasLongRange=false;
 
   // Print and debug
-  double U, dU, v;
-  double x(0.0), end(3.0);
-  while (x<=end) {
-    calcUsqz(0,x,0,0,U,dU,v);
-    cout << x << " " << U << " " << dU << " " << v << endl;
-    x += 0.1;
-  }
-  dVec r(3), rp(3);
-  r = 0.;
-  rp = 0.;
-  rp(0) = 0.5;
-  double rmag = sqrt(dot(r,r));
-  double rpmag = sqrt(dot(rp,rp));
-  double s2 = dot(r-rp, r-rp);
-  double q = 0.5*(rmag + rpmag);
-  double z = (rmag - rpmag);
-  calcUsqz(sqrt(s2),q,z,0,U,dU,v);
-  cout << sqrt(s2) << " " << q << " " << z << " " << U << " " << dU << " " << v << endl;
+  //double U, dU, v;
+  //double x(0.0), end(3.0);
+  //while (x<=end) {
+  //  calcUsqz(0,x,0,0,U,dU,v);
+  //  cout << x << " " << U << " " << dU << " " << v << endl;
+  //  x += 0.1;
+  //}
+  //dVec r(3), rp(3);
+  //r = 0.;
+  //rp = 0.;
+  //rp(0) = 0.5;
+  //double rmag = sqrt(dot(r,r));
+  //double rpmag = sqrt(dot(rp,rp));
+  //double s2 = dot(r-rp, r-rp);
+  //double q = 0.5*(rmag + rpmag);
+  //double z = (rmag - rpmag);
+  //calcUsqz(sqrt(s2),q,z,0,U,dU,v);
+  //cout << sqrt(s2) << " " << q << " " << z << " " << U << " " << dU << " " << v << endl;
 }
 
 

@@ -31,7 +31,6 @@ ParametrizedFreeNodalActionClass::ParametrizedFreeNodalActionClass (PathDataClas
   SavePath.resize(N);
 }
 
-
 void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 {
   assert (in.ReadVar ("ModelType", ModelType));
@@ -54,7 +53,7 @@ void ParametrizedFreeNodalActionClass::Read (IOSectionClass &in)
 double ParametrizedFreeNodalActionClass::GetFourLambdanTauInv (double lambdanTau)
 {
   if (ModelType == 0) {
-    lambdanTau = lambdanTau*ParamList(model,0);
+    lambdanTau /= ParamList(model,0); // !!!!!!!!!!!!!!!!!!!!!!HACHACKACHAKFHLAKJFLKASJ
   } else if (ModelType == 1) {
     double lambda = Path.Species(SpeciesNum).lambda;
     double nTau = lambdanTau/lambda;
@@ -66,13 +65,10 @@ double ParametrizedFreeNodalActionClass::GetFourLambdanTauInv (double lambdanTau
   return (lambdanTau!=0.0) ? (1.0/(4.0*lambdanTau)) : 0.0;
 }
 
-double ParametrizedFreeNodalActionClass::ActionImageSum (double L, double lambdaBeta, double disp, int periodic)
+double ParametrizedFreeNodalActionClass::ActionImageSum (double L, double fourLambdaBetaInv, double disp, int periodic)
 {
-  double fourLambdaBetaInv = GetFourLambdanTauInv(lambdaBeta);
-
   // If the images won't contributed anything, let's not worry about image sums.
   if ((disp*disp*fourLambdaBetaInv) > 50.0 || !periodic) {
-    //cout << "hi " << ParamList(model,0) << endl;
     return (disp*disp*fourLambdaBetaInv);
   }
 
@@ -85,7 +81,6 @@ double ParametrizedFreeNodalActionClass::ActionImageSum (double L, double lambda
   }
   return (-log(sum));
 }
-
 
 double ParametrizedFreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double disp)
 {
@@ -101,7 +96,6 @@ double ParametrizedFreeNodalActionClass::ActionkSum (double L, double lambdaBeta
   return (-log(sum));
 }
 
-
 void ParametrizedFreeNodalActionClass::SetupActions()
 {
   if (ModelType == 0 || ModelType == 1 || ModelType == 2) {
@@ -109,31 +103,50 @@ void ParametrizedFreeNodalActionClass::SetupActions()
     // Setup grids
     for (int i=0; i<NDIM; i++)
       ActionGrids[i].Init (-0.5*Path.GetBox()[i], 0.5*Path.GetBox()[i], nPoints);
-  
+
     Array<double,1> actionData(nPoints);
     int nSplines = Path.TotalNumSlices/2 + (Path.TotalNumSlices%2)+1;
     double lambdaTau = Path.tau * Path.Species(SpeciesNum).lambda;
-  
+
     // Now, setup up actions
     ActionSplines.resize(NumModels,nSplines);
     dVec periodic = Path.GetPeriodic();
     for (int spline=0; spline<nSplines; spline++) {
       double lambdaBeta = lambdaTau * (double)spline;
+      double fourLambdaBetaInv = GetFourLambdanTauInv(lambdaBeta);
       for (int dim=0; dim<NDIM; dim++) {
         double L = Path.GetBox()[dim];
+        double ActionImageSum0 = ActionImageSum(L, fourLambdaBetaInv, 0.0, periodic[dim]); // Normalizing by madelung constant
+        ActionImageSum0 = 0.; // No real need to normalize
         for (int i=0; i<nPoints; i++) {
           double disp = ActionGrids[dim](i);
-          actionData(i) = ActionImageSum (L, lambdaBeta, disp, periodic[dim]) - ActionImageSum(L, lambdaBeta, 0.0, periodic[dim]);
+          actionData(i) = ActionImageSum (L, fourLambdaBetaInv, disp, periodic[dim]) - ActionImageSum0;
+          //if (spline == 120 && dim == 0) {
+            //cout << actionData(i) << " ";
+            //double sum = 0.0;
+            //int numImages = 10;
+            //for (int image=-numImages; image<=numImages; image++) {
+            //  double x = disp + (double)image*L;
+            //  sum += exp (-(x*x)*fourLambdaBetaInv);
+            //  cout << image << " " << x << " " << -log(sum) << endl;
+            //}
+          //}
         }
+        //if (spline == 120 && dim == 0)
+        //  cout << endl;
         // Since the action is periodic, the slope should be zero
         // at the boundaries
         ActionSplines(model,spline)[dim].Init (&ActionGrids[dim], actionData, 0.0, 0.0);
       }
+      //if (spline == 120) {
+      //  for (int i=0; i<nPoints; i++)
+      //    cout << ActionSplines(model,spline)[0](ActionGrids[0](i)) << " ";
+      //  cout << endl;
+      //}
     }
   }
 
 }
-
 
 double ParametrizedFreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl)
 {
@@ -148,6 +161,7 @@ double ParametrizedFreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int 
   if (ModelType == 0 || ModelType == 1 || ModelType == 2) {
     for (int dim=0; dim<NDIM; dim++)
       freeAction += ActionSplines(model,sliceDiff)[dim](diff[dim]);
+    //cout << slice << " " << sliceDiff << " " << diff << " " << freeAction << endl;
     if (ModelType == 0 || ModelType == 1)
       return exp(-freeAction);
   }
@@ -194,7 +208,6 @@ double ParametrizedFreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int 
     return exp(-harmonicAction);
   }
 }
-
 
 double ParametrizedFreeNodalActionClass::GetRhoij(int slice, int sliceDiff, int refPtcl, int ptcl, Array<dVec,1> &tempPath)
 {

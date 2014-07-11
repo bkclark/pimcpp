@@ -39,32 +39,33 @@ void NodalActionClass::Init()
   FirstDistTime = 1;
   FirstDetTime = 1;
   // Initialize NodeDist and/or NodeDet
-  if (PathData.Path.StoreNodeDist||PathData.Path.StoreNodeDet) {
+  if (Path.StoreNodeDist||Path.StoreNodeDet) {
     SetMode(NEWMODE);
-    SpeciesClass &species = PathData.Path.Species(SpeciesNum);
+    SpeciesClass &species = Path.Species(SpeciesNum);
     double lambda = species.lambda;
-    double levelTau = PathData.Path.tau;
+    double levelTau = Path.tau;
     int myStart, myEnd;
-    Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+    Path.SliceRange(Path.Communicator.MyProc(), myStart, myEnd);
     int refSlice = Path.GetRefSlice() - myStart;
     int startSlice = 0;
-    int endSlice = PathData.Path.NumTimeSlices()-1;
+    int endSlice = Path.NumTimeSlices()-1;
     for (int slice=startSlice; slice<endSlice; slice++) {
       int sliceDiff = abs(slice-refSlice);
-      sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices-sliceDiff);
+      sliceDiff = min (sliceDiff, Path.TotalNumSlices-sliceDiff);
       if (sliceDiff!=0) {
-        if (PathData.Path.StoreNodeDist)
-          PathData.Path.NodeDist(slice,SpeciesNum) = HybridDist(slice, lambda*levelTau);
-        if (PathData.Path.StoreNodeDet)
-          PathData.Path.NodeDet(slice,SpeciesNum) = Det(slice);
+        if (Path.StoreNodeDist)
+          Path.NodeDist(slice,SpeciesNum) = GetNodeDist(slice, lambda, levelTau, SpeciesNum);
+        if (Path.StoreNodeDet) {
+          Path.NodeDet(slice,SpeciesNum) = Det(slice);
+        }
       }
     }
-    if (PathData.Path.StoreNodeDist)
-      PathData.Path.NodeDist[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
-        PathData.Path.NodeDist[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
-    if (PathData.Path.StoreNodeDet)
-      PathData.Path.NodeDet[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
-        PathData.Path.NodeDet[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
+    if (Path.StoreNodeDist)
+      Path.NodeDist[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
+        Path.NodeDist[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
+    if (Path.StoreNodeDet)
+      Path.NodeDet[OLDMODE](Range(startSlice,endSlice), SpeciesNum) =
+        Path.NodeDet[NEWMODE](Range(startSlice,endSlice), SpeciesNum);
   }
 }
 
@@ -72,6 +73,8 @@ void NodalActionClass::Init()
 void NodalActionClass::Read (IOSectionClass &in)
 {
   TimeSpent = 0.0;
+  scale.resize(Path.TotalNumSlices);
+  scale = 1;
 
   // Decide which nodal distance function to use
   if (!in.ReadVar ("UseNoDist",UseNoDist))
@@ -84,10 +87,6 @@ void NodalActionClass::Read (IOSectionClass &in)
     UseLineSearchDist = 0;
   if (!in.ReadVar ("UseMaxDist",UseMaxDist))
     UseMaxDist = 0;
-
-  cout << "Nodal Distance Functions: " << UseHybridDist << " " << UseNewtonRaphsonDist << " " << UseLineSearchDist << " " << UseMaxDist << endl;
-
-  SetupActions();
 }
 
 
@@ -103,7 +102,7 @@ double NodalActionClass::NodalDist (int slice)
   Array<dVec,1> gradVec(N);
   GradientDet (slice, det, gradVec);
 
-  if (det < 0 && !PathData.Path.UseNodeImportance)
+  if (det < 0 && !Path.UseNodeImportance)
     return -1;
 
   double grad2 = 0.0;
@@ -117,7 +116,7 @@ double NodalActionClass::NodalDist (int slice)
 bool NodalActionClass::IsPositive (int slice)
 {
   int myStartSlice, myEndSlice;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
   int sliceDiff = slice - refSlice;
@@ -142,7 +141,7 @@ double NodalActionClass::HybridDist (int slice, double lambdaTau)
 
   double gradDist = NodalDist(slice);
 
-  if (gradDist < 0 && !PathData.Path.UseNodeImportance)
+  if (gradDist < 0 && !Path.UseNodeImportance)
     return -1;
 
   // gradDist will almost always be a lower bound to the real
@@ -206,7 +205,7 @@ double NodalActionClass::LineSearchDist (int slice)
   }
 
   GradientDet (slice, det0, gradVec, tempPath);
-  if (det0 < 0.0 && !PathData.Path.UseNodeImportance)
+  if (det0 < 0.0 && !Path.UseNodeImportance)
     return -1;
 
   double grad2=0.0;
@@ -283,7 +282,7 @@ double NodalActionClass::NewtonRaphsonDist (int slice)
   int numIter = 0;
   // Do Newton-Raphson iterations
   GradientDet (slice, det, gradVec, tempPath);
-  if (det<0.0 && !PathData.Path.UseNodeImportance)
+  if (det<0.0 && !Path.UseNodeImportance)
     return (-1.0);
 
   double grad2=0.0;
@@ -334,11 +333,11 @@ double NodalActionClass::NewtonRaphsonDist (int slice)
 double NodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, int SpeciesNum)
 {
  // cout << "HD: " << HybridDist(slice,lambda*levelTau) << " NR: " << NewtonRaphsonDist(slice) << " MD: " << MaxDist(slice) << " ND: " << NodalDist(slice) << endl;
-  if (PathData.Path.NumParticles() == 1)
+  if (Path.NumParticles() == 1)
     return 1e100;
 
   double dist;
-  if ((GetMode()==NEWMODE||FirstDistTime)||!PathData.Path.StoreNodeDist)
+  if ((GetMode()==NEWMODE||FirstDistTime)||!Path.StoreNodeDist)
     if (UseHybridDist)
       dist = HybridDist(slice,lambda*levelTau); // Single Newton-Raphson, then Line Search
     else if (UseNewtonRaphsonDist)
@@ -350,16 +349,16 @@ double NodalActionClass::GetNodeDist(int slice, double lambda, double levelTau, 
     else
       dist = NodalDist(slice); // Single Newton-Raphson
   else
-    dist = PathData.Path.NodeDist(slice,SpeciesNum);
+    dist = Path.NodeDist(slice,SpeciesNum);
   return dist;
 }
 
 
 double NodalActionClass::SingleAction (int startSlice, int endSlice, const Array<int,1> &changePtcls, int level)
 {
-  if (PathData.Path.Equilibrate||UseNoDist)
+  if (Path.Equilibrate||UseNoDist)
     return SimpleAction(startSlice,endSlice,changePtcls,level);
-  else if (PathData.Path.UseNodeImportance)
+  else if (Path.UseNodeImportance)
     return NodeImportanceAction(startSlice,endSlice,changePtcls,level);
   else
     return PreciseAction(startSlice,endSlice,changePtcls,level);
@@ -375,7 +374,7 @@ double NodalActionClass::SimpleAction (int startSlice, int endSlice, const Array
 
   int skip = 1<<level;
   int myStart, myEnd;
-  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  Path.SliceRange(Path.Communicator.MyProc(), myStart, myEnd);
   int refSlice = Path.GetRefSlice() - myStart;
 
   int totalSlices = Path.TotalNumSlices;
@@ -391,10 +390,10 @@ double NodalActionClass::SimpleAction (int startSlice, int endSlice, const Array
     //#pragma omp flush (abort)
     if (!sliceIsRef&&!abort) {
       int i = (slice - startSlice)/skip;
-      if (((GetMode()==NEWMODE)||FirstDetTime)||!PathData.Path.StoreNodeDet)
+      if (((GetMode()==NEWMODE)||FirstDetTime)||!Path.StoreNodeDet)
         deter[i] = Det(slice);
       else
-        deter[i] = PathData.Path.NodeDet(slice,SpeciesNum);
+        deter[i] = Path.NodeDet(slice,SpeciesNum);
       if (deter[i] <= 0.0) {
         //#pragma omp critical
         //{
@@ -408,12 +407,12 @@ double NodalActionClass::SimpleAction (int startSlice, int endSlice, const Array
   if(abort)
     uNode = 1.0e100;
   else {
-    if (((level==0 && GetMode()==NEWMODE) || FirstDetTime) && PathData.Path.StoreNodeDet) {
+    if (((level==0 && GetMode()==NEWMODE) || FirstDetTime) && Path.StoreNodeDet) {
       for (int slice=startSlice; slice <= endSlice; slice+=skip) {
         int i = (slice - startSlice)/skip;
         bool sliceIsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
         if (!sliceIsRef)
-          PathData.Path.NodeDet(slice,SpeciesNum) = deter[i];
+          Path.NodeDet(slice,SpeciesNum) = deter[i];
       }
       FirstDetTime = 0;
     }
@@ -437,10 +436,10 @@ double NodalActionClass::NodeImportanceAction (int startSlice, int endSlice, con
   SpeciesClass &species = Path.Species(SpeciesNum);
   double lambda = species.lambda;
   int skip = 1<<level;
-  double levelTau = PathData.Path.tau * (double)skip;
+  double levelTau = Path.tau * (double)skip;
 
   int myStart, myEnd;
-  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  Path.SliceRange(Path.Communicator.MyProc(), myStart, myEnd);
   int refSlice = Path.GetRefSlice() - myStart;
 
   int totalSlices = Path.TotalNumSlices;
@@ -458,8 +457,8 @@ double NodalActionClass::NodeImportanceAction (int startSlice, int endSlice, con
       int i = (slice - startSlice)/skip;
       dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
       /// Method 4, minimum distance
-      if (dist[i] < PathData.Path.NodeImpEps)
-        dist[i] = PathData.Path.NodeImpEps;
+      if (dist[i] < Path.NodeImpEps)
+        dist[i] = Path.NodeImpEps;
     }
   }
   //#pragma omp barrier
@@ -478,9 +477,9 @@ double NodalActionClass::NodeImportanceAction (int startSlice, int endSlice, con
       uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
     else
       uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
-    if (((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.StoreNodeDist) {
-      PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
-      PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+    if (((level==0 && GetMode()==NEWMODE) || FirstDistTime) && Path.StoreNodeDist) {
+      Path.NodeDist(slice,SpeciesNum) = dist1;
+      Path.NodeDist(slice+skip,SpeciesNum) = dist2;
       FirstDistTime = 0;
     }
   }
@@ -490,7 +489,7 @@ double NodalActionClass::NodeImportanceAction (int startSlice, int endSlice, con
     1.0e-6*(double)(end.tv_usec-start.tv_usec);
 
   ///// Node Importance part
-  //double eps = PathData.Path.NodeImpEps;
+  //double eps = Path.NodeImpEps;
   ////// Method 1, constant shift
   //if (eps != 0.0)
   //  uNode = -log(eps) - log1p(exp(-uNode)/eps);
@@ -500,8 +499,8 @@ double NodalActionClass::NodeImportanceAction (int startSlice, int endSlice, con
   ///// Method 3, calculate uNode from mean interparticle spacing
   //double uNodeTmp = 0.0;
   //for (int slice = startSlice; slice < endSlice; slice+=skip) {
-  //  double dist1 = PathData.Path.NodeImpEps;
-  //  double dist2 = PathData.Path.NodeImpEps;
+  //  double dist1 = Path.NodeImpEps;
+  //  double dist2 = Path.NodeImpEps;
   //  uNodeTmp -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
   //}
   //if (uNode > uNodeTmp)
@@ -522,10 +521,10 @@ double NodalActionClass::PreciseAction (int startSlice, int endSlice, const Arra
   SpeciesClass &species = Path.Species(SpeciesNum);
   double lambda = species.lambda;
   int skip = 1<<level;
-  double levelTau = PathData.Path.tau * (double)skip;
+  double levelTau = Path.tau * (double)skip;
 
   int myStart, myEnd;
-  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  Path.SliceRange(Path.Communicator.MyProc(), myStart, myEnd);
   int refSlice = Path.GetRefSlice() - myStart;
 
   int totalSlices = Path.TotalNumSlices;
@@ -544,7 +543,7 @@ double NodalActionClass::PreciseAction (int startSlice, int endSlice, const Arra
     if (!sliceIsRef&&!abort) {
       int i = (slice - startSlice)/skip;
       dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
-      //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
+      //cout << Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
       if (dist[i] < 0.0) {
         //#pragma omp critical
         //{
@@ -576,9 +575,9 @@ double NodalActionClass::PreciseAction (int startSlice, int endSlice, const Arra
         uNode -= log1p(-exp(-dist1*dist1/(lambda*levelTau)));
       else
         uNode -= log1p(-exp(-dist1*dist2/(lambda*levelTau)));
-      if (!abort && ((level==0 && GetMode()==NEWMODE) || FirstDistTime) && PathData.Path.StoreNodeDist) {
-        PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
-        PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+      if (!abort && ((level==0 && GetMode()==NEWMODE) || FirstDistTime) && Path.StoreNodeDist) {
+        Path.NodeDist(slice,SpeciesNum) = dist1;
+        Path.NodeDist(slice+skip,SpeciesNum) = dist2;
         FirstDistTime = 0;
       }
     }
@@ -597,7 +596,7 @@ double NodalActionClass::PreciseAction (int startSlice, int endSlice, const Arra
 
 double NodalActionClass::d_dBeta (int slice1, int slice2, int level)
 {
-  if (PathData.Path.Equilibrate||UseNoDist)
+  if (Path.Equilibrate||UseNoDist)
     return 0.0;
 
   Array<int,1> changedPtcls(1);
@@ -605,13 +604,13 @@ double NodalActionClass::d_dBeta (int slice1, int slice2, int level)
   SpeciesClass &species = Path.Species(SpeciesNum);
   double lambda = species.lambda;
   int skip = 1<<level;
-  double levelTau = PathData.Path.tau * (double)skip;
+  double levelTau = Path.tau * (double)skip;
 
   int myStart, myEnd;
-  Path.SliceRange(PathData.Path.Communicator.MyProc(), myStart, myEnd);
+  Path.SliceRange(Path.Communicator.MyProc(), myStart, myEnd);
   int refSlice = Path.GetRefSlice() - myStart;
   int sliceDiff1 = abs(slice1-refSlice);
-  sliceDiff1 = min (sliceDiff1, PathData.Path.TotalNumSlices-sliceDiff1);
+  sliceDiff1 = min (sliceDiff1, Path.TotalNumSlices-sliceDiff1);
 
   int totalSlices = Path.TotalNumSlices;
   int numSlices = (slice2 - slice1)/skip + 1;
@@ -626,9 +625,9 @@ double NodalActionClass::d_dBeta (int slice1, int slice2, int level)
     if (!sliceIsRef) {
       int i = (slice - slice1)/skip;
       dist[i] = GetNodeDist(slice,lambda,levelTau,SpeciesNum);
-      //cout << PathData.Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
+      //cout << Path.CloneStr << " " << SpeciesNum << " " << refSlice << " " << i << " " << dist[i] << " " << slice << endl;
       if (dist[i] < 0.0) {
-        cerr << PathData.Path.CloneStr << " ERROR: dist = " << dist[i] << " skip = " << skip << " slice2 = " << slice+skip << " refSlice = " << refSlice << " species = " << species.Name << endl;
+        cerr << Path.CloneStr << " ERROR: dist = " << dist[i] << " skip = " << skip << " slice2 = " << slice+skip << " refSlice = " << refSlice << " species = " << species.Name << endl;
         dist[i] = 0.0;
       }
     }
@@ -639,14 +638,14 @@ double NodalActionClass::d_dBeta (int slice1, int slice2, int level)
   int i = 0;
   for (int slice=slice1; slice < slice2; slice+=skip) {
     int sliceDiff = slice - refSlice;
-    sliceDiff = min (sliceDiff, PathData.Path.TotalNumSlices - sliceDiff);
+    sliceDiff = min (sliceDiff, Path.TotalNumSlices - sliceDiff);
     bool slice1IsRef = (slice == refSlice) || (slice == refSlice+totalSlices);
     bool slice2IsRef = (slice+skip == refSlice) || (slice+skip == refSlice+totalSlices);
     double dist1 = dist[i];
     double dist2 = dist[i+1];
-    if (FirstDistTime && PathData.Path.StoreNodeDist) {
-      PathData.Path.NodeDist(slice,SpeciesNum) = dist1;
-      PathData.Path.NodeDist(slice+skip,SpeciesNum) = dist2;
+    if (FirstDistTime && Path.StoreNodeDist) {
+      Path.NodeDist(slice,SpeciesNum) = dist1;
+      Path.NodeDist(slice+skip,SpeciesNum) = dist2;
       FirstDistTime = 0;
     }
     double prod;
@@ -680,7 +679,7 @@ double NodalActionClass::Det (int slice, Array<dVec,1> &tempPath)
   int last = species.LastPtcl;
 
   int myStartSlice, myEndSlice;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
   int sliceDiff = abs(slice-refSlice);
@@ -726,7 +725,7 @@ double NodalActionClass::Det (int slice)
   int last = species.LastPtcl;
 
   int myStartSlice, myEndSlice;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
   int sliceDiff = abs(slice-refSlice);
@@ -737,15 +736,13 @@ double NodalActionClass::Det (int slice)
   int N = last - first + 1;
   Array<double,2> detMatrix(N,N);
   double det = 0.;
-  double scale = 1.;
   //do {
-
     // Fill up determinant matrix
     for (int refPtcl=first; refPtcl<=last; refPtcl++) {
       for (int ptcl=first; ptcl<=last; ptcl++) {
         double rhoij = GetRhoij(slice,sliceDiff,refPtcl,ptcl);
       //  cout << refPtcl << " " << ptcl << " " << rhoij << endl;
-        detMatrix(refPtcl-first, ptcl-first) = scale*rhoij;
+        detMatrix(refPtcl-first, ptcl-first) = scale(sliceDiff)*rhoij;
       }
     }
 
@@ -753,12 +750,12 @@ double NodalActionClass::Det (int slice)
     det = Determinant (detMatrix);
     //cout << detMatrix << endl;
 
-  //cout << scale << " " << slice << " " << det << endl;
+    //cout << scale << " " << slice << " " << det << endl;
     // Decide scaling
-    if (fabs(det) < 1.e-50)
-      scale *= 2;
-    else if (fabs(det) > 1.e50)
-      scale = pow(scale,1./N);
+    //if (fabs(det) < 1.e-50)
+    //  scale(sliceDiff) *= 2;
+    //else if (fabs(det) > 1.e50)
+    //  scale(sliceDiff) = pow(scale(sliceDiff),1./N);
 
     //if (scale > 1e100 || scale < 1e-100) {
     //  det = 2.e-10;
@@ -776,7 +773,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   int last = species.LastPtcl;
 
   int myStartSlice, myEndSlice;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
   int sliceDiff = abs(slice-refSlice);
@@ -799,7 +796,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   cofactors = detMatrix;
   det = GJInverse(cofactors);
   // Check if negative
-  //if (det < 0.0 && !PathData.Path.UseNodeImportance) {
+  //if (det < 0.0 && !Path.UseNodeImportance) {
   //  return;
   //}
   // Check if singular
@@ -835,7 +832,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   int last = species.LastPtcl;
 
   int myStartSlice, myEndSlice;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   Path.SliceRange (myProc, myStartSlice, myEndSlice);
   int refSlice = Path.GetRefSlice()-myStartSlice;
   int sliceDiff = abs(slice-refSlice);
@@ -858,7 +855,7 @@ void NodalActionClass::GradientDet (int slice, double &det, Array<dVec,1> &gradi
   cofactors = detMatrix;
   det = GJInverse(cofactors);
   // Check if negative
-  if (det < 0.0 && !PathData.Path.UseNodeImportance) {
+  if (det < 0.0 && !Path.UseNodeImportance) {
     return;
   }
   // Check if singular
@@ -895,11 +892,11 @@ void NodalActionClass::GradientDetFD (int slice, double &det, Array<dVec,1> &gra
 //  int last = species.LastPtcl;
 //  // Fill up determinant matrix
 //  int myStartSlice, myEndSlice;
-//  int myProc = PathData.Path.Communicator.MyProc();
+//  int myProc = Path.Communicator.MyProc();
 //  Path.SliceRange (myProc, myStartSlice, myEndSlice);
 //  int refSlice = Path.GetRefSlice()-myStartSlice;
-//  double t = abs(refSlice-slice) * PathData.Path.tau;
-//  double beta = PathData.Path.TotalNumSlices * PathData.Path.tau;
+//  double t = abs(refSlice-slice) * Path.tau;
+//  double beta = Path.TotalNumSlices * Path.tau;
 //  t = min (t, fabs(beta-t));
 //  double lambda = species.lambda;
 //  double C = 1.0/(4.0*M_PI * lambda * t);

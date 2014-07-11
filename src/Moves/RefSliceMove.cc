@@ -19,13 +19,13 @@
 
 void RefSliceMoveClass::Read(IOSectionClass &in)
 {
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   string moveName = "RefSliceMove";
   string permuteType, speciesName;
 
   assert (in.ReadVar ("NumLevels", NumLevels));
   assert (in.ReadVar ("Species", speciesName));
-  SpeciesNum = PathData.Path.SpeciesNum (speciesName);
+  SpeciesNum = Path.SpeciesNum (speciesName);
 
   if(!in.ReadVar ("DoSlaveMoves", DoSlaveMoves))
     DoSlaveMoves = false;
@@ -49,24 +49,24 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
     newStage -> BisectionLevel = level;
     newStage -> UseCorrelatedSampling=false;
     if (myProc == 0)
-      cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
+      cout<<Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Kinetic Action"<<endl;
     newStage -> Actions.push_back(&PathData.Actions.Kinetic);
     if (level == 0) {
       Array<string,1> samplingActions;
       if(in.ReadVar("SamplingActions",samplingActions)) {
         for (int i=0;i<samplingActions.size();i++) {
           if (myProc == 0)
-            cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
+            cout<<Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding "<<(*PathData.Actions.GetAction(samplingActions(i))).GetName()<<" Action"<<endl;
           newStage -> Actions.push_back(PathData.Actions.GetAction(samplingActions(i)));
         }
       } else {
         if (myProc == 0)
-          cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
+          cout<<Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" WARNING: No sampling actions found! Treating as free particles."<<endl;
       }
       /// No need to calculate this twice!
       //if ((PathData.Actions.NodalActions(SpeciesNum)!=NULL)) {
       //  if (myProc == 0)
-      //    cout<<PathData.Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
+      //    cout<<Path.CloneStr<<" "<<moveName<<" "<<speciesName<<" "<<level<<" Adding Node Action"<<endl;
       //  newStage -> Actions.push_back(PathData.Actions.NodalActions(SpeciesNum));
       //}
     }
@@ -80,9 +80,8 @@ void RefSliceMoveClass::Read(IOSectionClass &in)
 bool RefSliceMoveClass::NodeCheck()
 {
   if (PathData.Actions.NodalActions(SpeciesNum) != NULL) {
-    PathClass &Path=PathData.Path;
     // Broadcast the new reference path to all the other processors
-    PathData.Path.BroadcastRefPath();
+    Path.BroadcastRefPath();
 
     // Calculate local nodal action
     SetMode(OLDMODE);
@@ -92,21 +91,24 @@ bool RefSliceMoveClass::NodeCheck()
 
     // Do global sum over processors
     double localChange = newLocalNode - oldLocalNode;
-    double globalChange = PathData.Path.Communicator.AllSum (localChange);
-    bool toAccept = (-globalChange)>=log(PathData.Path.Random.Common());
+    double globalChange = Path.Communicator.AllSum (localChange);
+    bool toAccept = (-globalChange)>=log(Path.Random.Common());
 
     // Check if Broken
     if ((abs(newLocalNode) > 1e50 || abs(oldLocalNode) > 1e50) && toAccept) {
-      cerr << Path.CloneStr << " Broken NodeCheck!!! " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
+      cerr << Path.CloneStr << " Broken NodeCheck!!! " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << Path.Species(SpeciesNum).Name << " " << Path.GetRefSlice() << " " << Path.SliceOwner(Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
       if (abs(newLocalNode > 1e50)) {
-        toAccept = 0;
-        assert(1==2);
+        if (!Path.Equilibrate) {
+          toAccept = 0;
+          assert(1==2);
+        } else
+          toAccept = 1;
       } else {
         toAccept = 1;
       }
     }
     //else {
-    //  cout << Path.CloneStr << " NodeCheck " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << PathData.Path.Species(SpeciesNum).Name << " " << PathData.Path.GetRefSlice() << " " << PathData.Path.SliceOwner(PathData.Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
+    //  cout << Path.CloneStr << " NodeCheck " <<Path.NumTimeSlices()-1<< " " <<  toAccept << " " << Path.Species(SpeciesNum).Name << " " << Path.GetRefSlice() << " " << Path.SliceOwner(Path.GetRefSlice()) << " " << oldLocalNode << " " << newLocalNode << " " << localChange << " " << globalChange << endl;
     //}
 
     return toAccept;
@@ -125,8 +127,7 @@ void RefSliceMoveClass::MakeMoveMaster()
   // cerr<<"DONE NODECHECK"<<endl;
   // if (!firstTime)
   //   return;
-  PathClass &Path = PathData.Path;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   int firstSlice, lastSlice;
   Path.SliceRange (myProc, firstSlice, lastSlice);
   // Choose time slices
@@ -158,7 +159,7 @@ void RefSliceMoveClass::MakeMoveMaster()
   // Broadcast acceptance or rejection
   SetMode (NEWMODE);
   int accept = toAccept ? 1 : 0;
-  PathData.Path.Communicator.Broadcast (myProc, accept);
+  Path.Communicator.Broadcast (myProc, accept);
 
   // Now, if we accept local stages, move on to global nodal decision
   if (toAccept) {
@@ -198,8 +199,7 @@ void RefSliceMoveClass::MakeMoveMaster()
 /// This version is for processors that do not own the reference slice 
 void RefSliceMoveClass::MakeMoveSlave()
 {
-  PathClass &Path=PathData.Path;
-  int myProc = PathData.Path.Communicator.MyProc();
+  int myProc = Path.Communicator.MyProc();
   int master = Path.SliceOwner (Path.GetRefSlice());
 
   if (DoSlaveMoves) {
@@ -213,7 +213,7 @@ void RefSliceMoveClass::MakeMoveSlave()
     int slice1 = Path.Random.LocalInt(maxStart);
     int slice2 = slice1 + bisectSlices;
     ActiveParticles.resize(1);
-    ActiveParticles(0) = (PathData.Path.Random.LocalInt(PathData.Path.Species(SpeciesNum).NumParticles)) + PathData.Path.Species(SpeciesNum).FirstPtcl;
+    ActiveParticles(0) = (Path.Random.LocalInt(Path.Species(SpeciesNum).NumParticles)) + Path.Species(SpeciesNum).FirstPtcl;
     bool toAccept = true;
     list<StageClass*>::iterator stageIter = Stages.begin();
     double prevActionChange = 0.0;
@@ -228,7 +228,7 @@ void RefSliceMoveClass::MakeMoveSlave()
   int accept;
   /// Receive broadcast from Master.
   SetMode (NEWMODE);
-  PathData.Path.Communicator.Broadcast (master, accept);
+  Path.Communicator.Broadcast (master, accept);
   if (accept==1) {
     if (NodeCheck()) {
       Path.RefPath.AcceptCopy();

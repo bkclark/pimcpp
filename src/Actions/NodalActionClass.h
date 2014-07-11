@@ -26,6 +26,9 @@ typedef enum { FREE_PARTICLE, GROUND_STATE, GROUND_STATE_FP } NodeType;
 
 class NodalActionClass : public ActionBaseClass
 {
+protected:
+  Array<double,1> scale;
+
 public:
   virtual void ChangeModel(int tmpModel);
   virtual int GetModel();

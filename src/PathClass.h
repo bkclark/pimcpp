@@ -54,14 +54,6 @@ private:
   ////////////////////////
   ActionsClass &Actions;
 
-  /////////////////////
-  /// Misc. Helpers ///
-  /////////////////////
-  void LeviFlight (Array<dVec,1> &vec, double lambda);
-  void ReadOld(string fileName, bool replicate);
-  void ReadSqueeze(IOSectionClass &in,string fileName, bool replicate);
-  void Restart(IOSectionClass &in,string fileName,bool replicate,SpeciesClass &species);
-  void Tile(IOSectionClass &in,string fileName,bool replicate);
 
   ////////////////////////////////
   /// Boundary conditions stuff //
@@ -266,28 +258,42 @@ public:
   //////////////////////////
   void Read(IOSectionClass &inSection);
   void Allocate();
+
+  //////////////////////
+  /// Initialization ///
+  //////////////////////
   void InitPaths(IOSectionClass &inSection);
+  void InitRestart(IOSectionClass &in, SpeciesClass &species);
+  void InitCubic(IOSectionClass &in, SpeciesClass &species);
+  void InitSphere(IOSectionClass &in, SpeciesClass &species);
+  void InitBCC(IOSectionClass &in, SpeciesClass &species);
+  void InitDiag(IOSectionClass &in, SpeciesClass &species);
+  void InitLine(IOSectionClass &in, SpeciesClass &species);
+  void InitHydrogenBCC(IOSectionClass &in, SpeciesClass &species);
+  void InitAllFixed(IOSectionClass &in, SpeciesClass &species);
+  void InitFixed(IOSectionClass &in, SpeciesClass &species);
+  void InitAddVacancies(IOSectionClass &in, SpeciesClass &species);
+  void InitAllPaths(IOSectionClass &in, SpeciesClass &species);
 
   /// This throws down particles of a given species at random, making
   /// sure they don't overlap.  It reads the variable "Radius" to
   /// determine the particle radius.
-  void InitRandomFixed(IOSectionClass &in, SpeciesClass &species);
+  void InitRandom(IOSectionClass &in, SpeciesClass &species);
 
   /// Read the name of the output file from a previous run.  Then, it
   /// reads the last configuration from the Langevin move section and
   /// assigns it to every particle of the species.
-  void InitLangevin (IOSectionClass &in, SpeciesClass &species);
+  void InitLangevin(IOSectionClass &in, SpeciesClass &species);
 
   /// This class will create a new brownian random walk for
   /// species(speciesNum).  If the species is fermion, it will do its
   /// best to construct a node-avoiding walk that is reasonable.
+  void InitLeviFlight (IOSectionClass &in, SpeciesClass &species, int speciesIndex);
+  void LeviFlight (Array<dVec,1> &vec, double lambda);
   void NodeAvoidingLeviFlight  (int speciesNum, Array<dVec,1> &initialPoints);
-  void PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &initialPoints,
-				double sigmaFactor);
+  void PhaseAvoidingLeviFlight (int speciesNum, Array<dVec,1> &initialPoints, double sigmaFactor);
 
-  inline PathClass(CommunicatorClass &communicator,
-		   RandomClass &random,
-		   ActionsClass &actions);
+  inline PathClass(CommunicatorClass &communicator, RandomClass &random, ActionsClass &actions);
   friend void SetupPathNaCl(PathClass &path);
   friend void SetupPathZincBlend(PathClass &path);
   friend void SetupPathSimpleCubic(PathClass &path);

@@ -47,10 +47,12 @@ bool PIMCClass::Read(IOSectionClass &in)
     PathData.AssignPtclSetStrings();
 #endif
 
-    // if (PathData.Path.ExistsCoupling){
-    //   int myProc=PathData.InterComm.MyProc();
-    //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
-    // }
+    /// Read in the action information
+    if (myProc == 0)
+      cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
+    assert(in.OpenSection("Actions"));
+    PathData.Actions.Read(in);
+    in.CloseSection();
 
     /// Initialize the paths
     if (myProc == 0)
@@ -59,23 +61,14 @@ bool PIMCClass::Read(IOSectionClass &in)
     PathData.Path.InitPaths(in);
     in.CloseSection();
 
+    // if (PathData.Path.ExistsCoupling){
+    //   int myProc=PathData.InterComm.MyProc();
+    //   PathData.Path.ExistsCoupling=(double)(myProc)/100;
+    // }
+
     /// Make the Output file
     assert(in.OpenSection("Output"));
     CreateOutFile(in);
-    in.CloseSection();
-
-    /// Write out system information
-    if (myProc == 0) {
-      OutFile.NewSection("System");
-      WriteSystemInfo();
-      OutFile.CloseSection();
-    }
-
-    /// Read in the action information
-    if (myProc == 0)
-      cout << PathData.Path.CloneStr <<" Reading Actions"<<endl;
-    assert(in.OpenSection("Actions"));
-    PathData.Actions.Read(in);
     in.CloseSection();
 
     /// Write out Actions
@@ -83,6 +76,13 @@ bool PIMCClass::Read(IOSectionClass &in)
       OutFile.NewSection("Actions");
       PathData.Actions.WriteInfo(OutFile);
       OutFile.CloseSection(); // "Actions"
+    }
+
+    /// Write out system information
+    if (myProc == 0) {
+      OutFile.NewSection("System");
+      WriteSystemInfo();
+      OutFile.CloseSection();
     }
 
     /// Set Ion Config

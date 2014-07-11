@@ -223,12 +223,8 @@ void DavidLongRangeClassYk::Read(IOSectionClass &in)
   if (!in.ReadVar ("UseRPA", UseRPA))
     UseRPA = false;
   if (PathData.Actions.UseRPA) {
-    if (Path.Communicator.MyProc() == 0)
-      cout<<Path.CloneStr<<" Using David Long Range RPA."<<endl;
     BuildRPA_MultipleSpecies();
   } else {
-    if (Path.Communicator.MyProc() == 0)
-      cout<<Path.CloneStr<<" Using David Long Range."<<endl;
     Build_MultipleSpecies();
   }
 }
