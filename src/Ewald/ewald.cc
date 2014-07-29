@@ -55,18 +55,18 @@ class EwaldClass
 {
 public:
   dVec box;
-  double Z1Z2, vol, rMin, rMax, tau;
+  double Z1Z2, vol, rMin, rCut, tau;
   Array<dVec,1> kVecs;
   Array<double,1> MagK;
   double kCut;
-  int nMax, nPoints, nKnots;
+  int nMax, nPoints, nKnots, nImages;
   int gridType, breakupType, breakupObject, paIndex;
   Grid &grid;
 
-  EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rMax, int t_nPoints,
-             Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau)
-    : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rMax(t_rMax), nPoints(t_nPoints),
-      grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau)
+  EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rCut, int t_nPoints,
+             Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau, int t_nImages)
+    : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rCut(t_rCut), nPoints(t_nPoints),
+      grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau), nImages(t_nImages)
   {
     if (rMin == 0.)
       cerr << "Warning: rMin = 0!" << endl;
@@ -80,7 +80,7 @@ public:
   double DoBreakup()
   {
     if (breakupType == 0)
-      BasicEwald(7./box[0]); // HACK: Hard-coded alpha
+      BasicEwald(10./rCut); // HACK: Hard-coded alpha
     else if (breakupType == 1)
       OptimizedBreakup();
     else
@@ -97,19 +97,29 @@ public:
 
   /// This calculates the quantity 
   /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
-  double CalcXk(CubicSpline &V, double k)
+  double CalcXk(CubicSpline &V, double rc, double k)
   {
-     double absTol = 1.0e-5;
-     double relTol = 1.0e-3;
+     double absTol = 1.0e-9;
+     double relTol = 1.0e-7;
 
      XkIntegrand integrand(V, k);
      GKIntegration<XkIntegrand, GK31> integrator(integrand);
-     double Xk = -(4.0*M_PI/k) * integrator.Integrate(rMax, 20*rMax, absTol, relTol, false);
+
+     // First segment
+     double rFirst = rc + ((M_PI/k)-(remainder(rc,(M_PI/k))));
+     double Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rFirst, absTol, relTol, false);
+
+     // Subsequent segments
+     double rMax = V.grid->End;
+     double nPi = 256*M_PI;
+     int nSeg = int((rMax-rFirst)/(nPi/k));
+     for (int i=0; i<nSeg; i++)
+       Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*(nPi/k), rFirst + (i+1)*(nPi/k), absTol, relTol, false);
 
      /// Add in the analytic part that I ignored
      /// Multiply analytic term by tau only for U -- do not multiply
      /// for dU or V.
-     Xk += Xk_Coul(k, 20*rMax);
+     Xk += Xk_Coul(k, rFirst + (nSeg)*(nPi/k));
 
      return Xk;
   }
@@ -219,41 +229,44 @@ public:
     double kavg = pow(kvol,1.0/3.0);
 
     // Read potential
-    stringstream fileName;
+    string objectString;
     if (breakupObject == 2)
-      fileName << "dud";
+      objectString = "dud";
     else if (breakupObject == 1)
-      fileName << "ud";
+      objectString = "ud";
     else if (breakupObject == 0)
-      fileName << "v";
+      objectString = "v";
     else {
       cerr << "ERROR: Unrecognized breakup object type!" << endl;
       abort();
     }
-    fileName << "." << paIndex << ".txt";
+    stringstream fileName;
+    fileName << objectString << "." << paIndex << ".txt";
     ifstream pointFile;
     string fileNameStr = fileName.str();
     pointFile.open(fileNameStr.c_str());
-    Array<double,1> rs(20*nPoints), v(20*nPoints);
+    Array<double,1> rs, tmpV;
     int ri = 0;
     while (!pointFile.eof()) {
       double r, V;
       pointFile>>r;
       if (!pointFile.eof()) {
+        rs.resizeAndPreserve(ri+1);
+        tmpV.resizeAndPreserve(ri+1);
         pointFile>>V;
         rs(ri) = r;
-        v(ri) = V;
+        tmpV(ri) = V;
         ri += 1;
       }
     }
     pointFile.close();
-    GeneralGrid vGrid;
-    vGrid.Init(rs);
-    CubicSpline VSpline(&vGrid,v);
+    GeneralGrid tmpVGrid;
+    tmpVGrid.Init(rs);
+    CubicSpline VSpline(&tmpVGrid,tmpV);
 
     // Set up basis
     LPQHI_BasisClass basis;
-    basis.Set_rc(rMax);
+    basis.Set_rc(rCut);
     basis.SetBox(box);
     basis.SetNumKnots(nKnots);
 
@@ -261,6 +274,7 @@ public:
     double kCont = 50.0 * kavg;
     double delta = basis.GetDelta();
     double kMax = 20.0*M_PI/delta;
+    cout << kavg << " " << kCut << " " << kCont << " " << delta << " " << kMax << endl;
 
     OptimizedBreakupClass breakup(basis);
     breakup.SetkVecs (kCut, kCont, kMax);
@@ -275,21 +289,21 @@ public:
 
     // Calculate Xk's
     cout << "Calculating Xk's" << endl;
+    Array<double,1> tmpXk(Xk.size());
     for (int ki=0; ki<numk; ki++) {
       double k = breakup.kpoints(ki)[0];
-      Xk(ki) = CalcXk(VSpline, k) / boxVol;
-      cout << k << " " << Xk(ki)*boxVol << " " << Xk_Coul(k, rMax) << endl;
-      //Xk(ki) = Xk_Coul(k, rMax) / boxVol;
+      Xk(ki) = CalcXk(VSpline, rCut, k) / boxVol;
+      //Xk(ki) = Xk_Coul(k, rCut) / boxVol;
     }
 
-    // Set boundary conditions at rMax:  ForMaxe value and first and
+    // Set boundary conditions at rCut:  For Maxe value and first and
     // second derivatives of long-range potential to match the full
-    // potential at rMax.
+    // potential at rCut.
     adjust = true;
     delta = basis.GetDelta();
-    //     t(N-3) = pa.V(rMax);                 adjust(N-3) = false;
-    //     t(N-2) = pa.Vp(rMax)*delta;          adjust(N-2) = false;
-    //     t(N-1) = pa.Vpp(rMax)*delta*delta;   adjust(N-1) = false;
+    //     t(N-3) = pa.V(rCut);                 adjust(N-3) = false;
+    //     t(N-2) = pa.Vp(rCut)*delta;          adjust(N-2) = false;
+    //     t(N-1) = pa.Vpp(rCut)*delta*delta;   adjust(N-1) = false;
     //     t(1) = 0.0;                        adjust(1)   = false;
 
     //     t(N-3) = 1.0/delta;                 adjust(N-3) = false;
@@ -311,15 +325,15 @@ public:
       Vl0 += t(n)*basis.h(n,0.0);
     cout << "Vl0 = " << Vl0 << endl;
     for (int i=0; i<grid.NumPoints; i++) {
-       double r = grid(i);
-       if (r <= rMax) {
-         // Sum over basis functions
-         for (int n=0; n<N; n++)
-           Vl(i) += t(n) * basis.h(n, r);
-       }
-       else {
-         cerr << "WARNING: Why is r bigger than rMax?" << endl;
-         Vl(i) = VSpline(r); // 0.0; //hack!  pa.V (r);
+      double r = grid(i);
+      if (r <= rCut) {
+        // Sum over basis functions
+        for (int n=0; n<N; n++)
+          Vl(i) += t(n) * basis.h(n, r);
+      }
+      else {
+        cerr << "WARNING: Why is r bigger than rCut?" << endl;
+        Vl(i) = VSpline(r); // 0.0; //hack!  pa.V (r);
       }
     }
 
@@ -329,7 +343,7 @@ public:
     UshortIntegrand shortIntegrand(VlSpline,VSpline);
     GKIntegration<UshortIntegrand, GK31> shortIntegrator(shortIntegrand);
     shortIntegrator.SetRelativeErrorMode();
-    double fVs0 = 4.0*M_PI/boxVol * shortIntegrator.Integrate(1.0e-100, rMax, tolerance);
+    double fVs0 = 4.0*M_PI/boxVol * shortIntegrator.Integrate(1.0e-100, rCut, tolerance);
     cerr << "fVs0 = " << fVs0 << endl;
 
     // Calculate FT of Vl at k=0
@@ -337,11 +351,15 @@ public:
     UlongIntegrand longIntegrand(VlSpline,VSpline);
     GKIntegration<UlongIntegrand, GK31> longIntegrator(longIntegrand);
     longIntegrator.SetRelativeErrorMode();
-    double fVl0 = 4.0*M_PI/boxVol * longIntegrator.Integrate(1.0e-100, rMax, tolerance);
+    double fVl0 = 4.0*M_PI/boxVol * longIntegrator.Integrate(1.0e-100, rCut, tolerance);
     cerr << "fVl0 = " << fVl0 << endl;
 
+    // Write potential
+    stringstream rFileName;
+    rFileName << objectString << "." << paIndex << ".r.txt";
+    string rFileNameStr = rFileName.str();
     ofstream outfile;
-    outfile.open("rData.txt");
+    outfile.open(rFileNameStr.c_str());
     outfile<<0.<<" "<<Vl0<<endl;
     for (int i=0;i<grid.NumPoints; i++){
       double r=grid(i);
@@ -350,7 +368,10 @@ public:
     outfile.close();
 
     // Now do k-space part
-    outfile.open("kData.txt");
+    stringstream kFileName;
+    kFileName << objectString << "." << paIndex << ".k.txt";
+    string kFileNameStr = kFileName.str();
+    outfile.open(kFileNameStr.c_str());
     outfile<<0.0<<" "<<(fVl0+fVs0)<<endl;
     vector<pair<double, double> > fVls;
     for (int ki=0; ki < kVecs.size(); ki++) {
@@ -358,28 +379,44 @@ public:
       // Sum over basis functions
       for (int n=0; n<N; n++)
         fVl(ki) += t(n) * basis.c(n,k);
-      // Now add on part from rMax to infinity
-      fVl(ki) -= CalcXk(VSpline, k) / boxVol;
-      //fVl(ki) -= Xk_Coul(k, rMax) / boxVol;
+      // Now add on part from rCut to infinity
+      //fVl(ki) -= Xk(ki);
+      fVl(ki) -= CalcXk(VSpline, rCut, k) / boxVol;
+      //fVl(ki) -= Xk_Coul(k, rCut) / boxVol;
       fVls.push_back(make_pair(k, fVl(ki)));
     }
     sort(fVls.begin(), fVls.end());
     vector<pair<double, double> >::iterator new_end = unique(fVls.begin(), fVls.end(), same);
     // delete all elements past new_end
     fVls.erase(new_end, fVls.end());
-    for (int i=1;i<fVls.size();i++){
+    for (int i=1;i<fVls.size();i++)
       outfile<<fVls[i].first<<" "<<fVls[i].second<<endl; // *vol<<endl;
-    }
     outfile.close();
+
   }
 
   void BasicEwald(double alpha)
   {
 
     // Short-ranged r-space part
+    string objectString;
+    if (breakupObject == 2)
+      objectString = "dud";
+    else if (breakupObject == 1)
+      objectString = "ud";
+    else if (breakupObject == 0)
+      objectString = "v";
+    else {
+      cerr << "ERROR: Unrecognized breakup object type!" << endl;
+      abort();
+    }
+    stringstream rFileName;
+    rFileName << objectString << "." << paIndex << ".r.txt";
+    string rFileNameStr = rFileName.str();
     ofstream outfile;
-    outfile.open("rData.txt");
+    outfile.open(rFileNameStr.c_str());
     double Vl0 = Z1Z2*2.*alpha/sqrt(M_PI);
+    cout << "Vl0 = " << Vl0 << endl;
     outfile<<0.<<" "<<Vl0<<endl;
     Array<double,1> Vss(nPoints);
     for (int i=0; i<grid.NumPoints; i++){
@@ -390,8 +427,12 @@ public:
     outfile.close();
 
     // Long-ranged k-space part
-    outfile.open("kData.txt");
+    stringstream kFileName;
+    kFileName << objectString << "." << paIndex << ".k.txt";
+    string kFileNameStr = kFileName.str();
+    outfile.open(kFileNameStr.c_str());
     double fVl0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
+    cout << "fVl0 = " << fVl0 << endl;
     outfile<<0.0<<" "<<fVl0<<endl;
     vector<pair<double, double> > fVls;
     for (int i=0; i<kVecs.size(); ++i) {
@@ -412,11 +453,165 @@ public:
 
   }
 
+  void TestMadelungNaive()
+  {
+    // Get Long-ranged k-space part
+    string objectString;
+    if (breakupObject == 2)
+      objectString = "dud";
+    else if (breakupObject == 1)
+      objectString = "ud";
+    else if (breakupObject == 0)
+      objectString = "v";
+    else {
+      cerr << "ERROR: Unrecognized breakup object type!" << endl;
+      abort();
+    }
+    // Get r-space part
+    stringstream rFileName;
+    rFileName << objectString << "." << paIndex << ".txt";
+    string rFileNameStr = rFileName.str();
+    ifstream pointFile;
+    pointFile.open(rFileNameStr.c_str());
+    Array<double,1> rs, tmpV;
+    int ri = 0;
+    while (!pointFile.eof()) {
+      double r, V;
+      pointFile>>r;
+      if (!pointFile.eof()) {
+        rs.resizeAndPreserve(ri+1);
+        tmpV.resizeAndPreserve(ri+1);
+        pointFile>>V;
+        rs(ri) = r;
+        tmpV(ri) = V/Z1Z2;
+        ri += 1;
+      }
+    }
+    pointFile.close();
+    GeneralGrid tmpVGrid;
+    tmpVGrid.Init(rs);
+    CubicSpline VSpline(&tmpVGrid,tmpV);
+
+    // Set Coordinates
+    double s1 = box[0]/2.;
+    int N = 8;
+    Array<dVec,1> xs(N);
+    Array<double,1> Qs(N);
+    if (DIM==3) {
+      dVec x0(0,0,0);
+      xs(0) = x0;
+      dVec x1(s1,s1,0);
+      xs(1) = x1;
+      dVec x2(s1, 0, s1);
+      xs(2) = x2;
+      dVec x3(0, s1, s1);
+      xs(3) = x3;
+      dVec x4(s1, 0, 0);
+      xs(4) = x4;
+      dVec x5(0, s1, 0);
+      xs(5) = x5;
+      dVec x6(0, 0, s1);
+      xs(6) = x6;
+      dVec x7(s1, s1, s1);
+      xs(7) = x7;
+      Qs(0) = 1.0;
+      Qs(1) = 1.0;
+      Qs(2) = 1.0;
+      Qs(3) = 1.0;
+      Qs(4) = -1.0;
+      Qs(5) = -1.0;
+      Qs(6) = -1.0;
+      Qs(7) = -1.0;
+    }
+
+    // Short-ranged r-space
+    double L = box[0];
+    double Li = 1.0/L;
+    double Vs = 0.;
+    for (int i=0; i<xs.size()-1; i++) {
+      for (int j=i+1; j<xs.size(); j++) {
+        for (int a=-nImages; a<=nImages; a++) {
+          for (int b=-nImages; b<=nImages; b++) {
+            for (int c=-nImages; c<=nImages; c++) {
+              dVec r = xs(i) - xs(j);
+              r[0] += a*L;
+              r[1] += b*L;
+              r[2] += c*L;
+              double magr = sqrt(dot(r,r));
+              if (magr > tmpVGrid.End) {
+                double tmpVs = Qs(i)*Qs(j)/magr;
+                if (breakupObject == 1)
+                  tmpVs *= tau;
+                Vs += tmpVs;
+              } else
+                Vs += Qs(i)*Qs(j)*VSpline(magr);
+            }
+          }
+        }
+      }
+    }
+    cout << "Vs = " << Vs << endl;
+
+    // Self-energy
+    double Vself = 0.;
+    for (int i=0; i<xs.size(); i++) {
+      for (int a=-nImages; a<=nImages; a++) {
+        for (int b=-nImages; b<=nImages; b++) {
+          for (int c=-nImages; c<=nImages; c++) {
+            if ((a == 0) && (b == 0) && (c == 0))
+              Vself += 0.;
+            else {
+              dVec r = xs(i) - xs(i);
+              r[0] += a*L;
+              r[1] += b*L;
+              r[2] += c*L;
+              double magr = sqrt(dot(r,r));
+              if (magr > tmpVGrid.End) {
+                double tmpVself = Qs(i)*Qs(i)/magr;
+                if (breakupObject == 1)
+                  tmpVself *= tau;
+                Vself += tmpVself;
+              } else
+                Vself += Qs(i)*Qs(i)*VSpline(magr);
+            }
+          }
+        }
+      }
+    }
+    cout << "Vself = " << Vself << endl;
+
+    double V = Vs + 0.5*Vself;
+    cout << "V = " << V << endl;
+
+    // Madelung Constant
+    double estMad = box[0]*V/N;
+    printf("Estimated madelung constant = %0.15f\n", estMad);
+    double extMad = -1.747564594633182190636212035544397403481;
+    printf("Exact madelung constant = %0.15f\n", extMad);
+    cout << "Absolute error = " << abs(estMad-extMad) << endl;
+    cout << "Relative error = " << abs(estMad-extMad)/extMad << endl;
+  }
+
+
   void TestMadelung()
   {
     // Get Long-ranged k-space part
+    string objectString;
+    if (breakupObject == 2)
+      objectString = "dud";
+    else if (breakupObject == 1)
+      objectString = "ud";
+    else if (breakupObject == 0)
+      objectString = "v";
+    else {
+      cerr << "ERROR: Unrecognized breakup object type!" << endl;
+      abort();
+    }
+    stringstream kFileName;
+    kFileName << objectString << "." << paIndex << ".k.txt";
+    string kFileNameStr = kFileName.str();
     ifstream infile;
-    infile.open("kData.txt");
+    infile.open(kFileNameStr.c_str());
     vector<double> ks;
     vector<double> fVls;
     double fV0 = 0.;
@@ -435,8 +630,11 @@ public:
     infile.close();
 
     // Get Short-ranged r-space part
+    stringstream rFileName;
+    rFileName << objectString << "." << paIndex << ".r.txt";
+    string rFileNameStr = rFileName.str();
     ifstream pointFile;
-    pointFile.open("rData.txt");
+    pointFile.open(rFileNameStr.c_str());
     Array<double,1> rs(nPoints);
     Array<double,1> Vss(nPoints);
     int ri = 0;
@@ -501,7 +699,7 @@ public:
         for (int d=0; d<DIM; d++)
           r(d) -= floor(r(d)*Li + 0.5)*L; // Put in box
         double magr = sqrt(dot(r,r));
-        if (magr <= rMax)
+        if (magr <= rCut)
           Vs += Qs(i)*Qs(j)*VsSpline(magr);
       }
     }
@@ -573,15 +771,15 @@ int main(int argc, char* argv[])
   dVec box(L,L,L); // Hard-coded cube
   double nMax = atoi(argv[2]);
   double rMin = atof(argv[3]);
-  double rMax = atof(argv[4]);
+  double rCut = atof(argv[4]);
   int nPoints = atoi(argv[5]);
   int gridType = atoi(argv[6]);
 
   Grid *grid;
   if (gridType == 0) {
-    grid = new LinearGrid(rMin, rMax, nPoints);
+    grid = new LinearGrid(rMin, rCut, nPoints);
   } else if (gridType == 1) {
-    grid = new LogGrid(rMin, pow(rMax/rMin,1./nPoints), nPoints);
+    grid = new LogGrid(rMin, pow(rCut/rMin,1./nPoints), nPoints);
   }
 
   double Z1Z2 = atof(argv[7]);
@@ -590,9 +788,11 @@ int main(int argc, char* argv[])
   int paIndex = atoi(argv[10]);
   int nKnots = atoi(argv[11]);
   double tau = atof(argv[12]);
+  int nImages = atoi(argv[13]);
 
-  EwaldClass e(Z1Z2, box, nMax, rMin, rMax, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
+  EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau, nImages);
   e.DoBreakup();
   e.TestMadelung();
+  e.TestMadelungNaive();
 
 }
