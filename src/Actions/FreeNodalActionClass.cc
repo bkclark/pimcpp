@@ -33,7 +33,7 @@ FreeNodalActionClass::FreeNodalActionClass (PathDataClass &pathData, int species
 
 double FreeNodalActionClass::ActionImageSum (double L, double lambdaBeta,  double disp)
 {
-  int numImages = 10;
+  int numImages = 20;
   double sum = 0.0;
   double fourLambdaBetaInv = (lambdaBeta!=0.0) ?  1.0/(4.0*lambdaBeta) : 0.0;
   // If the images won't contributed anything, let's not worry
@@ -65,7 +65,7 @@ double FreeNodalActionClass::ActionkSum (double L, double lambdaBeta, double dis
 
 void FreeNodalActionClass::SetupActions()
 {
-  const int nPoints = 1000;
+  const int nPoints = 10000;
   // Setup grids
   for (int i=0; i<NDIM; i++)
     ActionGrids[i].Init (-0.5*Path.GetBox()[i], 0.5*Path.GetBox()[i], nPoints);

@@ -103,6 +103,7 @@ void PathClass::InitPaths (IOSectionClass &in)
   for (int i=0; i<NumParticles(); i++)
     allParticles(i) = i;
   AcceptCopy(0, TotalNumSlices, allParticles);
+  Path.AcceptCopy();
   BroadcastRefPath();
   RefPath.AcceptCopy();
 }

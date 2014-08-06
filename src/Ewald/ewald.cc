@@ -141,6 +141,7 @@ public:
 
   void SetupkVecs(bool includeAll=false)
   {
+    cout << "Setting up k vectors..." << endl;
     double kCutoff=kCut;
     //    Array<double,1> MagK;
     dVec kBox;
@@ -177,7 +178,6 @@ public:
       }
     }
     //  kIndices.resize(numVecs);
-    cerr << "kCutoff = " << kCutoff << ", # of kVecs = " << numVecs << endl;
     kVecs.resize(numVecs);
     MagK.resize(numVecs);
 
@@ -266,15 +266,15 @@ public:
 
     // Set up basis
     LPQHI_BasisClass basis;
-    basis.Set_rc(rCut);
     basis.SetBox(box);
     basis.SetNumKnots(nKnots);
+    basis.Set_rc(rCut);
 
     // We try to pick kcont to keep reasonable number of k-vectors
     double kCont = 50.0 * kavg;
     double delta = basis.GetDelta();
     double kMax = 20.0*M_PI/delta;
-    cout << kavg << " " << kCut << " " << kCont << " " << delta << " " << kMax << endl;
+    cout << "kAvg = " << kavg << ", kCut = " << kCut << ", kCont = " << kCont << ", kMax = " << kMax << endl;
 
     OptimizedBreakupClass breakup(basis);
     breakup.SetkVecs (kCut, kCont, kMax);
@@ -288,7 +288,7 @@ public:
     Vl = 0.0;
 
     // Calculate Xk's
-    cout << "Calculating Xk's" << endl;
+    cout << "Calculating Xk's..." << endl;
     Array<double,1> tmpXk(Xk.size());
     for (int ki=0; ki<numk; ki++) {
       double k = breakup.kpoints(ki)[0];
@@ -314,7 +314,7 @@ public:
 
     // Now, do the optimal breakup:  this gives me the coefficents
     // of the basis functions, h_n in the array t.
-    cout << "Performing breakup" << endl;
+    cout << "Performing breakup..." << endl;
     double chi = breakup.DoBreakup (Xk, t, adjust);
     cerr<<"Chi = "<<chi<<endl;
 
@@ -323,7 +323,6 @@ public:
     double Vl0=0.0;
     for (int n=0; n<N; n++)
       Vl0 += t(n)*basis.h(n,0.0);
-    cout << "Vl0 = " << Vl0 << endl;
     for (int i=0; i<grid.NumPoints; i++) {
       double r = grid(i);
       if (r <= rCut) {
@@ -338,27 +337,28 @@ public:
     }
 
     // Calculate FT of Ushort at k=0
-    cout << "Calculating fVs0" << endl;
     CubicSpline VlSpline(&grid,Vl);
     UshortIntegrand shortIntegrand(VlSpline,VSpline);
     GKIntegration<UshortIntegrand, GK31> shortIntegrator(shortIntegrand);
     shortIntegrator.SetRelativeErrorMode();
     double fVs0 = 4.0*M_PI/boxVol * shortIntegrator.Integrate(1.0e-100, rCut, tolerance);
-    cerr << "fVs0 = " << fVs0 << endl;
 
     // Calculate FT of Vl at k=0
-    cout << "Calculating fVl0" << endl;
     UlongIntegrand longIntegrand(VlSpline,VSpline);
     GKIntegration<UlongIntegrand, GK31> longIntegrator(longIntegrand);
     longIntegrator.SetRelativeErrorMode();
     double fVl0 = 4.0*M_PI/boxVol * longIntegrator.Integrate(1.0e-100, rCut, tolerance);
-    cerr << "fVl0 = " << fVl0 << endl;
+
+    // Print out values
+    cout << "Vl0 = " << Vl0 << ", fVs0 = " << fVs0 << ", fVl0 = " << fVl0 << endl;
 
     // Write potential
     stringstream rFileName;
     rFileName << objectString << "." << paIndex << ".r.txt";
     string rFileNameStr = rFileName.str();
     ofstream outfile;
+    outfile.setf(ios::scientific);
+    outfile.precision(10);
     outfile.open(rFileNameStr.c_str());
     outfile<<0.<<" "<<Vl0<<endl;
     for (int i=0;i<grid.NumPoints; i++){
@@ -414,9 +414,10 @@ public:
     rFileName << objectString << "." << paIndex << ".r.txt";
     string rFileNameStr = rFileName.str();
     ofstream outfile;
+    outfile.setf(ios::scientific);
+    outfile.precision(10);
     outfile.open(rFileNameStr.c_str());
     double Vl0 = Z1Z2*2.*alpha/sqrt(M_PI);
-    cout << "Vl0 = " << Vl0 << endl;
     outfile<<0.<<" "<<Vl0<<endl;
     Array<double,1> Vss(nPoints);
     for (int i=0; i<grid.NumPoints; i++){
@@ -432,7 +433,6 @@ public:
     string kFileNameStr = kFileName.str();
     outfile.open(kFileNameStr.c_str());
     double fVl0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
-    cout << "fVl0 = " << fVl0 << endl;
     outfile<<0.0<<" "<<fVl0<<endl;
     vector<pair<double, double> > fVls;
     for (int i=0; i<kVecs.size(); ++i) {
@@ -451,10 +451,15 @@ public:
     }
     outfile.close();
 
+    // Print out values
+    cout << "Vl0 = " << Vl0 << ", fVl0 = " << fVl0 << endl;
+
   }
 
-  void TestMadelungNaive()
+  void ComputeMadelungNaive()
   {
+    cout << "Computing Madelung constant by naive sum..." << endl;
+
     // Get Long-ranged k-space part
     string objectString;
     if (breakupObject == 2)
@@ -550,7 +555,6 @@ public:
         }
       }
     }
-    cout << "Vs = " << Vs << endl;
 
     // Self-energy
     double Vself = 0.;
@@ -578,23 +582,20 @@ public:
         }
       }
     }
-    cout << "Vself = " << Vself << endl;
 
+    cout << "Vs = " << Vs << ", Vself = " << Vself << endl;
     double V = Vs + 0.5*Vself;
-    cout << "V = " << V << endl;
+    cout << "V = Vs + Vself/2 = " << V << endl;
 
     // Madelung Constant
     double estMad = box[0]*V/N;
-    printf("Estimated madelung constant = %0.15f\n", estMad);
-    double extMad = -1.747564594633182190636212035544397403481;
-    printf("Exact madelung constant = %0.15f\n", extMad);
-    cout << "Absolute error = " << abs(estMad-extMad) << endl;
-    cout << "Relative error = " << abs(estMad-extMad)/extMad << endl;
+    cout << "Vmad = " << estMad << endl;
   }
 
-
-  void TestMadelung()
+  void ComputeMadelung()
   {
+    cout << "Computing Madelung constant..." << endl;
+
     // Get Long-ranged k-space part
     string objectString;
     if (breakupObject == 2)
@@ -703,7 +704,6 @@ public:
           Vs += Qs(i)*Qs(j)*VsSpline(magr);
       }
     }
-    cout << "Vs = " << Vs << endl;
 
     // Long-ranged k-space
     Array<double,1> fVl(kVecs.size());
@@ -737,30 +737,30 @@ public:
       }
     }
     Vl *= 0.5;
-    cout << "Vl = " << Vl << endl;
 
     // Self-interacting terms
     double Vself = 0;
     for (int i=0; i<Qs.size(); i++)
       Vself -= Qs(i)*Qs(i)*0.5*Vl0;
-    cout << "Vself = " << Vself << endl;
 
     // Neutralizing Background
     double Vb = 0.;
     for (int i=0; i<N; i++)
       Vb += 0.5*N*N*fV0;
-    cout << "Vbackground = " << Vb << endl;
 
+    cout << "Vs = " << Vs << ", Vl = " << Vl << ", Vself = " << Vself << ", Vbackground = " << Vb << endl;
     double V = Vs + Vl + Vself;
     cout << "V = Vs + Vl + Vself = " << V << endl;
 
     // Madelung Constant
     double estMad = box[0]*V/N;
-    printf("Estimated madelung constant = %0.15f\n", estMad);
+    cout << "Vmad = " << estMad << endl;
+  }
+
+  void PrintExactCoulombMadelung()
+  {
     double extMad = -1.747564594633182190636212035544397403481;
-    printf("Exact madelung constant = %0.15f\n", extMad);
-    cout << "Absolute error = " << abs(estMad-extMad) << endl;
-    cout << "Relative error = " << abs(estMad-extMad)/extMad << endl;
+    cout << "Exact Coulomb Madelung constant, Vmad = " << extMad << endl;
   }
 
 };
@@ -792,7 +792,8 @@ int main(int argc, char* argv[])
 
   EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau, nImages);
   e.DoBreakup();
-  e.TestMadelung();
-  e.TestMadelungNaive();
+  e.ComputeMadelung();
+  e.ComputeMadelungNaive();
+  e.PrintExactCoulombMadelung();
 
 }

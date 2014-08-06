@@ -87,6 +87,8 @@ void NodalActionClass::Read (IOSectionClass &in)
     UseLineSearchDist = 0;
   if (!in.ReadVar ("UseMaxDist",UseMaxDist))
     UseMaxDist = 0;
+
+  SetupActions();
 }
 
 
@@ -147,7 +149,7 @@ double NodalActionClass::HybridDist (int slice, double lambdaTau)
   // gradDist will almost always be a lower bound to the real
   // distance.  Therefore, if says we are far from the nodes, we
   // probably are and we can just use its value.
-  if (gradDist > sqrt(4.0*lambdaTau)) {
+  if (gradDist > 4.0*sqrt(4.0*lambdaTau)) {
     // MaxDist is the distance to the nearest particle
     double maxDist = MaxDist(slice);
     if (gradDist < maxDist) {

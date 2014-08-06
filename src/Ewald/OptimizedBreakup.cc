@@ -109,10 +109,9 @@ void OptimizedBreakupClass::SetkVecs(double kc, double kCont, double kMax)
     Addk(k, degeneracy);
     numk += degeneracy;
   }
-  
 
-  cerr << "Total k vecs = " << numk << endl;
-  cerr << "non-degenerate k vecs = " << kpoints.size() << endl;
+  //cerr << "Total k vecs = " << numk << endl;
+  //cerr << "non-degenerate k vecs = " << kpoints.size() << endl;
 }
 
 double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk, 
@@ -347,7 +346,6 @@ void LPQHI_BasisClass::Set_rc(double rc)
     delta = r_c / (NumKnots - 1);
     deltaInv = 1.0/delta;
   }
-  cerr << "delta = " << delta << endl;
 }
 
 
