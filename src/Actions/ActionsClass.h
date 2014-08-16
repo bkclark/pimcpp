@@ -24,7 +24,6 @@
 
 #include "DiagonalActionClass.h"
 #include "ShortRangeClass.h"
-#include "IlkkaShortRangeClass.h"
 #include "ShortRangeOnClass.h"
 #include "ShortRangeOn_diagonal_Class.h"
 #include "ShortRangeApproximateClass.h"

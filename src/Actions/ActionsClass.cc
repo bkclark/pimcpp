@@ -207,8 +207,6 @@ void ActionsClass::Read(IOSectionClass &in)
     //   newAction = new ReadFromFileActionClass(PathData);
     } else if (type == "BlendActions") {
       newAction = new BlendActionsClass(PathData);
-    } else if (type == "IlkkaShortRange") {
-      newAction = new IlkkaShortRangeClass(PathData);
     } else if (type == "HarmonicPotential") {
       newAction = new HarmonicPotentialClass(PathData);
     } else if (type == "Water") {
