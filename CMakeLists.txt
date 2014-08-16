@@ -268,7 +268,6 @@ src/Moves/WormStage.cc
 src/Actions/ShortRangeApproximateClass.cc
 src/Observables/Angular.cc
 src/Actions/ShortRangeClass.cc
-src/Actions/IlkkaShortRangeClass.cc
 src/PairAction/IlkkaPAClass.cc
 src/Actions/IlkkaLongRangeClass.cc
 src/Observables/Coupling.cc
