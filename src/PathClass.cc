@@ -153,6 +153,7 @@ void PathClass::Read (IOSectionClass &inSection)
   kVecsSetup = false;
   LongRange = false;
   DavidLongRange = false;
+  IlkkaLongRange = false;
   SetupPermFirstTime = true;
 
   SetMode(OLDMODE);
@@ -391,7 +392,7 @@ void PathClass::SetupkVecs(IOSectionClass& in)
 #if NDIM==3
     SetupkVecs3D();
 #endif
-    if (DavidLongRange)
+    if (DavidLongRange || IlkkaLongRange)
       SortRhoK();
     Rho_k.resize(MyNumSlices, NumSpecies(), kVecs.size());
   }
@@ -493,7 +494,7 @@ void PathClass::SetupkVecs3D()
         ki[2]= iz+MaxkIndex[2];
         if ((dot(k,k)<kCutoff*kCutoff) && Include(k)) {
           kVecs(numVecs) = k;
-          kIndices(numVecs)=ki;
+          kIndices(numVecs) = ki;
           MagK(numVecs) = sqrt(dot(k,k));
           numVecs++;
         }

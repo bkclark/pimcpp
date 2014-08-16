@@ -19,11 +19,6 @@
 
 #include "ActionBase.h"
 
-#include "../PairAction/PAFit.h"
-
-
-
-
 /// The LongRangeClass is an action class responsible for the long
 /// wavelength components of the action that are summed in k-space.
 /// This class reads in and uses an optimized breakup from a file that

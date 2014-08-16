@@ -47,8 +47,8 @@
 // #include "GroundStateNodalActionClass.h"
 
 #include "DavidLongRangeClassYk.h"
-//#include "DavidLongRangeClassYk.h"
 #include "DavidLongRangeClass.h"
+#include "IlkkaLongRangeClass.h"
 #include "QMCSamplingClass.h"
 #include "OpenLoopImportance.h"
 
@@ -165,6 +165,8 @@ void ActionsClass::Read(IOSectionClass &in)
       newAction = new ShortRangeClass(PathData, PairMatrix);
     } else if (type == "DavidLongRange") {
       newAction = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
+    } else if (type == "IlkkaLongRange") {
+      newAction = (IlkkaLongRangeClass *) (&(PathData.Actions.IlkkaLongRange));
     } else if (type == "LongRange") {
       newAction = (LongRangeClass *) (&(PathData.Actions.LongRange));
     } else if (type == "LongRangeRPA") {
@@ -205,6 +207,8 @@ void ActionsClass::Read(IOSectionClass &in)
     //   newAction = new ReadFromFileActionClass(PathData);
     } else if (type == "BlendActions") {
       newAction = new BlendActionsClass(PathData);
+    } else if (type == "IlkkaShortRange") {
+      newAction = new IlkkaShortRangeClass(PathData);
     } else if (type == "HarmonicPotential") {
       newAction = new HarmonicPotentialClass(PathData);
     } else if (type == "Water") {
@@ -241,12 +245,36 @@ void ActionsClass::Read(IOSectionClass &in)
 
 }
 
+PairActionFitClass* ActionsClass::ReadPAFit (IOSectionClass &in,  double smallestBeta, int numLevels)
+{
+  assert (in.OpenSection("Fits"));
+  string type;
+  assert (in.ReadVar("Type", type));
+  in.CloseSection (); // "Fits"
+  PairActionFitClass *fit;
+  if (type == "classical")
+    fit = new PAclassicalFitClass;
+  else if (type == "zerofit")
+    fit = new PAzeroFitClass;
+  else if (type=="DavidFit")
+    fit = new DavidPAClass;
+  else if (type=="IlkkaFit")
+    fit = new IlkkaPAClass;
+  else {
+    cerr << "Unrecognize pair action fit type \"" << type << "\".  Exitting.\n";
+    exit(1);
+  }
+  fit->Read(in, smallestBeta, numLevels);
+  return (fit);
+}
+
 
 void ActionsClass::ReadPairActions(IOSectionClass &in)
 {
   PathClass &Path=PathData.Path;
   Array<string,1> PAFiles;
-  assert (in.ReadVar ("PairActionFiles", PAFiles));
+  if(!in.ReadVar ("PairActionFiles", PAFiles))
+    return;
   int numPairActions = PAFiles.size();
   PairArray.resize(numPairActions);
   PairMatrix.resize(Path.NumSpecies(),Path.NumSpecies());
@@ -442,14 +470,15 @@ void ActionsClass::Potentials (double &vShort, double &vLong, double &vExt)
   vShort = 0.0;
   vLong = 0.0;
   vExt = 0.0;
-  if (PathData.Path.DavidLongRange){
+  if (PathData.Path.DavidLongRange)
     vLong = DavidLongRange.V(0,M,0);
-  }
+  else if (PathData.Path.IlkkaLongRange)
+    vLong = IlkkaLongRange.V(0,M,0);
 
   for (int slice=0; slice <= M; slice++) {
     double factor = ((slice==0)||(slice==M)) ? 0.5 : 1.0;
     vShort += factor * ShortRangePot.V(slice);
-    if (doLongRange&&!PathData.Path.DavidLongRange)
+    if (doLongRange&&!PathData.Path.DavidLongRange&&!PathData.Path.IlkkaLongRange)
       vLong  += factor * LongRangePot.V(slice);
   }
 }
@@ -478,14 +507,16 @@ void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, d
   int M = PathData.Path.NumTimeSlices()-1;
   kinetic = Kinetic.Action (0, M, activePtcls, 0);
   UShort = ShortRange.Action (0, M, activePtcls, 0);
-  ULong=0.0;
-  if (doLongRange){
+  ULong = 0.0;
+  if (doLongRange) {
     if (UseRPA)
       ULong = LongRangeRPA.Action (0, M, activePtcls, 0);
     else
       ULong = LongRange.Action (0, M, activePtcls, 0);
   } else if (PathData.Path.DavidLongRange)
     ULong = DavidLongRange.Action(0,M, activePtcls, 0);
+  else if (PathData.Path.IlkkaLongRange)
+    ULong = IlkkaLongRange.Action(0,M, activePtcls, 0);
   UExt = HarmonicPotential.Action(0,M,activePtcls,0);
   node = 0.0;
   for (int species=0; species<PathData.Path.NumSpecies(); species++)
@@ -513,6 +544,7 @@ void ActionsClass::ShiftData (int slicesToShift)
   LongRange.ShiftData(slicesToShift);
   LongRangeRPA.ShiftData(slicesToShift);
   DavidLongRange.ShiftData(slicesToShift);
+  IlkkaLongRange.ShiftData(slicesToShift);
   HarmonicPotential.ShiftData(slicesToShift);
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i)!=NULL)

@@ -18,7 +18,6 @@
 #define Al_EMBEDDED_ATOM_POTENTIAL_CLASS_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 
 /// Implementation of an Embeded Atom potential
 /// (EAM) for Al.

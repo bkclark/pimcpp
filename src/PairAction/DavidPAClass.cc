@@ -16,22 +16,6 @@
 
 #include "DavidPAClass.h"
 
-
-void DavidPAClass::ReadParams(IOSectionClass &in)
-{
-}
-
-
-void DavidPAClass::WriteBetaIndependentInfo (IOSectionClass &out)
-{
-}
-
-
-void DavidPAClass::WriteFit(IOSectionClass &out)
-{
-}
-
-
 double DavidPAClass::dUdRTimesSigma(double r,int level)
 {
   if (r>dUdRTimesSigmaSpline(level).grid->End){

@@ -18,7 +18,6 @@
 #define LONG_RANGE_CLASS_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 #include "../Ewald/OptimizedBreakup.h"
 #include "../Integration/GKIntegration.h"
 

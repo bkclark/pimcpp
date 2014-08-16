@@ -18,7 +18,6 @@
 #define LONG_RANGE_COULOMB_CLASS_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 
 //typedef enum {JOB_U, JOB_DU, JOB_V} JobType; 
 

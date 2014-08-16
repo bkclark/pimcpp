@@ -6,7 +6,7 @@ import Stats
 StartCut = int(sys.argv[1])
 suffix = sys.argv[2]
 
-ENames = ['Kinetic','Node','dUExt','dULong','dUShort','ShortRange','VShort','DavidLongRange','VLong','Total']
+ENames = ['Kinetic','Node','dUExt','dULong','dUShort','ShortRange','VShort','IlkkaLongRange','DavidLongRange','VLong','Total']
 EStats = {}
 for fname in sys.argv[3:]:
   f = h5.File(fname,'r')

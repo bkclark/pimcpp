@@ -46,7 +46,6 @@ class DavidPAClass : public PairActionFitClass
   int dummyPairActionClass;
   blitz::Array<double,1> Potential;
   string type1,type2;
-  bool SamplingTableRead;
   inline bool Read(IOSectionClass &IOSection,double desiredTau, int numLevels);
   inline void Print();
   double Udiag(double q, int level);
@@ -120,12 +119,6 @@ class DavidPAClass : public PairActionFitClass
   void DerivsFD(double q, double z, double s2, int level, double &d_dq, double &d_dz, double &d_ds);
   bool IsLongRange();
 
-  void ReadParams  (IOSectionClass &inSection);
-  void WriteBetaIndependentInfo (IOSectionClass &outSection);
-  /// Returns weighter RMS error
-  //  void Error (Rho &rho, double &Uerror, double &dUerror);
-  //  void DoFit (Rho &rho);
-  void WriteFit(IOSectionClass &outSection);
 };
 
 

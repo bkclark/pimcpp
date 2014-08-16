@@ -114,8 +114,7 @@ void OptimizedBreakupClass::SetkVecs(double kc, double kCont, double kMax)
   //cerr << "non-degenerate k vecs = " << kpoints.size() << endl;
 }
 
-double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk, 
-					Array<double,1> &t)
+double OptimizedBreakupClass::DoBreakup(const Array<double,1> &Vk, Array<double,1> &t)
 {
   const double tolerance = 1.0e-16;
   //const double tolerance = 0.0;

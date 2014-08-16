@@ -59,14 +59,14 @@ public:
   Array<dVec,1> kVecs;
   Array<double,1> MagK;
   double kCut;
-  int nMax, nPoints, nKnots, nImages;
+  int nMax, nPoints, nKnots;
   int gridType, breakupType, breakupObject, paIndex;
   Grid &grid;
 
   EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rCut, int t_nPoints,
-             Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau, int t_nImages)
+             Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau)
     : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rCut(t_rCut), nPoints(t_nPoints),
-      grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau), nImages(t_nImages)
+      grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau)
   {
     if (rMin == 0.)
       cerr << "Warning: rMin = 0!" << endl;
@@ -99,8 +99,8 @@ public:
   /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
   double CalcXk(CubicSpline &V, double rc, double k)
   {
-     double absTol = 1.0e-9;
-     double relTol = 1.0e-7;
+     double absTol = 1.0e-12;
+     double relTol = 1.0e-10;
 
      XkIntegrand integrand(V, k);
      GKIntegration<XkIntegrand, GK31> integrator(integrand);
@@ -111,15 +111,24 @@ public:
 
      // Subsequent segments
      double rMax = V.grid->End;
-     double nPi = 256*M_PI;
-     int nSeg = int((rMax-rFirst)/(nPi/k));
+     double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
+     int nSeg = floor((rMax-rFirst)/(nPik));
      for (int i=0; i<nSeg; i++)
-       Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*(nPi/k), rFirst + (i+1)*(nPi/k), absTol, relTol, false);
+       Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*nPik, rFirst + (i+1)*nPik, absTol, relTol, false);
 
      /// Add in the analytic part that I ignored
      /// Multiply analytic term by tau only for U -- do not multiply
      /// for dU or V.
-     Xk += Xk_Coul(k, rFirst + (nSeg)*(nPi/k));
+     double rEnd = rFirst + (nSeg)*nPik;
+     Xk += Xk_Coul(k, rEnd);
+
+     // Check end point
+     double Vtol = 1.0e-8;
+     double Vc = 1./rEnd;
+     if (breakupObject == 1)
+       Vc *= tau;
+     if (abs(V(rEnd) - Vc) > Vtol)
+       cout << "WARNING: |V(rEnd) - V_{c}(rEnd)| = " << abs(V(rEnd) - Vc) << " > " << Vtol << " with rEnd = " << rEnd << ", V(rEnd) = " << V(rEnd) << ", V_{c}(rEnd) = " << Vc << endl;
 
      return Xk;
   }
@@ -226,9 +235,10 @@ public:
     double kvol = 1.0; // Path.GetkBox()[0];
     for (int i=0; i<DIM; i++)
       kvol *= 2*M_PI/box[i]; // Path.GetkBox()[i];
-    double kavg = pow(kvol,1.0/3.0);
+    double kavg = pow(kvol,1.0/DIM);
 
     // Read potential
+    cout << "Reading files..." << endl;
     string objectString;
     if (breakupObject == 2)
       objectString = "dud";
@@ -256,6 +266,8 @@ public:
         pointFile>>V;
         rs(ri) = r;
         tmpV(ri) = V;
+        //if (breakupObject == 2)
+        //  tmpV(ri) *= tau;
         ri += 1;
       }
     }
@@ -270,20 +282,27 @@ public:
     basis.SetNumKnots(nKnots);
     basis.Set_rc(rCut);
 
-    // We try to pick kcont to keep reasonable number of k-vectors
+    // We try to pick kcont to keep reasonable number of k-vectors.
+    // It turns out you need way more kVecs for the Optimized breakup
+    // procedure when fitting the parameters. In simulation, you can 
+    // then use much fewer. This is why we define:
+    // kc - largest kVec used in simluation
+    // kCont - largest exactly calculated kVec in breakup fitting
+    // kMax - largest approximately included kVec in breakup fitting
+    //
     double kCont = 50.0 * kavg;
     double delta = basis.GetDelta();
-    double kMax = 20.0*M_PI/delta;
+    double kMax = 50.0*M_PI/delta;
+    assert(kMax > kCont);
     cout << "kAvg = " << kavg << ", kCut = " << kCut << ", kCont = " << kCont << ", kMax = " << kMax << endl;
 
     OptimizedBreakupClass breakup(basis);
+    cout << "Setting up breakup kVecs..." << endl;
     breakup.SetkVecs (kCut, kCont, kMax);
     int numk = breakup.kpoints.size();
     int N = basis.NumElements();
     Array<bool,1> adjust(N);
-    Array<double,1> t(N), Xk(numk), fVl(kVecs.size()), Vl(nPoints), r(nPoints), Vs(nPoints);
-    for (int i=0; i<nPoints; i++)
-      r(i) = grid(i);
+    Array<double,1> t(N), Xk(numk), fVl(kVecs.size()), Vl(nPoints), Vs(nPoints);
     fVl = 0.0;
     Vl = 0.0;
 
@@ -320,7 +339,7 @@ public:
 
     // Now, we must put this information into the pair action
     // object.  First do real space part
-    double Vl0=0.0;
+    double Vl0 = 0.0;
     for (int n=0; n<N; n++)
       Vl0 += t(n)*basis.h(n,0.0);
     for (int i=0; i<grid.NumPoints; i++) {
@@ -456,9 +475,9 @@ public:
 
   }
 
-  void ComputeMadelungNaive()
+  void ComputeMadelungNaive(int nImages)
   {
-    cout << "Computing Madelung constant by naive sum..." << endl;
+    cout << "Computing Madelung constant by naive sum with " << nImages << " images..." << endl;
 
     // Get Long-ranged k-space part
     string objectString;
@@ -489,6 +508,8 @@ public:
         pointFile>>V;
         rs(ri) = r;
         tmpV(ri) = V/Z1Z2;
+        //if (breakupObject == 2)
+        //  tmpV(ri) *= tau;
         ri += 1;
       }
     }
@@ -589,7 +610,7 @@ public:
 
     // Madelung Constant
     double estMad = box[0]*V/N;
-    cout << "Vmad = " << estMad << endl;
+    printf("Vmad = %.10e \n",estMad);
   }
 
   void ComputeMadelung()
@@ -754,13 +775,13 @@ public:
 
     // Madelung Constant
     double estMad = box[0]*V/N;
-    cout << "Vmad = " << estMad << endl;
+    printf("Vmad = %.10e \n",estMad);
   }
 
   void PrintExactCoulombMadelung()
   {
     double extMad = -1.747564594633182190636212035544397403481;
-    cout << "Exact Coulomb Madelung constant, Vmad = " << extMad << endl;
+    printf("Exact Coulomb Madelung constant, Vmad = %.10e \n",extMad);
   }
 
 };
@@ -790,10 +811,12 @@ int main(int argc, char* argv[])
   double tau = atof(argv[12]);
   int nImages = atoi(argv[13]);
 
-  EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau, nImages);
+  EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
   e.DoBreakup();
   e.ComputeMadelung();
-  e.ComputeMadelungNaive();
+  e.ComputeMadelungNaive(nImages/4);
+  e.ComputeMadelungNaive(nImages/2);
+  e.ComputeMadelungNaive(nImages);
   e.PrintExactCoulombMadelung();
 
 }

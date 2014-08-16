@@ -42,6 +42,10 @@ void EnergyClass::Accumulate()
   // Fill Energies Map
   PathData.Actions.Energy(energies);
 
+  double kineticA, UShortA, ULongA, UExtA, nodeA;
+  PathData.Actions.GetActions(kineticA, UShortA, ULongA, UExtA, nodeA);
+  cout << UShortA/(double)Path.TotalNumSlices << " " << ULongA/(double)Path.TotalNumSlices << endl;
+
   // Add energies to total
   double localSum = 0.0;
   for (std::list<string>::iterator labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
@@ -59,8 +63,8 @@ void EnergyClass::Accumulate()
   VExtSum += vExt;
 
   // Energy Histogram
-  double completeSum = PathData.Path.Communicator.Sum(localSum) /
-                       (double) PathData.Path.TotalNumSlices;
+  double completeSum = Path.Communicator.Sum(localSum) /
+                       (double) Path.TotalNumSlices;
   if (isnan(completeSum))
     cout << completeSum << " ERROR" << endl;
   EnergyHistogram.add(completeSum, 1.0);
@@ -69,7 +73,7 @@ void EnergyClass::Accumulate()
   if(CountPerms) {
     vector<int> Cycles;
     int PermSector;
-    PathData.Path.GetPermInfo(Cycles,PermSector);
+    Path.GetPermInfo(Cycles,PermSector);
     if (Path.Communicator.MyProc() == 0) {
       if (completeSum == 0) {
         cout << PermSector << " " << localSum << endl;
@@ -93,38 +97,68 @@ void EnergyClass::WriteBlock()
   if (FirstTime) {
     FirstTime = false;
     int nPair = PathData.Actions.PairArray.size();
-    Array<double,1> vTailSR(nPair), vTailLR(nPair);
+    Array<double,1> vLong_k0(nPair), vLong_r0(nPair), duLong_k0(nPair), duLong_r0(nPair);
     for (int iPair=0; iPair<nPair; iPair++) {
-      vTailSR(iPair) = ((DavidPAClass *) (PathData.Actions.PairArray(iPair)))->Vimage;
-      if (PathData.Path.DavidLongRange) {
+      if (Path.DavidLongRange) {
+        vLong_r0(iPair) = ((DavidPAClass *) (PathData.Actions.PairArray(iPair)))->Vimage;
         DavidLongRangeClassYk *lr = (DavidLongRangeClassYk *) (&(PathData.Actions.DavidLongRange));
-        vTailLR(iPair) = 0.5 * lr->yk_zero(iPair) * PathData.Path.NumParticles();
+        vLong_k0(iPair) = 0.5 * lr->yk_zero(iPair) * Path.NumParticles();
+        duLong_r0(iPair) = vLong_r0(iPair);
+        duLong_k0(iPair) = vLong_k0(iPair);
+      } else if (Path.IlkkaLongRange) {
+        // This calculates the constant terms provided by the pair action:
+        // C = \sum_{\sigma} \frac{N_{\sigma}}{2} [ \tilde{u}_{\sigma,\sigma}^{L}(0) * (N_{\sigma} - 1)
+        //                                         - u_{\sigma,\sigma}^{L} (0)
+        //   + \sum_{\sigma < \gamma} \frac{N_{\sigma} N_{\gamma}}{2} \tilde{u}_{\sigma,\gamma}^{L}(0)
+        IlkkaLongRangeClass *lr = (IlkkaLongRangeClass *) (&(PathData.Actions.IlkkaLongRange));
+        int N1 = Path.Species(lr->specNum1(iPair)).NumParticles;
+        int N2 = Path.Species(lr->specNum2(iPair)).NumParticles;
+        if (lr->specNum1(iPair) == lr->specNum2(iPair)) { // homologous
+          //vTailSR(iPair) = -0.5 * N1 * lr->dur0(iPair);
+          //vTailLR(iPair) = 0.5 * N1 * (N1-1) * lr->duk0(iPair);
+          duLong_k0(iPair) = 0.25*N1*N1*lr->duk0(iPair);
+          duLong_r0(iPair) = -0.5*N1*lr->dur0(iPair);
+          vLong_k0(iPair) = 0.25*N1*N1*lr->vk0(iPair);
+          vLong_r0(iPair) = -0.5*N1*lr->vr0(iPair);
+        } else { // heterologous
+          duLong_k0(iPair) = 0.5*N1*N2*lr->duk0(iPair);
+          duLong_r0(iPair) = 0.0*lr->dur0(iPair);
+          vLong_k0(iPair) = 0.5*N1*N2*lr->vk0(iPair);
+          vLong_r0(iPair) = 0.0*lr->vr0(iPair);
+        }
+      } else {
+        vLong_k0(iPair) = 0.;
+        vLong_r0(iPair) = 0.;
+        duLong_k0(iPair) = 0.;
+        duLong_r0(iPair) = 0.;
       }
     }
-    VTailSRVar.Write(vTailSR);
-    VTailLRVar.Write(vTailLR);
+    vLong_k0_var.Write(vLong_k0);
+    vLong_r0_var.Write(vLong_r0);
+    duLong_k0_var.Write(duLong_k0);
+    duLong_r0_var.Write(duLong_r0);
     HistStart.Write(EnergyHistogram.startVal);
     HistEnd.Write(EnergyHistogram.endVal);
     NumPoints.Write(EnergyHistogram.NumPoints);
   }
 
-  int nslices = PathData.Path.TotalNumSlices;
+  int nslices = Path.TotalNumSlices;
   double norm = 1.0 / ((double) NumSamples * (double) nslices);
 
   // Write out energies
-  TotalVar.Write(Prefactor * PathData.Path.Communicator.Sum(TotalSum) * norm);
-  VShortVar.Write(Prefactor * PathData.Path.Communicator.Sum(VShortSum) * norm);
-  VLongVar.Write(Prefactor * PathData.Path.Communicator.Sum(VLongSum) * norm);
-  VExtVar.Write(Prefactor * PathData.Path.Communicator.Sum(VExtSum) * norm);
+  TotalVar.Write(Prefactor * Path.Communicator.Sum(TotalSum) * norm);
+  VShortVar.Write(Prefactor * Path.Communicator.Sum(VShortSum) * norm);
+  VLongVar.Write(Prefactor * Path.Communicator.Sum(VLongSum) * norm);
+  VExtVar.Write(Prefactor * Path.Communicator.Sum(VExtSum) * norm);
   double localSum = 0.0;
   std::list<string>::iterator labelIt;
   for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
-    EVar[*labelIt] -> Write(Prefactor * PathData.Path.Communicator.Sum(ESum[*labelIt]) * norm);
+    EVar[*labelIt] -> Write(Prefactor * Path.Communicator.Sum(ESum[*labelIt]) * norm);
     ESum[*labelIt] = 0.0;
   }
 
   // Permutation Counting
-  if (CountPerms && PathData.Path.Communicator.MyProc() == 0) {
+  if (CountPerms && Path.Communicator.MyProc() == 0) {
 
     // Map out the PermEnergy vector
     map<int,vector<double> > PermEnergyMap;
@@ -180,7 +214,7 @@ void EnergyClass::WriteBlock()
   EnergyHistogramVar.Write(EnergyHistogramTemp);
 
   // Reset counters
-  if (PathData.Path.Communicator.MyProc() == 0)
+  if (Path.Communicator.MyProc() == 0)
     IOSection.FlushFile();
   TotalSum = 0.0;
   VShortSum = 0.0;
@@ -196,7 +230,7 @@ void EnergyClass::Read(IOSectionClass & in)
   ObservableClass::Read(in);
   assert(in.ReadVar("Frequency", Freq));
 
-  if (PathData.Path.Communicator.MyProc() == 0) {
+  if (Path.Communicator.MyProc() == 0) {
     WriteInfo();
     IOSection.WriteVar("Type", "Scalar");
   }
@@ -209,17 +243,17 @@ void EnergyClass::Read(IOSectionClass & in)
   if(!in.ReadVar("CountPerms",CountPerms))
     CountPerms = 0;
   if(CountPerms) {
-    int N = PathData.Path.NumParticles();
+    int N = Path.NumParticles();
     // Maximum number of permutation sectors tracked
     int MaxNSectors;
     if(!in.ReadVar("MaxNSectors", MaxNSectors))
       MaxNSectors = 0; // 0 -> Track all sectors
-    PathData.Path.SetupPermSectors(N,MaxNSectors);
+    Path.SetupPermSectors(N,MaxNSectors);
     vector<int> Cycles;
     int PermSector;
-    PathData.Path.GetPermInfo(Cycles,PermSector);
-    if (PathData.Path.Communicator.MyProc() == 0)
-      cout << PathData.Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << PathData.Path.PossPerms.size()-1 << endl;
+    Path.GetPermInfo(Cycles,PermSector);
+    if (Path.Communicator.MyProc() == 0)
+      cout << Path.CloneStr << " Starting in Perm Sector " << PermSector << " of " << Path.PossPerms.size()-1 << endl;
   }
 
   // Energy Histogram
@@ -236,7 +270,7 @@ void EnergyClass::Read(IOSectionClass & in)
   std::list<string>::iterator labelIt;
   for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
     energies.insert( std::pair<string,double>(*labelIt,0.0) );
-    ObservableDouble* tmpVar = new ObservableDouble(*labelIt,IOSection,PathData.Path.Communicator);
+    ObservableDouble* tmpVar = new ObservableDouble(*labelIt,IOSection,Path.Communicator);
     EVar.insert( std::pair<string,ObservableDouble*>(*labelIt,tmpVar) );
   }
 }

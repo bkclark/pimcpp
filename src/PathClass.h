@@ -108,6 +108,8 @@ public:
   void BroadcastRefPath();
   /// True if we need k-space sums for long range potentials.
   bool LongRange;
+  ///True if we are doing long range in Ilkka's way
+  bool IlkkaLongRange;
   ///True if we are doing long range in David's way
   bool DavidLongRange;
   /// Stores the actual k vectors

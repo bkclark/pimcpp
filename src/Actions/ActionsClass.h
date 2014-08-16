@@ -17,9 +17,14 @@
 #ifndef ACTIONS_CLASS_H
 #define ACTIONS_CLASS_H
 
+#include "../PairAction/PAclassicalFit.h"
+#include "../PairAction/PAzeroFit.h"
+#include "../PairAction/DavidPAClass.h"
+#include "../PairAction/IlkkaPAClass.h"
 
 #include "DiagonalActionClass.h"
 #include "ShortRangeClass.h"
+#include "IlkkaShortRangeClass.h"
 #include "ShortRangeOnClass.h"
 #include "ShortRangeOn_diagonal_Class.h"
 #include "ShortRangeApproximateClass.h"
@@ -44,6 +49,7 @@
 
 #include "DavidLongRangeClass.h"
 #include "DavidLongRangeClassYk.h"
+#include "IlkkaLongRangeClass.h"
 //#include "QMCSamplingClass.h"
 //#include "QBoxAction.h"
 #include "OpenLoopImportance.h"
@@ -69,6 +75,7 @@ private:
 
   // new functionality
   // store pointers to ONLY action classes that are used (multiple instantiation also is allowed)
+  PairActionFitClass* ReadPAFit(IOSectionClass &in,  double smallestBeta, int numLevels);
   void ReadPairActions(IOSectionClass &in);
   public:
   ActionBaseClass* GetAction(string name);
@@ -131,6 +138,9 @@ public:
 
   ///David's Long Range Class
   DavidLongRangeClassYk DavidLongRange;
+
+  ///Ilkka's Long Range Class
+  IlkkaLongRangeClass IlkkaLongRange;
 
   HarmonicPotentialClass HarmonicPotential;
 
@@ -229,6 +239,7 @@ public:
     LongRange(pathData,PairMatrix,PairArray), 
     //LongRangeCoulomb(pathData,PairMatrix,PairArray), 
     DavidLongRange(pathData,PairMatrix,PairArray,PairIndex),
+    IlkkaLongRange(pathData,PairMatrix,PairArray,PairIndex),
     LongRangeRPA(pathData, PairMatrix, PairArray),
     LongRangePot(pathData, PairMatrix),
     HarmonicPotential(pathData),

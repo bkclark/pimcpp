@@ -18,7 +18,6 @@
 #define LONG_RANGE_POT_CLASS
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 
 class LongRangePotClass : public PotentialBaseClass
 {

@@ -18,8 +18,6 @@
 #define SHORT_RANGE_CLASS_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
-
 #include "ShortRangeOnClass.h"
 
 /// The ShortRangeClass is an action class which stores the part of

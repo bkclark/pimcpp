@@ -19,7 +19,7 @@
 
 #include "../Common.h"
 #include "../IO/IO.h"
-
+#include "../PairAction/PAFitBase.h"
 
 using namespace IO;
 

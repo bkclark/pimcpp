@@ -26,7 +26,7 @@ class EnergyClass : public ObservableClass
 
 private:
   ObservableDouble TotalVar, VShortVar, VLongVar, VExtVar, HistStart, HistEnd, NumPoints;
-  ObservableVecDouble1 VTailSRVar, VTailLRVar, EnergyHistogramVar, PermEnergyVar;
+  ObservableVecDouble1 vLong_r0_var, vLong_k0_var, duLong_r0_var, duLong_k0_var, EnergyHistogramVar, PermEnergyVar;
 
   double TotalSum, VShortSum, VLongSum, VExtSum;
   map<string,double> energies;
@@ -54,8 +54,10 @@ public:
       VShortVar("VShort",IOSection,myPathData.Path.Communicator),
       VLongVar("VLong",IOSection,myPathData.Path.Communicator),
       VExtVar("VExt",IOSection,myPathData.Path.Communicator),
-      VTailSRVar("VTail Short Range",IOSection,myPathData.Path.Communicator),
-      VTailLRVar("VTail Long Range",IOSection,myPathData.Path.Communicator),
+      vLong_k0_var("vLong_k0",IOSection,myPathData.Path.Communicator),
+      vLong_r0_var("vLong_r0",IOSection,myPathData.Path.Communicator),
+      duLong_k0_var("duLong_k0",IOSection,myPathData.Path.Communicator),
+      duLong_r0_var("duLong_r0",IOSection,myPathData.Path.Communicator),
       PermEnergyVar("PermEnergy",IOSection,myPathData.Path.Communicator),
       EnergyHistogramVar("Energy Histogram",IOSection,myPathData.Path.Communicator),
       HistStart("HistStart",IOSection,myPathData.Path.Communicator),

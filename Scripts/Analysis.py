@@ -638,12 +638,14 @@ def main():
         UseFileList = True
     if not UseFileList:
         fullpath = args[0].split('/')
+        print fullpath
         if len(fullpath) > 2:
-            basename = fullpath[2]
-            basedir = fullpath[0]+'/'+fullpath[1]+'/'
+            basename = fullpath[-1]
+            basedir = '/'.join(fullpath[:-1])+'/'
         else:
             basename = fullpath[-1]
             basedir = '../rawdata/'
+        print basename, basedir
         splitBaseName=string.split(basename,'.')
         if splitBaseName[-1]=='h5':
             basename = string.join(splitBaseName[0:-2],'.')

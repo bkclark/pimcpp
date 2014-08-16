@@ -18,7 +18,6 @@
 #define SHORT_RANGE_POT_CLASS
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 
 class ShortRangePotClass : public PotentialBaseClass
 {
@@ -27,8 +26,10 @@ private:
 public:
   double V (int slice);
 
-  ShortRangePotClass (PathDataClass &pathData,
-		      Array<PairActionFitClass*,2> &pairMatrix);
+  ShortRangePotClass (PathDataClass &pathData, Array<PairActionFitClass*,2> &pairMatrix) :
+    PotentialBaseClass (pathData), PairMatrix(pairMatrix)
+  {}
+
 };
 
 

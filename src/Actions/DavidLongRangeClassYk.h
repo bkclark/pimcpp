@@ -18,7 +18,6 @@
 #define DAVID_LONG_RANGE_CLASS_YK2_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 
 
 /// The LongRangeClass is an action class responsible for the long

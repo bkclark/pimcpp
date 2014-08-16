@@ -256,7 +256,6 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
 {
   PathClass &Path = PathData.Path;
 
-  Array<double,1> sliceTotal(Path.NumTimeSlices());
   double levelTau=Path.tau;
   int skip = 1<<level;
   // Add constant part.  Note: we should really check the number of dimensions.
@@ -280,12 +279,8 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
             Path.ParticleExist(slice,ptcl2)*
             Path.ParticleExist(slice+skip,ptcl1)*
             Path.ParticleExist(slice+skip,ptcl2);
-        }
-        else{
-          double t_dU = pa.dU(q,z,s2,level);
-          sliceTotal(slice) += t_dU;
-          dU += t_dU;
-        }
+        } else
+          dU += pa.dU(q,z,s2,level);
         // Subtract off long-range part from short-range action
         if (pa.IsLongRange() && PathData.Actions.UseLongRange)
           dU -= 0.5*(pa.dUlong(level)(rmag)+pa.dUlong(level)(rpmag));

@@ -18,7 +18,6 @@
 #define SHORT_RANGE_ON_DIAGONAL_CLASS_H
 
 #include "ActionBase.h"
-#include "../PairAction/PAFit.h"
 #include <vector>
 /// The ShortRangeClass is an action class which stores the part of
 /// the potential pair action that is summed in real space.  If the

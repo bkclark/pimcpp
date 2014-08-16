@@ -14,43 +14,49 @@
 // http://code.google.com/p/pimcplusplus/                  //
 /////////////////////////////////////////////////////////////
 
-#ifndef DAVID_LONG_RANGE_CLASS_H
-#define DAVID_LONG_RANGE_CLASS_H
+#ifndef ILKKA_LONG_RANGE_CLASS_H
+#define ILKKA_LONG_RANGE_CLASS_H
 
 #include "ActionBase.h"
 
 /// The LongRangeClass is an action class responsible for the long
 /// wavelength components of the action that are summed in k-space.
 /// This class reads in and uses an optimized breakup from a file that
-/// David supplies. 
-
-class DavidLongRangeClass : public ActionBaseClass
+/// Ilkka supplies. 
+class IlkkaLongRangeClass : public ActionBaseClass
 {
 protected:
-  //  Array<PairActionFitClass*,2> &PairMatrix;
-  //  Array<PairActionFitClass*,1> &PairArray;
- //  LinearGrid LongGrid;
+  Array<PairActionFitClass*,2> &PairMatrix;
+  Array<PairActionFitClass*,1> &PairArray;
+  Array<int,2> &PairIndex;
 
+  inline double mag2 (const complex<double> &z)
+  {
+    return (z.real()*z.real() + z.imag()*z.imag());
+  }
 
-  /// This calculates the quantity 
-  /// \f$ X_k \equiv -\frac{4\pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
-  //  double CalcXk (int paIndex, int level, double k, double rc, JobType type);
-  // This must be called after all of the OptimizedBreakup_x's
+  inline double mag2 (const complex<double> &z1, const complex<double> &z2)
+  {
+    return (z1.real()*z2.real() + z1.imag()*z2.imag());
+  }
 
-  //  int Level, ki;
-
-  ///The values of the action will be uk*\rho_k*\rho_{-k}
-  Array<double,1> uk;
-  Array<double,1> duk;
 public:
-  // void Init(IOSectionClass &in);
-  void Read (IOSectionClass &in);
-  double SingleAction (int slice1, int slice2, 
-		       const Array<int,1> &activeParticles, int level);
-  double d_dBeta (int slice1, int slice2,  int level);
-  string GetName();
-  DavidLongRangeClass (PathDataClass &pathData);
+  Array<double,1> specNum1, specNum2;
+  Array<double,1> uk0, duk0, vk0, ur0, dur0, vr0;
+  Array<double,2> uk, duk, Vlong_k;
 
+  void Read (IOSectionClass &in);
+  void Build_MultipleSpecies();
+  double SingleAction (int slice1, int slice2, const Array<int,1> &activeParticles, int level);
+  double d_dBeta (int slice1, int slice2,  int level);
+  double V(int slice1,int slice2,int level);
+  string GetName();
+  bool fequals(double a,double b, double tol);
+  bool vecEquals(dVec &a, dVec &b,double tol);
+  void WriteInfo(IOSectionClass &out);
+  IlkkaLongRangeClass::IlkkaLongRangeClass(PathDataClass &pathData, Array<PairActionFitClass*,2> &pairMatrix, Array<PairActionFitClass*,1> &pairArray, Array<int,2> &pairIndex)
+    : ActionBaseClass (pathData), PairMatrix(pairMatrix), PairArray(pairArray), PairIndex(pairIndex)
+  {}
 };
 
 #endif
