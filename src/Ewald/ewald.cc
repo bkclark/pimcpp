@@ -123,7 +123,7 @@ public:
      Xk += Xk_Coul(k, rEnd);
 
      // Check end point
-     double Vtol = 1.0e-8;
+     double Vtol = 1.0e-5;
      double Vc = 1./rEnd;
      if (breakupObject == 1)
        Vc *= tau;
