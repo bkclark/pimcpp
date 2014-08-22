@@ -111,8 +111,8 @@ public:
 
      // Subsequent segments
      double rMax = V.grid->End;
-     double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
-     int nSeg = floor((rMax-rFirst)/(nPik));
+     double nPik = 10*int(k)*M_PI/k; // HACK: This may need to be adjusted.
+     int nSeg = floor((rMax-rFirst)/nPik);
      for (int i=0; i<nSeg; i++)
        Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*nPik, rFirst + (i+1)*nPik, absTol, relTol, false);
 
@@ -124,7 +124,7 @@ public:
 
      // Check end point
      double Vtol = 1.0e-5;
-     double Vc = 1./rEnd;
+     double Vc = Z1Z2/rEnd;
      if (breakupObject == 1)
        Vc *= tau;
      if (abs(V(rEnd) - Vc) > Vtol)
@@ -230,7 +230,7 @@ public:
 
   double OptimizedBreakup()
   {
-    const double tolerance = 1.0e-11;
+    const double tolerance = 1.0e-12;
     double boxVol = box[0]*box[1]*box[2];
     double kvol = 1.0; // Path.GetkBox()[0];
     for (int i=0; i<DIM; i++)
@@ -313,6 +313,8 @@ public:
       double k = breakup.kpoints(ki)[0];
       Xk(ki) = CalcXk(VSpline, rCut, k) / boxVol;
       //Xk(ki) = Xk_Coul(k, rCut) / boxVol;
+      if (ki % int(numk/10) == 0)
+        cout << ceil(100*double(ki)/double(numk)) << " % complete" << endl;
     }
 
     // Set boundary conditions at rCut:  For Maxe value and first and
