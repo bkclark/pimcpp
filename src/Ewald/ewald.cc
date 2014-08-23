@@ -110,16 +110,18 @@ public:
      double Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rFirst, absTol, relTol, false);
 
      // Subsequent segments
-     double rMax = V.grid->End;
-     double nPik = 10*int(k)*M_PI/k; // HACK: This may need to be adjusted.
+     double rMax = 100.;//V.grid->End;
+     double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
      int nSeg = floor((rMax-rFirst)/nPik);
      for (int i=0; i<nSeg; i++)
        Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*nPik, rFirst + (i+1)*nPik, absTol, relTol, false);
+     // Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rMax, absTol, relTol, false);
 
      /// Add in the analytic part that I ignored
      /// Multiply analytic term by tau only for U -- do not multiply
      /// for dU or V.
      double rEnd = rFirst + (nSeg)*nPik;
+     //rEnd = rMax;
      Xk += Xk_Coul(k, rEnd);
 
      // Check end point
@@ -312,6 +314,8 @@ public:
     for (int ki=0; ki<numk; ki++) {
       double k = breakup.kpoints(ki)[0];
       Xk(ki) = CalcXk(VSpline, rCut, k) / boxVol;
+      //cout << k << " " << Xk(ki) << endl;
+      //abort();
       //Xk(ki) = Xk_Coul(k, rCut) / boxVol;
       if (ki % int(numk/10) == 0)
         cout << ceil(100*double(ki)/double(numk)) << " % complete" << endl;

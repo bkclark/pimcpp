@@ -44,7 +44,6 @@ void EnergyClass::Accumulate()
 
   double kineticA, UShortA, ULongA, UExtA, nodeA;
   PathData.Actions.GetActions(kineticA, UShortA, ULongA, UExtA, nodeA);
-  cout << UShortA/(double)Path.TotalNumSlices << " " << ULongA/(double)Path.TotalNumSlices << endl;
 
   // Add energies to total
   double localSum = 0.0;
