@@ -174,37 +174,27 @@ double IlkkaLongRangeClass::SingleAction (int slice1, int slice2, const Array<in
   double total = 0.;
 
   // Homogolous terms
-  Array<double,1> totals(Path.NumSpecies());
-  totals = 0.;
   for (int ki=0; ki<Path.kVecs.size(); ki++) {
     for (int slice=startSlice; slice<=endSlice; slice+=skip) {
       for(set<int>::iterator it = speciesList.begin(); it!=speciesList.end(); it++) {
         int species = *it;
         double rhok2 = mag2(Path.Rho_k(slice,species,ki));
         total += 0.5*rhok2*uk(PairIndex(species,species),ki);
-        totals(species) += 0.5*rhok2*uk(PairIndex(species,species),ki);
       }
     }
   }
-  totals = totals/Path.TotalNumSlices;
-  cout << totals << endl;
 
   // Heterologous terms
-  totals.resize(Path.NumSpecies()*(Path.NumSpecies()-1)/2);
-  totals = 0.;
   for (int ki=0; ki<Path.kVecs.size(); ki++) {
     for (int slice=startSlice; slice<=endSlice; slice+=skip) {
       for (int species0=0; species0<Path.NumSpecies()-1; species0++) {
         for (int species1=species0+1; species1<Path.NumSpecies(); species1++) {
           double rhok2 = mag2(Path.Rho_k(slice,species0,ki),Path.Rho_k(slice,species1,ki));
           total += 1.0*rhok2*uk(PairIndex(species0,species1),ki);
-          totals(species0*(Path.NumSpecies()-1) + species1 - 1) += 1.0*rhok2*uk(PairIndex(species0,species1),ki);
         }
       }
     }
   }
-  totals = totals/Path.TotalNumSlices;
-  cout << totals << endl;
 
   gettimeofday(&end, &tz);
   TimeSpent += (double)(end.tv_sec-start.tv_sec) + 1.0e-6*(double)(end.tv_usec-start.tv_usec);
@@ -218,8 +208,6 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
   double factor = 1.;
 
   // Homogolous terms
-  Array<double,1> totals(Path.NumSpecies());
-  totals = 0.;
   for (int slice=slice1; slice<=slice2; slice++) {
     double sliceTotal=0.0;
     if ((slice == slice1) || (slice==slice2))
@@ -231,17 +219,12 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
       for (int ki=0; ki<Path.kVecs.size(); ki++) {
          double rhok2 = mag2(Path.Rho_k(slice,species,ki));
          sliceTotal += factor*rhok2*duk(PairIndex(species,species),ki);
-         totals(species) += factor*rhok2*duk(PairIndex(species,species),ki);
       }
     }
     total += sliceTotal;
   }
-  totals = totals/Path.TotalNumSlices;
-  cout << totals << endl;
 
   // Heterologous terms
-  totals.resize(Path.NumSpecies()*(Path.NumSpecies()-1)/2);
-  totals = 0.;
   for (int slice=slice1; slice<=slice2; slice++) {
     double sliceTotal=0.0;
     if ((slice==slice1) || (slice==slice2))
@@ -253,14 +236,11 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
         for (int ki = 0; ki < Path.kVecs.size(); ki++) {
           double rhok2 = mag2(Path.Rho_k(slice,species0,ki),Path.Rho_k(slice,species1,ki));
           sliceTotal += factor*rhok2*duk(PairIndex(species0,species1),ki);
-          totals(species0*(Path.NumSpecies()-1) + species1 - 1) += factor*rhok2*duk(PairIndex(species0,species1),ki);
         }
       }
     }
     total += sliceTotal;
   }
-  totals = totals/Path.TotalNumSlices;
-  cout << totals << endl;
 
   return total;
 }
