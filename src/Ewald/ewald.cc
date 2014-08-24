@@ -99,7 +99,7 @@ public:
   /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
   double CalcXk(CubicSpline &V, double rc, double k)
   {
-     double absTol = 1.0e-12;
+     double absTol = 1.0e-10;
      double relTol = 1.0e-10;
 
      XkIntegrand integrand(V, k);
