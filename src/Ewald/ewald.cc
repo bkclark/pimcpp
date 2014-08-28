@@ -110,7 +110,7 @@ public:
      double Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rFirst, absTol, relTol, false);
 
      // Subsequent segments
-     double rMax = 100.;//V.grid->End;
+     double rMax = V.grid->End;
      double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
      int nSeg = floor((rMax-rFirst)/nPik);
      for (int i=0; i<nSeg; i++)
