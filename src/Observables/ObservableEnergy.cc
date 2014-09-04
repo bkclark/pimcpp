@@ -42,9 +42,6 @@ void EnergyClass::Accumulate()
   // Fill Energies Map
   PathData.Actions.Energy(energies);
 
-  double kineticA, UShortA, ULongA, UExtA, nodeA;
-  PathData.Actions.GetActions(kineticA, UShortA, ULongA, UExtA, nodeA);
-
   // Add energies to total
   double localSum = 0.0;
   for (std::list<string>::iterator labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
@@ -120,9 +117,9 @@ void EnergyClass::WriteBlock()
           vLong_k0(iPair) = 0.25*N1*N1*lr->vk0(iPair);
           vLong_r0(iPair) = -0.5*N1*lr->vr0(iPair);
         } else { // heterologous
-          duLong_k0(iPair) = 0.5*N1*N2*lr->duk0(iPair);
+          duLong_k0(iPair) = 0.25*N1*N2*lr->duk0(iPair);
           duLong_r0(iPair) = 0.0*lr->dur0(iPair);
-          vLong_k0(iPair) = 0.5*N1*N2*lr->vk0(iPair);
+          vLong_k0(iPair) = 0.25*N1*N2*lr->vk0(iPair);
           vLong_r0(iPair) = 0.0*lr->vr0(iPair);
         }
       } else {

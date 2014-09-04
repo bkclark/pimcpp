@@ -28,6 +28,7 @@ class IlkkaPAClass : public PairActionFitClass
  public:
   // Parameters
   string type1, type2;
+  double Z1, Z2, tau;
   bool longRange;
   int nOrder;
 
@@ -77,6 +78,8 @@ inline bool IlkkaPAClass::Read(IOSectionClass &in, double x, int y)
     lambda = Particle1.lambda + Particle2.lambda;
     assert(in.ReadVar("Ilkkadmfile",fileName));
     if(!in.ReadVar("longRange",longRange))
+      longRange = false;
+    if(!in.ReadVar("vLongRange",vLongRange))
       longRange = false;
     ReadIlkkaHDF5(fileName.c_str());
   in.CloseSection();

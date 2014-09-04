@@ -37,7 +37,13 @@ protected:
   bool UseLowVariance;
   void Setup_ck();
   inline double g(double r);
+
+  double GetU(PairActionFitClass &pa, dVec &r, dVec &rp, int level);
+  double GetdUdBeta(PairActionFitClass &pa, dVec &r, dVec &rp, int level);
+
 public:
+  int nImages;
+  inline void SetNumImages (int num) { nImages = num; }
   bool HaveSamplingTable;
   void Read (IOSectionClass &in);
   double dUdR(int slice,int ptcl1, int ptcl2, int level);

@@ -89,9 +89,9 @@ void IlkkaLongRangeClass::Build_MultipleSpecies()
     // Constant terms
     uk0(iPair) = pa.uLong_k0;
     duk0(iPair) = pa.duLong_k0;
-    vk0(iPair) = pa.vLong_k0;
     ur0(iPair) = pa.uLong_r0;
     dur0(iPair) = pa.duLong_r0;
+    vk0(iPair) = pa.vLong_k0;
     vr0(iPair) = pa.vLong_r0;
 
   }

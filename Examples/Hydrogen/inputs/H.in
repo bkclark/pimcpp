@@ -110,10 +110,10 @@ Section (Algorithm)
     Section (Loop){ //Write Loop
       int Steps=10000;
       Section (Move)  { string Name = "electronBlock"; }
-      Section (Move)  { string Name = "Shift"; }
+      //Section (Move)  { string Name = "Shift"; }
       Section (Observe) { string Name = "Energy";        }
-      Section (Observe) { string Name = "PathDump";        }
-      Section (Observe) { string Name = "TimeAnalysis";  }
+      //Section (Observe) { string Name = "PathDump";        }
+      //Section (Observe) { string Name = "TimeAnalysis";  }
     }
     Section (WriteData){}
   }

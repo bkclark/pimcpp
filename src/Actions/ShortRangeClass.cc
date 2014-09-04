@@ -27,6 +27,8 @@ void ShortRangeClass::Read(IOSectionClass& in)
 {
   TotalTime = 0;
   TimeSpent = 0;
+  if(!in.ReadVar("nImages",nImages))
+    nImages = 0;
 }
 
 
@@ -128,6 +130,27 @@ double ShortRangeClass::d2UdR2_movers(int slice,int ptcl1, int ptcl2, int level)
 }
 
 
+double ShortRangeClass::GetU(PairActionFitClass &pa, dVec &r, dVec &rp, int level)
+{
+  double rmag = sqrt(dot(r,r));
+  double rpmag = sqrt(dot(rp,rp));
+  double s2 = dot(r-rp, r-rp);
+  double q = 0.5*(rmag + rpmag);
+  double z = (rmag - rpmag);
+  double U = pa.U(q,z,s2,level);
+  if(isnan(U)) {
+    cerr << "U "<< U << " " << q << " " << z << " " << s2 << " " << level << endl;
+    abort();
+  }
+
+  // double UP = 0.5*(pa.U(rmag,0,0, level)+pa.U(rpmag,0,0,level))
+  /// Subtract off long-range part from short-range action
+  //if (pa.IsLongRange() && PathData.Actions.UseLongRange)
+  //  U -= 0.5* (pa.Ulong(level)(rmag) + pa.Ulong(level)(rpmag));
+  //TotalU += U;
+  return U;
+}
+
 double ShortRangeClass::SingleAction (int slice1, int slice2, const Array<int,1> &changedParticles, int level)
 {
   struct timeval start, end;
@@ -147,27 +170,39 @@ double ShortRangeClass::SingleAction (int slice1, int slice2, const Array<int,1>
     for (int ptcl2=0; ptcl2<Path.NumParticles(); ptcl2++) {
       if (Path.DoPtcl(ptcl2)) {
         int species2 = Path.ParticleSpeciesNum(ptcl2);
-        PairActionFitClass &PA = *(PairMatrix(species1, species2));
+        PairActionFitClass &pa = *(PairMatrix(species1, species2));
         for (int slice=slice1; slice<slice2; slice+=skip) {
           dVec r, rp;
           double rmag, rpmag;
           PathData.Path.DistDisp(slice, slice+skip, ptcl1, ptcl2, rmag, rpmag, r, rp);
-          double s2 = dot(r-rp, r-rp);
-          double q = 0.5*(rmag + rpmag);
-          double z = (rmag - rpmag);
-          double U;
-          U = PA.U(q,z,s2,level);
-          if(isnan(U)) {
-            cerr << "U "<< U << " " << q << " " << z << " " << s2 << " " << level << endl;
-            abort();
+
+          dVec rImage(r), rpImage(rp);
+          dVec L = Path.GetBox();
+          for (int ix=-nImages; ix<=nImages; ix++) {
+            rImage[0] = r[0] + ix*L[0];
+            rpImage[0] = rp[0] + ix*L[0];
+#if NDIM==2
+            for (int b=-nImages; b<=nImages; b++) {
+              rImage[1] = r[1] + b*L[1];
+              rpImage[1] = rp[1] + b*L[1];
+              TotalU += GetU(pa,rImage,rpImage,level);
+            }
+#elif NDIM==3
+            for (int b=-nImages; b<=nImages; b++) {
+              rImage[1] = r[1] + b*L[1];
+              rpImage[1] = rp[1] + b*L[1];
+              for (int c=-nImages; c<=nImages; c++) {
+                rImage[2] = r[2] + c*L[2];
+                rpImage[2] = rp[2] + c*L[2];
+                TotalU += GetU(pa,rImage,rpImage,level);
+              }
+            }
+#endif
           }
-          // double UP = 0.5*(PA.U(rmag,0,0, level)+PA.U(rpmag,0,0,level))
-          /// Subtract off long-range part from short-range action
-          if (PA.IsLongRange() && PathData.Actions.UseLongRange)
-            U -= 0.5* (PA.Ulong(level)(rmag) + PA.Ulong(level)(rpmag));
-          TotalU+=U;
-          //  cerr<<" "<<U<<" "<<-0.5*levelTau*(1.0/rmag+1.0/rpmag)<<endl;
-          //  TotalU+=-0.5*levelTau*(1.0/rmag+1.0/rpmag);
+
+          if (pa.vLongRange)
+            TotalU += 0.5*Path.tau*(pa.V(rmag) + pa.V(rpmag));
+
         }
       }
     }
@@ -252,6 +287,21 @@ double ShortRangeClass::d_dBetaForcedPairAction (int slice1, int slice2, PairAct
 }
 
 
+double ShortRangeClass::GetdUdBeta(PairActionFitClass &pa, dVec &r, dVec &rp, int level)
+{
+  double rmag = sqrt(dot(r,r));
+  double rpmag = sqrt(dot(rp,rp));
+  double s2 = dot(r-rp, r-rp);
+  double q = 0.5*(rmag+rpmag);
+  double z = (rmag-rpmag);
+  double dU = pa.dU(q,z,s2,level);
+  // Subtract off long-range part from short-range action
+  //if (pa.IsLongRange() && PathData.Actions.UseLongRange)
+  //  dU -= 0.5*(pa.dUlong(level)(rmag)+pa.dUlong(level)(rpmag));
+  return dU;
+}
+
+
 double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
 {
   PathClass &Path = PathData.Path;
@@ -270,20 +320,33 @@ double ShortRangeClass::d_dBeta (int slice1, int slice2, int level)
         double rmag, rpmag;
         Path.DistDisp(slice,slice+skip,ptcl1,ptcl2,rmag,rpmag,r,rp);
 
-        double s2 = dot(r-rp, r-rp);
-        double q = 0.5*(rmag+rpmag);
-        double z = (rmag-rpmag);
-        if (Path.WormOn){
-          dU += pa.dU(q,z,s2,level)*
-            Path.ParticleExist(slice,ptcl1)*
-            Path.ParticleExist(slice,ptcl2)*
-            Path.ParticleExist(slice+skip,ptcl1)*
-            Path.ParticleExist(slice+skip,ptcl2);
-        } else
-          dU += pa.dU(q,z,s2,level);
-        // Subtract off long-range part from short-range action
-        if (pa.IsLongRange() && PathData.Actions.UseLongRange)
-          dU -= 0.5*(pa.dUlong(level)(rmag)+pa.dUlong(level)(rpmag));
+        dVec rImage(r), rpImage(rp);
+        dVec L = Path.GetBox();
+        for (int a=-nImages; a<=nImages; a++) {
+          rImage[0] = r[0] + a*L[0];
+          rpImage[0] = rp[0] + a*L[0];
+#if NDIM==2
+          for (int b=-nImages; b<=nImages; b++) {
+            rImage[1] = r[1] + b*L[1];
+            rpImage[1] = rp[1] + b*L[1];
+            dU += GetdUdBeta(pa, rImage, rpImage, level);
+          }
+#elif NDIM==3
+          for (int b=-nImages; b<=nImages; b++) {
+            rImage[1] = r[1] + b*L[1];
+            rpImage[1] = rp[1] + b*L[1];
+            for (int c=-nImages; c<=nImages; c++) {
+              rImage[2] = r[2] + c*L[2];
+              rpImage[2] = rp[2] + c*L[2];
+              dU += GetdUdBeta(pa, rImage, rpImage, level);
+            }
+          }
+#endif
+        }
+
+        if (pa.vLongRange)
+          dU += 0.5*(pa.V(rmag) + pa.V(rpmag));
+
       }
     }
   }

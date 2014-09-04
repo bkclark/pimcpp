@@ -194,6 +194,10 @@ class GeneralGrid : public Grid
   GeneralGrid ()
   { /*  Do nothing */ }
 
+  GeneralGrid (Array<double,1> &points)
+  {
+    Init(points);
+  }
 };
 
 

@@ -73,7 +73,7 @@ public:
     vol = 1.;
     for (int i=0; i<DIM; i++)
       vol *= box[i];
-    kCut = 2.*M_PI*nMax/box[0];
+    kCut = sqrt(DIM*pow(2.*M_PI*nMax/box[0],2.));
     SetupkVecs();
   }
 
@@ -97,40 +97,38 @@ public:
 
   /// This calculates the quantity 
   /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
-  double CalcXk(CubicSpline &V, double rc, double k)
+  double CalcXk(CubicSpline &V, double rc, double k, double rMax)
   {
-     double absTol = 1.0e-10;
-     double relTol = 1.0e-10;
+     double Xk = 0.;
+     double absTol = 1.0e-11;
+     double relTol = 1.0e-11;
 
      XkIntegrand integrand(V, k);
      GKIntegration<XkIntegrand, GK31> integrator(integrand);
 
-     // First segment
+     double rEnd;
      double rFirst = rc + ((M_PI/k)-(remainder(rc,(M_PI/k))));
-     double Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rFirst, absTol, relTol, false);
+     if (rMax >= rFirst) {
+       // First segment
+       Xk += -(4.0*M_PI/k) * integrator.Integrate(rc, rFirst, absTol, relTol, false);
 
-     // Subsequent segments
-     double rMax = V.grid->End;
-     double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
-     int nSeg = floor((rMax-rFirst)/nPik);
-     for (int i=0; i<nSeg; i++)
-       Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*nPik, rFirst + (i+1)*nPik, absTol, relTol, false);
-     // Xk = -(4.0*M_PI/k) * integrator.Integrate(rc, rMax, absTol, relTol, false);
+       // Subsequent segments
+       //double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
+       double nPik = int(k)*M_PI/k; // HACK: This may need to be adjusted.
+       int nSeg = floor((rMax-rFirst)/nPik);
+       for (int i=0; i<nSeg; i++)
+         Xk += -(4.0*M_PI/k) * integrator.Integrate(rFirst + i*nPik, rFirst + (i+1)*nPik, absTol, relTol, false);
+       rEnd = rFirst + (nSeg)*nPik;
+     } else if (rMax >= rc) {
+       Xk += -(4.0*M_PI/k) * integrator.Integrate(rc, rMax, absTol, relTol, false);
+       rEnd = rMax;
+     } else
+       rEnd = rc;
 
      /// Add in the analytic part that I ignored
      /// Multiply analytic term by tau only for U -- do not multiply
      /// for dU or V.
-     double rEnd = rFirst + (nSeg)*nPik;
-     //rEnd = rMax;
      Xk += Xk_Coul(k, rEnd);
-
-     // Check end point
-     double Vtol = 1.0e-5;
-     double Vc = Z1Z2/rEnd;
-     if (breakupObject == 1)
-       Vc *= tau;
-     if (abs(V(rEnd) - Vc) > Vtol)
-       cout << "WARNING: |V(rEnd) - V_{c}(rEnd)| = " << abs(V(rEnd) - Vc) << " > " << Vtol << " with rEnd = " << rEnd << ", V(rEnd) = " << V(rEnd) << ", V_{c}(rEnd) = " << Vc << endl;
 
      return Xk;
   }
@@ -140,30 +138,31 @@ public:
     if (includeAll)
       return true;
     //  assert (DIM == 3);
-    if (abs(k[0]) > 0.0)
-      return true;
-    else if ((k[0]==0.0) && (abs(k[1]) > 0.0))
-      return true;
-    else if ((DIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (abs(k[2]) > 0.0)))
-      return true;
-    else
+    double MagK = sqrt(dot(k,k));
+    if (MagK <= kCut) {
+      if (abs(k[0]) > 0.0)
+        return true;
+      else if ((k[0]==0.0) && (abs(k[1]) > 0.0))
+        return true;
+      else if ((DIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (abs(k[2]) > 0.0)))
+        return true;
+      else
+        return false;
+    } else
       return false;
   }
 
   void SetupkVecs(bool includeAll=false)
   {
     cout << "Setting up k vectors..." << endl;
-    double kCutoff=kCut;
-    //    Array<double,1> MagK;
     dVec kBox;
     for (int i=0; i<DIM; i++)
       kBox[i] = 2.0*M_PI/box[i];
 
-    int numVecs=0;
+    int numVecs = 0;
     dVec MaxkIndex;
-    for (int i=0;i<DIM;i++){
-      MaxkIndex[i]= (int) ceil(1.*kCutoff/kBox[i]);
-    }
+    for (int i=0;i<DIM;i++)
+      MaxkIndex[i] = (int)ceil(1.1*kCut/kBox[i]);
 
     dVec k;
     TinyVector<int,DIM> ki;
@@ -205,7 +204,7 @@ public:
           if (DIM > 2) {
             for (int iz=-MaxkIndex[2]; iz<=MaxkIndex[2]; iz++) {
               k[2] = iz*kBox[2];
-              ki[2]= iz+MaxkIndex[2];
+              ki[2] = iz+MaxkIndex[2];
               if (Include(k,includeAll)) {
                 kVecs(numVecs) = k;
                 MagK(numVecs) = sqrt(dot(k,k));
@@ -308,12 +307,42 @@ public:
     fVl = 0.0;
     Vl = 0.0;
 
+    // Determine rMax from tolerances
+    double VTol = 1.e-7;
+    double rMax = VSpline.grid->End;
+    double Vc = Z1Z2/rMax;
+    if (breakupObject == 1)
+      Vc *= tau;
+    if (abs(VSpline(rMax) - Vc) > VTol)
+      cout << "WARNING: |V(rMax) - V_{c}(rMax)| = " << abs(VSpline(rMax) - Vc) << " > " << VTol << " with rMax = " << rMax << ", V(rMax) = " << VSpline(rMax) << ", V_{c}(rMax) = " << Vc << endl;
+    else {
+      double r;
+      int i = 0;
+      Array<double,1> tmpPoints = VSpline.grid->Points();
+      do {
+        r = tmpPoints(i);
+        Vc = Z1Z2/r;
+        if (breakupObject == 1)
+          Vc *= tau;
+        rMax = tmpPoints(i+1);
+        i += 1;
+      }
+      while (abs(VSpline(r) - Vc) > VTol);
+    }
+    if (rMax < rCut)
+      rMax = rCut;
+    //rMax = rCut;
+    Vc = Z1Z2/rMax;
+    if (breakupObject == 1)
+      Vc *= tau;
+    cout << "Setting rMax = " << rMax << " with |V(rMax) - V_{c}(rMax)| < " << VTol << ", V(rMax) = " << VSpline(rMax) << ", V_{c}(rMax) = " << Vc << endl;
+
     // Calculate Xk's
     cout << "Calculating Xk's..." << endl;
     Array<double,1> tmpXk(Xk.size());
     for (int ki=0; ki<numk; ki++) {
       double k = breakup.kpoints(ki)[0];
-      Xk(ki) = CalcXk(VSpline, rCut, k) / boxVol;
+      Xk(ki) = CalcXk(VSpline, rCut, k, rMax) / boxVol;
       //cout << k << " " << Xk(ki) << endl;
       //abort();
       //Xk(ki) = Xk_Coul(k, rCut) / boxVol;
@@ -348,6 +377,8 @@ public:
     double Vl0 = 0.0;
     for (int n=0; n<N; n++)
       Vl0 += t(n)*basis.h(n,0.0);
+
+    cout << grid.NumPoints << " " << grid.Start << " " << grid.End << endl;
     for (int i=0; i<grid.NumPoints; i++) {
       double r = grid(i);
       if (r <= rCut) {
@@ -356,7 +387,7 @@ public:
           Vl(i) += t(n) * basis.h(n, r);
       }
       else {
-        cerr << "WARNING: Why is r bigger than rCut?" << endl;
+        cout << "WARNING: Why is r bigger than rCut?" << endl;
         Vl(i) = VSpline(r); // 0.0; //hack!  pa.V (r);
       }
     }
@@ -406,7 +437,7 @@ public:
         fVl(ki) += t(n) * basis.c(n,k);
       // Now add on part from rCut to infinity
       //fVl(ki) -= Xk(ki);
-      fVl(ki) -= CalcXk(VSpline, rCut, k) / boxVol;
+      fVl(ki) -= CalcXk(VSpline, rCut, k, rMax) / boxVol;
       //fVl(ki) -= Xk_Coul(k, rCut) / boxVol;
       fVls.push_back(make_pair(k, fVl(ki)));
     }
@@ -801,14 +832,6 @@ int main(int argc, char* argv[])
   double rCut = atof(argv[4]);
   int nPoints = atoi(argv[5]);
   int gridType = atoi(argv[6]);
-
-  Grid *grid;
-  if (gridType == 0) {
-    grid = new LinearGrid(rMin, rCut, nPoints);
-  } else if (gridType == 1) {
-    grid = new LogGrid(rMin, pow(rCut/rMin,1./nPoints), nPoints);
-  }
-
   double Z1Z2 = atof(argv[7]);
   int breakupType = atoi(argv[8]);
   int breakupObject = atoi(argv[9]);
@@ -816,6 +839,29 @@ int main(int argc, char* argv[])
   int nKnots = atoi(argv[11]);
   double tau = atof(argv[12]);
   int nImages = atoi(argv[13]);
+
+  Grid *grid;
+  Array<double,1> rs(nPoints);
+  if (gridType == 0) {
+    grid = new LinearGrid(rMin, rCut, nPoints);
+  } else if (gridType == 1) {
+    grid = new LogGrid(rMin, pow(rCut/rMin,1./nPoints), nPoints);
+  } else if (gridType == 2) {
+    stringstream rFileName;
+    rFileName << "grid." << paIndex << ".txt";
+    string rFileNameStr = rFileName.str();
+    ifstream pointFile;
+    pointFile.open(rFileNameStr.c_str());
+    Array<double,1> Vs(nPoints);
+    int ri = 0;
+    while (!pointFile.eof()) {
+      double r, V;
+      pointFile>>rs(ri);
+      ri += 1;
+    }
+    pointFile.close();
+    grid = new GeneralGrid(rs);
+  }
 
   EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
   e.DoBreakup();

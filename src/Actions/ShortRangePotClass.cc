@@ -28,8 +28,8 @@ double ShortRangePotClass::V(int slice)
       PathData.Path.DistDisp(slice, ptcl1, ptcl2, dist, disp);
       PairActionFitClass& pa = *(PairMatrix(species1, PathData.Path.ParticleSpeciesNum(ptcl2)));
       val += pa.V(dist);
-      if (pa.IsLongRange() && PathData.Actions.UseLongRange)
-        val -= pa.Vlong(dist);
+      //if (pa.IsLongRange() && PathData.Actions.UseLongRange)
+      //  val -= pa.Vlong(dist);
     }
   }
   return val;

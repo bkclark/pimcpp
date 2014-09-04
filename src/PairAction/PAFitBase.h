@@ -101,6 +101,7 @@ public:
   /////////////////////////
   /// Long-ranged stuff ///
   /////////////////////////
+  bool vLongRange;
   virtual bool IsLongRange() = 0;
   /// The diagonal action only -- used for long-range breakup
   virtual double Udiag(double q, int level)      { return 0.0; }
@@ -134,7 +135,7 @@ public:
   virtual void DoBreakup (const Vec3 &box, const blitz::Array<Vec3,1> &kVecs) 
   { }
   PairActionFitClass() : Z1Z2(0.0), SamplingTableRead(false), Pot(NULL)
-  { /* Do nothing */ }
+  { vLongRange = false; }
 };
 
 #endif

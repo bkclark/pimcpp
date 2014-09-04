@@ -456,10 +456,8 @@ void PathClass::SetupkVecs3D()
     kBox[i] = 2.0*M_PI/Box[i];
 
   int numVecs=0;
-  for (int i=0;i<NDIM;i++){
+  for (int i=0;i<NDIM;i++)
     MaxkIndex[i]= (int) ceil(1.1*kCutoff/kBox[i]);
-    // perr << "MaxkIndex[" << i << "] = " << MaxkIndex[i] << endl;
-  }
 
   dVec k;
   TinyVector<int,NDIM> ki;

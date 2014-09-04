@@ -27,28 +27,37 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
 
   // Limits
   double rMax = uShort_r_spline.grid->End;
-  if (r > rMax)
-    r = rMax;
-  if (rp > rMax)
-    rp = rMax;
+  if (x > rMax)
+    x = rMax;
+  if (y > rMax)
+    y = rMax;
   double rMin = uShort_r_spline.grid->Start;
-  if (r < rMin)
-    r = rMin;
-  if (rp < rMin)
-    rp = rMin;
+  if (q < rMin)
+    q = rMin;
+  if (x < rMin)
+    x = rMin;
+  if (y < rMin)
+    y = rMin;
 
   double tmpU = 0.;
   if (q <= rMax) {
     // Start with end-point action
     //tmpU += 0.5*(uShort_r_spline(r) + uShort_r_spline(rp));
     tmpU += uShort_r_spline(q);
+  }
 
-    // Add in off-diagonal part
-    if (nOrder == -1)
-      tmpU += uOffDiag_xy_spline(x,y);
-    else
-      for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
-        tmpU += A_u_spline(iOrder-1)(q) * pow(s2,iOrder);
+  // Add in off-diagonal part
+  if (nOrder == -1)
+    tmpU += uOffDiag_xy_spline(x,y);
+  else
+    for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
+      tmpU += A_u_spline(iOrder-1)(q) * pow(s2,iOrder);
+
+  // Subtract off potential
+  if (vLongRange) {
+    double tmpV = 0.5*Z1*Z2*tau*((1./r) + (1./rp));
+    //double tmpV = 0.5*tau*(vShort_r_spline(r) + vShort_r_spline(rp));
+    tmpU -= tmpV;
   }
 
   return tmpU;
@@ -59,8 +68,8 @@ double IlkkaPAClass::V(double r)
 {
   // Limits
   double rMax = vShort_r_spline.grid->End;
-  if (r > rMax)
-    r = rMax;
+  if (r >= rMax)
+    return 0.;
   double rMin = vShort_r_spline.grid->Start;
   if (r < rMin)
     r = rMin;
@@ -79,28 +88,36 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
 
   // Limits
   double rMax = duShort_r_spline.grid->End;
-  if (r > rMax)
-    r = rMax;
-  if (rp > rMax)
-    rp = rMax;
+  if (x > rMax)
+    x = rMax;
+  if (y > rMax)
+    y = rMax;
   double rMin = duShort_r_spline.grid->Start;
-  if (r < rMin)
-    r = rMin;
-  if (rp < rMin)
-    rp = rMin;
+  if (q < rMin)
+    q = rMin;
+  if (x < rMin)
+    x = rMin;
+  if (y < rMin)
+    y = rMin;
 
   double tmpDU = 0.;
   if (q <= rMax) {
     // Start with end-point action
     //tmpDU += 0.5*(duShort_r_spline(r) + duShort_r_spline(rp));
     tmpDU += duShort_r_spline(q);
+  }
 
-    // Add in off-diagonal part
-    if (nOrder == -1)
-      tmpDU += duOffDiag_xy_spline(x,y);
-    else
-      for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
-        tmpDU += A_du_spline(iOrder-1)(q) * pow(s2,iOrder);
+  // Add in off-diagonal part
+  if (nOrder == -1)
+    tmpDU += duOffDiag_xy_spline(x,y);
+  else
+    for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
+      tmpDU += A_du_spline(iOrder-1)(q) * pow(s2,iOrder);
+
+  // Subtract off potential
+  if (vLongRange) {
+    double tmpV = 0.5*Z1*Z2*((1./r) + (1./rp));
+    tmpDU -= tmpV;
   }
 
   return tmpDU;
@@ -121,6 +138,13 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
     cerr << "ERROR: Could not find pair action file " << fileName << ". Aborting..." << endl;
     abort();
   }
+
+  // Read in info
+  assert(h5In.OpenSection("Info"));
+  assert(h5In.ReadVar("Z1",Z1));
+  assert(h5In.ReadVar("Z2",Z2));
+  assert(h5In.ReadVar("tau",tau));
+  h5In.CloseSection();
 
   // Read in u
   assert(h5In.OpenSection("u"));
@@ -221,7 +245,7 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.OpenSection("diag"));
   assert(h5In.ReadVar("r",r_v));
   assert(h5In.ReadVar("vShort_r",vShort_r));
-  if (longRange) {
+  if (longRange||vLongRange) {
     assert(h5In.ReadVar("vLong_r0",vLong_r0));
     assert(h5In.ReadVar("k",k_v));
     assert(h5In.ReadVar("vLong_k",vLong_k));
@@ -229,6 +253,24 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   }
   h5In.CloseSection();
   h5In.CloseSection();
+
+  // If using alternative long range, set u and du
+  if (vLongRange) {
+    uLong_r0 = tau*vLong_r0;
+    duLong_r0 = vLong_r0;
+    k_u.resize(k_v.size());
+    k_du.resize(k_v.size());
+    uLong_k.resize(k_v.size());
+    duLong_k.resize(k_v.size());
+    for (int i=0; i<k_v.size(); i++) {
+      k_u(i) = k_v(i);
+      k_du(i) = k_v(i);
+      uLong_k(i) = tau*vLong_k(i);
+      duLong_k(i) = vLong_k(i);
+    }
+    uLong_k0 = tau*vLong_k0;
+    duLong_k0 = vLong_k0;
+  }
 
   // Spline v
   r_v_grid.Init(r_v);

@@ -78,6 +78,7 @@ void ActionsClass::Read(IOSectionClass &in)
   assert(in.ReadVar ("MaxLevels", MaxLevels));
   assert(in.ReadVar ("NumImages", NumImages));
   Kinetic.SetNumImages(NumImages);
+  ShortRange.SetNumImages(NumImages);
   // KineticSphere.SetNumImages(NumImages);
   Mu.Read(in);
   UseNonlocal = false;
@@ -450,11 +451,8 @@ void ActionsClass::Energy (map<string,double>& energies)
   int M = PathData.Path.NumTimeSlices()-1;
   std::list<ActionBaseClass*>::iterator actionIt;
   std::list<string>::iterator labelIt = ActionLabels.begin();
-  //Array<int,1> p(1);
-  //p(0) = 0;
   for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
     energies[*labelIt] += (*actionIt) -> d_dBeta(0,M,0);
-    //cout << *labelIt << " " << (*actionIt) -> SingleAction(0,M,p,0) << " " << (*actionIt) -> d_dBeta(0,M,0) << endl;
     labelIt++;
   }
 }
@@ -495,34 +493,6 @@ void ActionsClass::GetNodalActions(double &node)
 }
 
 
-void ActionsClass::GetActions (double& kinetic, double &UShort, double &ULong, double &UExt, double &node)
-{
-  bool doLongRange = HaveLongRange() && UseLongRange;
-  Array<int,1> activePtcls(PathData.Path.NumParticles());
-  for (int i=0; i<PathData.Path.NumParticles(); i++)
-    activePtcls(i) = i;
-
-  int M = PathData.Path.NumTimeSlices()-1;
-  kinetic = Kinetic.Action (0, M, activePtcls, 0);
-  UShort = ShortRange.Action (0, M, activePtcls, 0);
-  ULong = 0.0;
-  if (doLongRange) {
-    if (UseRPA)
-      ULong = LongRangeRPA.Action (0, M, activePtcls, 0);
-    else
-      ULong = LongRange.Action (0, M, activePtcls, 0);
-  } else if (PathData.Path.DavidLongRange)
-    ULong = DavidLongRange.Action(0,M, activePtcls, 0);
-  else if (PathData.Path.IlkkaLongRange)
-    ULong = IlkkaLongRange.Action(0,M, activePtcls, 0);
-  UExt = HarmonicPotential.Action(0,M,activePtcls,0);
-  node = 0.0;
-  for (int species=0; species<PathData.Path.NumSpecies(); species++)
-    if (NodalActions(species) != NULL)
-      node += NodalActions(species)->Action(0, M, activePtcls, 0);
-}
-
-
 Potential& ActionsClass::GetPotential (int species1, int species2)
 {
   return *(PairMatrix(species1, species2)->Pot);
@@ -544,6 +514,9 @@ void ActionsClass::ShiftData (int slicesToShift)
   DavidLongRange.ShiftData(slicesToShift);
   IlkkaLongRange.ShiftData(slicesToShift);
   HarmonicPotential.ShiftData(slicesToShift);
+  std::list<ActionBaseClass*>::iterator actionIt;
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++)
+    (*actionIt) -> ShiftData(slicesToShift);
   for (int i=0; i<NodalActions.size(); i++)
     if (NodalActions(i)!=NULL)
       NodalActions(i)->ShiftData(slicesToShift);

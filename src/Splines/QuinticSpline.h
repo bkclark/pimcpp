@@ -45,8 +45,8 @@ private:
   Array<double,1>  B, C, D, E, F;
   int I, J;
   inline void GetIJ(double x);
-  Grid *grid;
 public:
+  Grid *grid;
   int NumParams;
 
   /// Returns the interpolated value.
