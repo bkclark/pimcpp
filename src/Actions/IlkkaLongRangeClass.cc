@@ -55,7 +55,7 @@ void IlkkaLongRangeClass::Build_MultipleSpecies()
       double k = pa.k_u(i);
       bool found = false;
       for (int j=0; j<Path.kVecs.size(); j++) {
-        if (fequals(sqrt(dot(Path.kVecs(j),Path.kVecs(j))),k,1e-4)) {
+        if (fequals(sqrt(dot(Path.kVecs(j),Path.kVecs(j))),k,1e-8)) {
           found = true;
           uk(iPair,j) = pa.uLong_k(i);
         }
@@ -67,7 +67,7 @@ void IlkkaLongRangeClass::Build_MultipleSpecies()
       double k = pa.k_du(i);
       bool found = false;
       for (int j=0; j<Path.kVecs.size(); j++) {
-        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-4)) {
+        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-8)) {
           found = true;
           duk(iPair,j) = pa.duLong_k(i);
         }
@@ -79,12 +79,13 @@ void IlkkaLongRangeClass::Build_MultipleSpecies()
       double k = pa.k_v(i);
       bool found = false;
       for (int j=0; j<Path.kVecs.size(); j++) {
-        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-4)) {
+        if (fequals(sqrt(blitz::dot(Path.kVecs(j),Path.kVecs(j))),k,1e-8)) {
           found = true;
           Vlong_k(iPair,j) = pa.vLong_k(i);
         }
       }
     }
+
 
     // Constant terms
     uk0(iPair) = pa.uLong_k0;
@@ -173,13 +174,36 @@ double IlkkaLongRangeClass::SingleAction (int slice1, int slice2, const Array<in
 
   double total = 0.;
 
+  //// Slower way
+  //Path.DoPtcl = true;
+  //for (int ptcl1Index=0; ptcl1Index<activeParticles.size(); ptcl1Index++) {
+  //  int ptcl1 = activeParticles(ptcl1Index);
+  //  Path.DoPtcl(ptcl1) = false;
+  //  int species1 = Path.ParticleSpeciesNum(ptcl1);
+  //  for (int ptcl2=0; ptcl2<Path.NumParticles(); ptcl2++) {
+  //    if (Path.DoPtcl(ptcl2)) {
+  //      int species2 = Path.ParticleSpeciesNum(ptcl2);
+  //      for (int ki=0; ki<Path.kVecs.size(); ki++) {
+  //        for (int slice=startSlice; slice<=endSlice; slice++) {
+  //          double factor = 2.0;
+  //          dVec r;
+  //          double rmag;
+  //          PathData.Path.DistDisp(slice, ptcl1, ptcl2, rmag, r);
+  //          double kr = dot(Path.kVecs(ki),r);
+  //          total += factor * uk(PairIndex(species1,species2),ki) * cos(kr);
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
+
   // Homogolous terms
   for (int ki=0; ki<Path.kVecs.size(); ki++) {
     for (int slice=startSlice; slice<=endSlice; slice+=skip) {
       for(set<int>::iterator it = speciesList.begin(); it!=speciesList.end(); it++) {
         int species = *it;
         double rhok2 = mag2(Path.Rho_k(slice,species,ki));
-        total += 0.5*rhok2*uk(PairIndex(species,species),ki);
+        total += 1.0*rhok2*uk(PairIndex(species,species),ki);
       }
     }
   }
@@ -190,7 +214,7 @@ double IlkkaLongRangeClass::SingleAction (int slice1, int slice2, const Array<in
       for (int species0=0; species0<Path.NumSpecies()-1; species0++) {
         for (int species1=species0+1; species1<Path.NumSpecies(); species1++) {
           double rhok2 = mag2(Path.Rho_k(slice,species0,ki),Path.Rho_k(slice,species1,ki));
-          total += 1.0*rhok2*uk(PairIndex(species0,species1),ki);
+          total += 2.0*rhok2*uk(PairIndex(species0,species1),ki);
         }
       }
     }
@@ -206,6 +230,31 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
 {
   double total = 0.;
   double factor = 1.;
+
+  //// Slower way
+  //Path.DoPtcl = true;
+  //for (int ptcl1=0; ptcl1<Path.NumParticles(); ptcl1++) {
+  //  Path.DoPtcl(ptcl1) = false;
+  //  int species1 = Path.ParticleSpeciesNum(ptcl1);
+  //  for (int ptcl2=0; ptcl2<Path.NumParticles(); ptcl2++) {
+  //    if (Path.DoPtcl(ptcl2)) {
+  //      int species2 = Path.ParticleSpeciesNum(ptcl2);
+  //      for (int ki=0; ki<Path.kVecs.size(); ki++) {
+  //        for (int slice=slice1; slice<=slice2; slice++) {
+  //          if ((slice==slice1) || (slice==slice2))
+  //            factor = 1.0;
+  //          else
+  //            factor = 2.0;
+  //          dVec r;
+  //          double rmag;
+  //          PathData.Path.DistDisp(slice, ptcl1, ptcl2, rmag, r);
+  //          double kr = dot(Path.kVecs(ki),r);
+  //          total += factor * duk(PairIndex(species1,species2),ki) * cos(kr);
+  //        }
+  //      }
+  //    }
+  //  }
+  //}
 
   // Homogolous terms
   for (int slice=slice1; slice<=slice2; slice++) {

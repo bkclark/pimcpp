@@ -80,7 +80,7 @@ inline bool IlkkaPAClass::Read(IOSectionClass &in, double x, int y)
     if(!in.ReadVar("longRange",longRange))
       longRange = false;
     if(!in.ReadVar("vLongRange",vLongRange))
-      longRange = false;
+      vLongRange = false;
     ReadIlkkaHDF5(fileName.c_str());
   in.CloseSection();
   return true;

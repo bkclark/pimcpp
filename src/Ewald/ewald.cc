@@ -35,7 +35,14 @@ public:
 
 bool same(pair<double,double> &a, pair<double,double> &b)
 {
-  return fabs(a.first-b.first)<1e-6;
+  cout << a.first << " " << b.first << " " << fabs(a.first-b.first) << endl;
+  return fabs(a.first-b.first)<1e-10;
+}
+
+
+bool pairCompare(pair<double,double> &a, pair<double,double> &b)
+{
+  return a.first == b.first;
 }
 
 class XkIntegrand
@@ -59,13 +66,13 @@ public:
   Array<dVec,1> kVecs;
   Array<double,1> MagK;
   double kCut;
-  int nMax, nPoints, nKnots;
+  int nPoints, nKnots;
   int gridType, breakupType, breakupObject, paIndex;
   Grid &grid;
 
-  EwaldClass(double t_Z1Z2, dVec t_Box, int t_nMax, double t_rMin, double t_rCut, int t_nPoints,
+  EwaldClass(double t_Z1Z2, dVec t_Box, double t_kCut, double t_rMin, double t_rCut, int t_nPoints,
              Grid &t_grid, int t_breakupType, int t_breakupObject, int t_paIndex, int t_nKnots, double t_tau)
-    : Z1Z2(t_Z1Z2), box(t_Box), nMax(t_nMax), rMin(t_rMin), rCut(t_rCut), nPoints(t_nPoints),
+    : Z1Z2(t_Z1Z2), box(t_Box), kCut(t_kCut), rMin(t_rMin), rCut(t_rCut), nPoints(t_nPoints),
       grid(t_grid), breakupType(t_breakupType), breakupObject(t_breakupObject), paIndex(t_paIndex), nKnots(t_nKnots), tau(t_tau)
   {
     if (rMin == 0.)
@@ -73,19 +80,19 @@ public:
     vol = 1.;
     for (int i=0; i<DIM; i++)
       vol *= box[i];
-    kCut = sqrt(DIM*pow(2.*M_PI*nMax/box[0],2.));
     SetupkVecs();
   }
 
   double DoBreakup()
   {
     if (breakupType == 0)
-      BasicEwald(10./rCut); // HACK: Hard-coded alpha
+      BasicEwald(sqrt((kCut/2.)/rCut)); // HACK: Hard-coded alpha
     else if (breakupType == 1)
       OptimizedBreakup();
     else
       cerr << "ERROR: Unrecognized breakup type." << endl;
   }
+
 
   double Xk_Coul(double k, double r)
   {
@@ -96,7 +103,7 @@ public:
   }
 
   /// This calculates the quantity 
-  /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr \, r \sin(kr) V(r).\f$
+  /// \f$ X_k \equiv -\frac{4 \pi}{\Omega k} \int_{r_c}^\infty dr r \sin(kr) V(r).\f$
   double CalcXk(CubicSpline &V, double rc, double k, double rMax)
   {
      double Xk = 0.;
@@ -227,6 +234,8 @@ public:
         }
       }
     }
+
+    cout << "kCut = " << kCut << ", nK = " << numVecs << endl;
   }
 
   double OptimizedBreakup()
@@ -453,8 +462,10 @@ public:
 
   void BasicEwald(double alpha)
   {
+    cout << "alpha = " << alpha << endl;
 
-    // Short-ranged r-space part
+    // Read potential
+    cout << "Reading files..." << endl;
     string objectString;
     if (breakupObject == 2)
       objectString = "dud";
@@ -466,6 +477,33 @@ public:
       cerr << "ERROR: Unrecognized breakup object type!" << endl;
       abort();
     }
+    stringstream fileName;
+    fileName << objectString << "." << paIndex << ".txt";
+    ifstream pointFile;
+    string fileNameStr = fileName.str();
+    pointFile.open(fileNameStr.c_str());
+    Array<double,1> rs, tmpV;
+    int ri = 0;
+    while (!pointFile.eof()) {
+      double r, V;
+      pointFile>>r;
+      if (!pointFile.eof()) {
+        rs.resizeAndPreserve(ri+1);
+        tmpV.resizeAndPreserve(ri+1);
+        pointFile>>V;
+        rs(ri) = r;
+        tmpV(ri) = V;
+        //if (breakupObject == 2)
+        //  tmpV(ri) *= tau;
+        ri += 1;
+      }
+    }
+    pointFile.close();
+    GeneralGrid tmpVGrid;
+    tmpVGrid.Init(rs);
+    CubicSpline VSpline(&tmpVGrid,tmpV);
+
+    // Short-ranged r-space part
     stringstream rFileName;
     rFileName << objectString << "." << paIndex << ".r.txt";
     string rFileNameStr = rFileName.str();
@@ -474,41 +512,59 @@ public:
     outfile.precision(10);
     outfile.open(rFileNameStr.c_str());
     double Vl0 = Z1Z2*2.*alpha/sqrt(M_PI);
+    if (breakupObject == 1)
+      Vl0 *= tau;
     outfile<<0.<<" "<<Vl0<<endl;
     Array<double,1> Vss(nPoints);
     for (int i=0; i<grid.NumPoints; i++){
       double r = grid(i);
-      Vss(i) = Z1Z2*erfc(alpha*r)/r;
+      if (breakupObject == 1)
+        Vss(i) = VSpline(r) - Z1Z2*tau*erf(alpha*r)/r;
+      else
+        Vss(i) = VSpline(r) - Z1Z2*erf(alpha*r)/r;
       outfile<<r<<" "<<Vss(i)<<endl;
     }
     outfile.close();
+
+    if (breakupObject == 1)
+      cout << "V(rCut) - Vs(rCut) = " << VSpline(rCut) - Z1Z2*tau*erf(alpha*rCut)/rCut << endl;
+    else
+      cout << "V(rCut) - Vs(rCut) = " << VSpline(rCut) - Z1Z2*erf(alpha*rCut)/rCut << endl;
 
     // Long-ranged k-space part
     stringstream kFileName;
     kFileName << objectString << "." << paIndex << ".k.txt";
     string kFileNameStr = kFileName.str();
     outfile.open(kFileNameStr.c_str());
-    double fVl0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
-    outfile<<0.0<<" "<<fVl0<<endl;
+    double fVs0 = -4.0*M_PI*Z1Z2/(4.0*alpha*alpha*vol);
+    if (breakupObject == 1)
+      fVs0 *= tau;
+    outfile<<0.0<<" "<<fVs0<<endl;
     vector<pair<double, double> > fVls;
+    double kConst = 0.;
     for (int i=0; i<kVecs.size(); ++i) {
       dVec k = kVecs(i);
       double k2 = dot(k,k);
       double kMag = sqrt(k2);
       double fVl = (4.*M_PI*Z1Z2/(k2*vol)) * exp(-k2/(4.*alpha*alpha));
+      kConst += fVl;
+      if (breakupObject == 1)
+        fVl *= tau;
       fVls.push_back(make_pair(kMag, fVl));
     }
-    sort(fVls.begin(), fVls.end());
-    vector<pair<double, double> >::iterator new_end = unique(fVls.begin(), fVls.end(), same);
+    cout << "kConst = " << kConst << endl;
+
     // delete all elements past new_end
-    fVls.erase(new_end, fVls.end());
-    for (int i=1;i<fVls.size();i++){
+    sort(fVls.begin(), fVls.end());
+    fVls.erase( unique(fVls.begin(), fVls.end(), pairCompare), fVls.end());
+
+    // Write values
+    for (int i=0;i<fVls.size();i++)
       outfile<<fVls[i].first<<" "<<fVls[i].second<<endl; // *vol<<endl;
-    }
     outfile.close();
 
     // Print out values
-    cout << "Vl0 = " << Vl0 << ", fVl0 = " << fVl0 << endl;
+    cout << "Vl0 = " << Vl0 << ", fVs0 = " << fVs0 << endl;
 
   }
 
@@ -827,7 +883,7 @@ int main(int argc, char* argv[])
 {
   double L = atof(argv[1]);
   dVec box(L,L,L); // Hard-coded cube
-  double nMax = atoi(argv[2]);
+  double kCut = atof(argv[2]);
   double rMin = atof(argv[3]);
   double rCut = atof(argv[4]);
   int nPoints = atoi(argv[5]);
@@ -863,7 +919,7 @@ int main(int argc, char* argv[])
     grid = new GeneralGrid(rs);
   }
 
-  EwaldClass e(Z1Z2, box, nMax, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
+  EwaldClass e(Z1Z2, box, kCut, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
   e.DoBreakup();
   e.ComputeMadelung();
   e.ComputeMadelungNaive(nImages/4);
