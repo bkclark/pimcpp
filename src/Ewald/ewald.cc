@@ -35,7 +35,6 @@ public:
 
 bool same(pair<double,double> &a, pair<double,double> &b)
 {
-  cout << a.first << " " << b.first << " " << fabs(a.first-b.first) << endl;
   return fabs(a.first-b.first)<1e-10;
 }
 
@@ -450,11 +449,13 @@ public:
       //fVl(ki) -= Xk_Coul(k, rCut) / boxVol;
       fVls.push_back(make_pair(k, fVl(ki)));
     }
-    sort(fVls.begin(), fVls.end());
-    vector<pair<double, double> >::iterator new_end = unique(fVls.begin(), fVls.end(), same);
+
     // delete all elements past new_end
-    fVls.erase(new_end, fVls.end());
-    for (int i=1;i<fVls.size();i++)
+    sort(fVls.begin(), fVls.end());
+    fVls.erase( unique(fVls.begin(), fVls.end(), pairCompare), fVls.end());
+
+    // Write values
+    for (int i=0;i<fVls.size();i++)
       outfile<<fVls[i].first<<" "<<fVls[i].second<<endl; // *vol<<endl;
     outfile.close();
 
