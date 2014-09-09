@@ -4,11 +4,12 @@ import h5py as h5
 import Stats
 
 StartCut = int(sys.argv[1])
-suffix = sys.argv[2]
+N = int(sys.argv[2])
+suffix = sys.argv[3]
 
 ENames = ['Kinetic','Node','dUExt','dULong','dUShort','ShortRange','VShort','IlkkaLongRange','DavidLongRange','VLong','Total']
 EStats = {}
-for fname in sys.argv[3:]:
+for fname in sys.argv[4:]:
   f = h5.File(fname,'r')
   for EName in ENames:
     try:
@@ -23,11 +24,15 @@ for fname in sys.argv[3:]:
 
 
 g = open('Energy-'+suffix+'.dat','w')
+perParticleE, perParticleEErr = 0., 0.
 for EName in ENames:
   try:
     TotStats = Stats.UnweightedAvg(EStats[EName])
     print EName, TotStats
     g.write('%s %f %f %f %f\n'%(EName, TotStats[0], TotStats[1], TotStats[2], TotStats[3]))
+    if EName == 'Total':
+        perParticleE += TotStats[0]/N
+        perParticleEErr += TotStats[3]/N
   except:
     pass
 
@@ -42,8 +47,15 @@ for tailName in tailNames:
     for tail in tails[0]:
         g.write('%f '%(tail))
     g.write('\n')
+
+    if tailName == 'duLong_k0' or tailName == 'duLong_r0':
+        for tail in tails[0]:
+            perParticleE += tail
   except:
     pass
 f.close()
+
+print 'PerParticleE', perParticleE, perParticleEErr
+g.write('PerParticleE %f %f'%(perParticleE,perParticleEErr))
 
 g.close()

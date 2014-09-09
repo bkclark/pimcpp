@@ -55,6 +55,11 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
 
   // Subtract off potential
   if (vLongRange) {
+    rMin = vShort_r_spline.grid->Start;
+    if (r < rMin)
+      r = rMin;
+    if (rp < rMin)
+      rp = rMin;
     double tmpV = 0.5*Z1*Z2*tau*((1./r) + (1./rp));
     //double tmpV = 0.5*tau*(vShort_r_spline(r) + vShort_r_spline(rp));
     tmpU -= tmpV;
@@ -116,6 +121,11 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
 
   // Subtract off potential
   if (vLongRange) {
+    rMin = vShort_r_spline.grid->Start;
+    if (r < rMin)
+      r = rMin;
+    if (rp < rMin)
+      rp = rMin;
     double tmpV = 0.5*Z1*Z2*((1./r) + (1./rp));
     tmpDU -= tmpV;
   }
