@@ -31,6 +31,10 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
     x = rMax;
   if (y > rMax)
     y = rMax;
+  if (r > rMax)
+    r = rMax;
+  if (rp > rMax)
+    rp = rMax;
   double rMin = uShort_r_spline.grid->Start;
   if (q < rMin)
     q = rMin;
@@ -38,18 +42,24 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
     x = rMin;
   if (y < rMin)
     y = rMin;
+  if (r < rMin)
+    r = rMin;
+  if (rp < rMin)
+    rp = rMin;
 
   double tmpU = 0.;
   if (q <= rMax) {
     // Start with end-point action
-    //tmpU += 0.5*(uShort_r_spline(r) + uShort_r_spline(rp));
-    tmpU += uShort_r_spline(q);
+    tmpU += 0.5*(uShort_r_spline(r) + uShort_r_spline(rp));
+    //tmpU += uShort_r_spline(q);
   }
 
   // Add in off-diagonal part
-  if (nOrder == -1)
-    tmpU += uOffDiag_xy_spline(x,y);
-  else
+  if (nOrder == -1) {
+    tmpU += u_xy_spline(x,y);
+    if (longRange)
+      tmpU -= 0.5*(u_r_spline(r) + u_r_spline(rp));
+  } else
     for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
       tmpU += A_u_spline(iOrder-1)(q) * pow(s2,iOrder);
 
@@ -97,6 +107,10 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
     x = rMax;
   if (y > rMax)
     y = rMax;
+  if (r > rMax)
+    r = rMax;
+  if (rp > rMax)
+    rp = rMax;
   double rMin = duShort_r_spline.grid->Start;
   if (q < rMin)
     q = rMin;
@@ -104,18 +118,24 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
     x = rMin;
   if (y < rMin)
     y = rMin;
+  if (r < rMin)
+    r = rMin;
+  if (rp < rMin)
+    rp = rMin;
 
   double tmpDU = 0.;
   if (q <= rMax) {
     // Start with end-point action
-    //tmpDU += 0.5*(duShort_r_spline(r) + duShort_r_spline(rp));
-    tmpDU += duShort_r_spline(q);
+    tmpDU += 0.5*(duShort_r_spline(r) + duShort_r_spline(rp));
+    //tmpDU += duShort_r_spline(q);
   }
 
   // Add in off-diagonal part
-  if (nOrder == -1)
-    tmpDU += duOffDiag_xy_spline(x,y);
-  else
+  if (nOrder == -1) {
+    tmpDU += du_xy_spline(x,y);
+    if (longRange)
+      tmpDU -= 0.5*(du_r_spline(r) + du_r_spline(rp));
+  } else
     for (int iOrder=1; iOrder<nOrder+1; ++iOrder)
       tmpDU += A_du_spline(iOrder-1)(q) * pow(s2,iOrder);
 
@@ -161,6 +181,7 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.OpenSection("diag"));
   assert(h5In.ReadVar("r",r_u));
   assert(h5In.ReadVar("uShort_r",uShort_r));
+  assert(h5In.ReadVar("u_r",u_r));
   if (longRange) {
     assert(h5In.ReadVar("uLong_r0",uLong_r0));
     assert(h5In.ReadVar("k",k_u));
@@ -172,6 +193,7 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.ReadVar("x",x_u));
   assert(h5In.ReadVar("y",y_u));
   assert(h5In.ReadVar("uOffDiag",uOffDiag_xy));
+  assert(h5In.ReadVar("u_xy",u_xy));
   if (nOrder > 0) {
     r_A_u.resize(nOrder);
     A_u.resize(nOrder);
@@ -193,7 +215,9 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   uShort_r_spline.Init(&r_u_grid, uShort_r);
   x_u_grid.Init(x_u);
   y_u_grid.Init(y_u);
+  u_r_spline.Init(&x_u_grid, u_r);
   uOffDiag_xy_spline.Init(&x_u_grid, &y_u_grid, uOffDiag_xy);
+  u_xy_spline.Init(&x_u_grid, &y_u_grid, u_xy);
   if (nOrder > 0) {
     r_A_u_grid.resize(nOrder);
     A_u_spline.resize(nOrder);
@@ -208,6 +232,7 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.OpenSection("diag"));
   assert(h5In.ReadVar("r",r_du));
   assert(h5In.ReadVar("duShort_r",duShort_r));
+  assert(h5In.ReadVar("du_r",du_r));
   if (longRange) {
     assert(h5In.ReadVar("duLong_r0",duLong_r0));
     assert(h5In.ReadVar("k",k_du));
@@ -219,6 +244,7 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.ReadVar("x",x_du));
   assert(h5In.ReadVar("y",y_du));
   assert(h5In.ReadVar("duOffDiag",duOffDiag_xy));
+  assert(h5In.ReadVar("du_xy",du_xy));
   if (nOrder > 0) {
     r_A_du.resize(nOrder);
     A_du.resize(nOrder);
@@ -240,7 +266,9 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   duShort_r_spline.Init(&r_du_grid, duShort_r);
   x_du_grid.Init(x_du);
   y_du_grid.Init(y_du);
+  du_r_spline.Init(&x_du_grid, du_r);
   duOffDiag_xy_spline.Init(&x_du_grid, &y_du_grid, duOffDiag_xy);
+  du_xy_spline.Init(&x_du_grid, &y_du_grid, du_xy);
   if (nOrder > 0) {
     r_A_du_grid.resize(nOrder);
     A_du_spline.resize(nOrder);

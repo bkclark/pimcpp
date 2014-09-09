@@ -34,8 +34,8 @@ class IlkkaPAClass : public PairActionFitClass
 
   // Read values
   Array<double, 1> r_u, k_u, x_u, y_u, r_du, k_du, x_du, y_du, r_v, k_v;
-  Array<double, 1> uShort_r, uLong_k, duShort_r, duLong_k, vShort_r, vLong_k;
-  Array<double, 2> uOffDiag_xy, duOffDiag_xy;
+  Array<double, 1> u_r, du_r, uShort_r, uLong_k, duShort_r, duLong_k, vShort_r, vLong_k;
+  Array<double, 2> u_xy, du_xy, uOffDiag_xy, duOffDiag_xy;
   Array<Array<double, 1>, 1> r_A_u, A_u, r_A_du, A_du;
   Array<double,1> Potential;
 
@@ -46,9 +46,9 @@ class IlkkaPAClass : public PairActionFitClass
   Array<GeneralGrid, 1> r_A_u_grid, r_A_du_grid;
 
   // Splines
-  CubicSpline uShort_r_spline, duShort_r_spline, vShort_r_spline;
+  CubicSpline u_r_spline, uShort_r_spline, du_r_spline, duShort_r_spline, vShort_r_spline;
   Array<CubicSpline, 1> A_u_spline, A_du_spline;
-  BicubicSpline uOffDiag_xy_spline, duOffDiag_xy_spline;
+  BicubicSpline u_xy_spline, du_xy_spline, uOffDiag_xy_spline, duOffDiag_xy_spline;
 
   // Constants
   double uLong_r0, uLong_k0, duLong_r0, duLong_k0, vLong_r0, vLong_k0;
