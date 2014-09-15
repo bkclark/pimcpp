@@ -77,7 +77,7 @@ public:
   bool fequals(double a,double b, double tol);
   bool vecEquals(dVec &a, dVec &b,double tol);
   void WriteInfo(IOSectionClass &out);
-  DavidLongRangeClassYk::DavidLongRangeClassYk(PathDataClass &pathData, Array<PairActionFitClass*,2> &pairMatrix, Array<PairActionFitClass*,1> &pairArray, Array<int,2> &pairIndex)
+  DavidLongRangeClassYk(PathDataClass &pathData, Array<PairActionFitClass*,2> &pairMatrix, Array<PairActionFitClass*,1> &pairArray, Array<int,2> &pairIndex)
     : ActionBaseClass (pathData), PairMatrix(pairMatrix), PairArray(pairArray), PairIndex(pairIndex)
   {}
 };

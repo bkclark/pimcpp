@@ -106,6 +106,11 @@ void PathClass::InitPaths (IOSectionClass &in)
   Path.AcceptCopy();
   BroadcastRefPath();
   RefPath.AcceptCopy();
+
+  // Print particle coordinates
+  //for (int i=0; i<NumParticles(); i++)
+  //  for (int j=0; j<NumTimeSlices(); j++)
+  //    cout << i << " " << j << " " << Path(j,i) << endl;
 }
 
 void PathClass::InitRestart(IOSectionClass &in, SpeciesClass &species)
@@ -477,18 +482,15 @@ void PathClass::InitAllFixed(IOSectionClass &in, SpeciesClass &species)
   SliceRange (myProc, myFirstSlice, myLastSlice);
   Array<double,3> Positions;
   assert(in.ReadVar("Positions",Positions));
-  for (int ptcl=0;ptcl<NumParticles();ptcl++){
-    for (int slice=0;slice<TotalNumSlices;slice++){
-      int sliceOwner = SliceOwner(slice);
-      int relSlice = slice-myFirstSlice;
-      if (myFirstSlice<=slice && slice<=myLastSlice){
-        dVec pos;
-        pos = 0.0;
-        for (int dim=0; dim<NDIM; dim++)
-          pos(dim) = Positions(slice,ptcl,dim);
-        Path(relSlice,ptcl) = pos;
-      }
+  for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
+    for (int slice=0; slice<NumTimeSlices(); slice++) {
+      dVec pos;
+      pos = 0.0;
+      for (int dim=0; dim<species.NumDim; dim++)
+        pos(dim) = Positions(slice,ptcl-species.FirstPtcl,dim);
+      Path(slice,ptcl) = pos;
     }
+
     ///If you are the last processors you must make sure the last
     ///slice is the same as the first slice on the first
     ///processors. The  join should be at the
@@ -496,7 +498,7 @@ void PathClass::InitAllFixed(IOSectionClass &in, SpeciesClass &species)
       dVec pos;
       pos = 0.0;
       for (int dim=0; dim<NDIM; dim++)
-        pos(dim) = Positions(0,ptcl,dim);
+        pos(dim) = Positions(0,ptcl-species.FirstPtcl,dim);
       Path(NumTimeSlices()-1,ptcl) = pos;
     }
   }
@@ -508,8 +510,7 @@ void PathClass::InitFixed(IOSectionClass &in, SpeciesClass &species)
   assert (in.ReadVar ("Positions", Positions));
   assert (Positions.rows() == species.NumParticles);
   assert (Positions.cols() == species.NumDim);
-  for (int ptcl=species.FirstPtcl; 
-       ptcl<=species.LastPtcl; ptcl++){
+  for (int ptcl=species.FirstPtcl; ptcl<=species.LastPtcl; ptcl++) {
     for (int slice=0; slice<NumTimeSlices(); slice++) {
       dVec pos;
       pos = 0.0;

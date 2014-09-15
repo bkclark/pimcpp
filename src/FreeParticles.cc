@@ -350,7 +350,7 @@ double BosonClass::AcceptProb (int ptclToMove, State &newState)
 //////////
 // Main //
 //////////
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
 
   if (argc < 2) {
