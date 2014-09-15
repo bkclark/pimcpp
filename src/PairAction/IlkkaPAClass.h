@@ -33,21 +33,18 @@ class IlkkaPAClass : public PairActionFitClass
   int nOrder;
 
   // Read values
-  Array<double, 1> r_u, k_u, x_u, y_u, r_du, k_du, x_du, y_du, r_v, k_v;
-  Array<double, 1> u_r, du_r, uShort_r, uLong_k, duShort_r, duLong_k, vShort_r, vLong_k;
+  Array<double, 1> r_u, k_u, x_u, y_u, r_du, k_du, x_du, y_du, r_v, k_v, r_vLong, r_uLong, r_duLong;
+  Array<double, 1> u_r, du_r, v_r, uLong_r, uLong_k, duLong_r, duLong_k, vLong_r, vLong_k;
   Array<double, 2> u_xy, du_xy, uOffDiag_xy, duOffDiag_xy;
-  Array<Array<double, 1>, 1> r_A_u, A_u, r_A_du, A_du;
   Array<double,1> Potential;
 
   // Grids
-  GeneralGrid r_u_grid, x_u_grid, y_u_grid;
-  GeneralGrid r_du_grid, x_du_grid, y_du_grid;
-  GeneralGrid r_v_grid;
-  Array<GeneralGrid, 1> r_A_u_grid, r_A_du_grid;
+  GeneralGrid r_u_grid, x_u_grid, y_u_grid, r_uLong_grid;
+  GeneralGrid r_du_grid, x_du_grid, y_du_grid, r_duLong_grid;
+  GeneralGrid r_v_grid, r_vLong_grid;
 
   // Splines
-  CubicSpline u_r_spline, uShort_r_spline, du_r_spline, duShort_r_spline, vShort_r_spline;
-  Array<CubicSpline, 1> A_u_spline, A_du_spline;
+  CubicSpline u_r_spline, uLong_r_spline, du_r_spline, duLong_r_spline, v_r_spline, vLong_r_spline;
   BicubicSpline u_xy_spline, du_xy_spline, uOffDiag_xy_spline, duOffDiag_xy_spline;
 
   // Constants

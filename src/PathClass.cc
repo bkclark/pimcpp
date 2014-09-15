@@ -301,11 +301,11 @@ void PathClass::Read (IOSectionClass &inSection)
 inline bool Include(dVec k)
 {
   //  assert (NDIM == 3);
-  if (k[0] > 0.0)
+  if (abs(k[0]) > 0.0)
     return true;
-  else if ((k[0]==0.0) && (k[1]>0.0))
+  else if ((k[0]==0.0) && (abs(k[1])>0.0))
     return true;
-  else if ((NDIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (k[2] > 0.0)))
+  else if ((NDIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (abs(k[2]) > 0.0)))
     return true;
   else
     return false;
@@ -473,9 +473,9 @@ void PathClass::SetupkVecs3D()
     }
   }
   kIndices.resize(numVecs);
-  verr << "kCutoff = " << kCutoff << endl;
-  verr << "Number of kVecs = " << numVecs << endl;
-  verr << "MaxkIndex = " << MaxkIndex << endl;
+  cerr << "kCutoff = " << kCutoff << endl;
+  cerr << "Number of kVecs = " << numVecs << endl;
+  cerr << "MaxkIndex = " << MaxkIndex << endl;
   kVecs.resize(numVecs);
   MagK.resize(numVecs);
   for (int i=0; i<NDIM; i++)
@@ -671,7 +671,7 @@ void PathClass::UpdateRho_ks()
 {
   ModeType mode = GetMode();
   SetMode(OLDMODE);
-  for (int slice=0; slice<NumTimeSlices(); slice++)
+  for (int slice=0; slice<1; slice++)
     for (int species=0; species<NumSpecies(); species++)
       CalcRho_ks_Fast(slice,species);
   Rho_k[1] = Rho_k[0];

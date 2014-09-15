@@ -234,7 +234,7 @@ public:
       }
     }
 
-    cout << "kCut = " << kCut << ", nK = " << numVecs << endl;
+    cout << "kCut = " << kCut << ", maxKIndex(0) = " << MaxkIndex[0] << ", nK = " << numVecs << endl;
   }
 
   double OptimizedBreakup()
@@ -427,7 +427,7 @@ public:
     outfile<<0.<<" "<<Vl0<<endl;
     for (int i=0;i<grid.NumPoints; i++){
       double r=grid(i);
-      outfile<<r<<" "<<VSpline(r)-Vl(i)<<endl;
+      outfile<<r<<" "<<Vl(i)<<endl;
     }
     outfile.close();
 
@@ -516,14 +516,14 @@ public:
     if (breakupObject == 1)
       Vl0 *= tau;
     outfile<<0.<<" "<<Vl0<<endl;
-    Array<double,1> Vss(nPoints);
+    Array<double,1> Vls(nPoints);
     for (int i=0; i<grid.NumPoints; i++){
       double r = grid(i);
       if (breakupObject == 1)
-        Vss(i) = VSpline(r) - Z1Z2*tau*erf(alpha*r)/r;
+        Vls(i) = Z1Z2*tau*erf(alpha*r)/r;
       else
-        Vss(i) = VSpline(r) - Z1Z2*erf(alpha*r)/r;
-      outfile<<r<<" "<<Vss(i)<<endl;
+        Vls(i) = Z1Z2*erf(alpha*r)/r;
+      outfile<<r<<" "<<Vls(i)<<endl;
     }
     outfile.close();
 
@@ -757,15 +757,15 @@ public:
     double Vl0 = 0.;
     while (!pointFile.eof()) {
       double r;
-      double Vs;
+      double Vl;
       pointFile>>r;
       if (!pointFile.eof()) {
-        pointFile>>Vs;
+        pointFile>>Vl;
         if (r == 0.) {
-          Vl0 = Vs/Z1Z2;
+          Vl0 = Vl/Z1Z2;
         } else {
           rs(ri) = r;
-          Vss(ri) = Vs/Z1Z2;
+          Vss(ri) = (1./r) - Vl/Z1Z2;
           ri += 1;
         }
       }

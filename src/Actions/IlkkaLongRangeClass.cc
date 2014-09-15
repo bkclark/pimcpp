@@ -174,7 +174,7 @@ double IlkkaLongRangeClass::SingleAction (int slice1, int slice2, const Array<in
 
   double total = 0.;
 
-  //// Slower way
+  // Slower way
   //Path.DoPtcl = true;
   //for (int ptcl1Index=0; ptcl1Index<activeParticles.size(); ptcl1Index++) {
   //  int ptcl1 = activeParticles(ptcl1Index);
@@ -231,7 +231,7 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
   double total = 0.;
   double factor = 1.;
 
-  //// Slower way
+  // Slower way
   //Path.DoPtcl = true;
   //for (int ptcl1=0; ptcl1<Path.NumParticles(); ptcl1++) {
   //  Path.DoPtcl(ptcl1) = false;
@@ -273,7 +273,7 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
     total += sliceTotal;
   }
 
-  // Heterologous terms
+  //// Heterologous terms
   for (int slice=slice1; slice<=slice2; slice++) {
     double sliceTotal=0.0;
     if ((slice==slice1) || (slice==slice2))
