@@ -30,6 +30,7 @@ private:
 
   double TotalSum, VShortSum, VLongSum, VExtSum;
   map<string,double> energies;
+  map<string,double> actions;
   map<string,double> ESum;
   map<string,ObservableDouble*> EVar;
 

@@ -301,11 +301,11 @@ void PathClass::Read (IOSectionClass &inSection)
 inline bool Include(dVec k)
 {
   //  assert (NDIM == 3);
-  if (abs(k[0]) > 0.0)
+  if (k[0] > 0.0)
     return true;
-  else if ((k[0]==0.0) && (abs(k[1])>0.0))
+  else if ((k[0]==0.0) && (k[1]>0.0))
     return true;
-  else if ((NDIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (abs(k[2]) > 0.0)))
+  else if ((NDIM==3) && ((k[0]==0.0) && (k[1]==0.0) && (k[2] > 0.0)))
     return true;
   else
     return false;

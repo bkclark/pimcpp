@@ -264,7 +264,6 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
     else
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
-      Path.CalcRho_ks_Fast(slice,species);
       for (int ki=0; ki<Path.kVecs.size(); ki++) {
          double rhok2 = mag2(Path.Rho_k(slice,species,ki));
          sliceTotal += factor*rhok2*duk(PairIndex(species,species),ki);
@@ -306,7 +305,6 @@ double IlkkaLongRangeClass::V (int slice1, int slice2,  int level)
     else
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
-      Path.CalcRho_ks_Fast(slice,species);
       for (int ki=0; ki<Path.kVecs.size(); ki++) {
          double rhok2 = mag2(Path.Rho_k(slice,species,ki));
          sliceTotal += factor*rhok2*Vlong_k(PairIndex(species,species),ki);
@@ -323,9 +321,7 @@ double IlkkaLongRangeClass::V (int slice1, int slice2,  int level)
     else
       factor = 2.0;
     for (int species0 = 0; species0 < Path.NumSpecies()-1; species0++) {
-      Path.CalcRho_ks_Fast(slice,species0);
       for (int species1 = species0+1; species1 < Path.NumSpecies(); species1++) {
-        Path.CalcRho_ks_Fast(slice,species1);
         for (int ki = 0; ki < Path.kVecs.size(); ki++) {
           double rhok2 = mag2(Path.Rho_k(slice,species0,ki),Path.Rho_k(slice,species1,ki));
           total += factor*rhok2*Vlong_k(PairIndex(species0,species1),ki);

@@ -41,6 +41,7 @@ void EnergyClass::Accumulate()
 
   // Fill Energies Map
   PathData.Actions.Energy(energies);
+  //PathData.Actions.Action(actions);
 
   // Add energies to total
   double localSum = 0.0;
@@ -266,6 +267,7 @@ void EnergyClass::Read(IOSectionClass & in)
   std::list<string>::iterator labelIt;
   for (labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
     energies.insert( std::pair<string,double>(*labelIt,0.0) );
+    actions.insert( std::pair<string,double>(*labelIt,0.0) );
     ObservableDouble* tmpVar = new ObservableDouble(*labelIt,IOSection,Path.Communicator);
     EVar.insert( std::pair<string,ObservableDouble*>(*labelIt,tmpVar) );
   }

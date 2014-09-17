@@ -7,25 +7,26 @@ StartCut = int(sys.argv[1])
 N = int(sys.argv[2])
 suffix = sys.argv[3]
 
-ENames = ['Kinetic','Node','dUExt','dULong','dUShort','ShortRange','VShort','IlkkaLongRange','DavidLongRange','VLong','Total']
 EStats = {}
 for fname in sys.argv[4:]:
-  f = h5.File(fname,'r')
-  for EName in ENames:
-    try:
-      Es = np.array(f['Observables/Energy/'+EName][StartCut:])
-      try:
-        EStats[EName].append(Stats.stats(Es))
-      except:
-        EStats[EName] = [Stats.stats(Es)]
-    except:
-      pass
-  f.close()
+    f = h5.File(fname,'r')
+    ENames = f['Observables/Energy'].keys()
+    for EName in ENames:
+        try:
+            Es = f['Observables/Energy/'+EName][StartCut:]
+            if EName in EStats:
+                EStats[EName].append(Stats.stats(Es))
+            else:
+                EStats[EName] = [Stats.stats(Es)]
+        except:
+            pass
 
+    f.flush()
+    f.close()
 
 g = open('Energy-'+suffix+'.dat','w')
 perParticleE, perParticleEErr = 0., 0.
-for EName in ENames:
+for EName in EStats.keys():
   try:
     TotStats = Stats.UnweightedAvg(EStats[EName])
     print EName, TotStats

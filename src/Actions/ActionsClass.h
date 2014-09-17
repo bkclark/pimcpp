@@ -195,6 +195,7 @@ public:
 
   /// Return the all the energies (potentials) for this processor's segment of
   /// the path.  Must do global sum to get total energy.
+  void Action (map<string,double>& actions);
   void Energy (map<string,double>& energies);
   void Potentials (double &vShort, double &vLong, double &vExt);
 

@@ -446,6 +446,21 @@ void ActionsClass::ReadNodalActions(IOSectionClass &in)
 }
 
 
+void ActionsClass::Action (map<string,double>& actions)
+{
+  int M = PathData.Path.NumTimeSlices()-1;
+  std::list<ActionBaseClass*>::iterator actionIt;
+  std::list<string>::iterator labelIt = ActionLabels.begin();
+  Array<int,1> particles(PathData.Path.NumParticles());
+  for (int i=0; i<PathData.Path.NumParticles(); i++)
+    particles(i) = i;
+  for (actionIt = ActionList.begin(); actionIt != ActionList.end(); actionIt++) {
+    actions[*labelIt] += (*actionIt) -> SingleAction(0,M,particles,0);
+    labelIt++;
+  }
+}
+
+
 void ActionsClass::Energy (map<string,double>& energies)
 {
   int M = PathData.Path.NumTimeSlices()-1;
