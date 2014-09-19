@@ -108,11 +108,15 @@ void EnergyClass::WriteBlock()
         //                                         - u_{\sigma,\sigma}^{L} (0)
         //   + \sum_{\sigma < \gamma} \frac{N_{\sigma} N_{\gamma}}{2} \tilde{u}_{\sigma,\gamma}^{L}(0)
         IlkkaLongRangeClass *lr = (IlkkaLongRangeClass *) (&(PathData.Actions.IlkkaLongRange));
-        int N1 = Path.Species(lr->specNum1(iPair)).NumParticles;
-        int N2 = Path.Species(lr->specNum2(iPair)).NumParticles;
+        int N1 = 0;
+        int N2 = 0;
+        for (int iS=0; iS<Path.NumSpecies; iS++) {
+          if(Path.Species(lr->specNum1(iPair)).Type == Path.Species(iS).Type)
+            N1 += Path.Species(iS).NumParticles;
+          if(Path.Species(lr->specNum2(iPair)).Type == Path.Species(iS).Type)
+            N2 += Path.Species(iS).NumParticles;
+        }
         if (lr->specNum1(iPair) == lr->specNum2(iPair)) { // homologous
-          //vTailSR(iPair) = -0.5 * N1 * lr->dur0(iPair);
-          //vTailLR(iPair) = 0.5 * N1 * (N1-1) * lr->duk0(iPair);
           duLong_k0(iPair) = 0.25*N1*N1*lr->duk0(iPair);
           duLong_r0(iPair) = -0.5*N1*lr->dur0(iPair);
           vLong_k0(iPair) = 0.25*N1*N1*lr->vk0(iPair);
