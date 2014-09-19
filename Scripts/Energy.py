@@ -51,7 +51,7 @@ for tailName in tailNames:
 
     if tailName == 'duLong_k0' or tailName == 'duLong_r0':
         for tail in tails[0]:
-            perParticleE += tail
+            perParticleE += tail/N
   except:
     pass
 f.close()

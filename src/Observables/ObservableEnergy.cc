@@ -110,7 +110,7 @@ void EnergyClass::WriteBlock()
         IlkkaLongRangeClass *lr = (IlkkaLongRangeClass *) (&(PathData.Actions.IlkkaLongRange));
         int N1 = 0;
         int N2 = 0;
-        for (int iS=0; iS<Path.NumSpecies; iS++) {
+        for (int iS=0; iS<Path.NumSpecies(); iS++) {
           if(Path.Species(lr->specNum1(iPair)).Type == Path.Species(iS).Type)
             N1 += Path.Species(iS).NumParticles;
           if(Path.Species(lr->specNum2(iPair)).Type == Path.Species(iS).Type)
