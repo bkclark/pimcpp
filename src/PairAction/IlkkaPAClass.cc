@@ -39,7 +39,7 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
 
   double tmpU = u_xy_spline(x,y);
 
-  // Add in off-diagonal part
+  // Subtract diagonal part
   if (longRange)
     tmpU -= 0.5*(uLong_r_spline(r) + uLong_r_spline(rp));
 
@@ -59,7 +59,7 @@ double IlkkaPAClass::V(double r)
 
   double tmpV = v_r_spline(r);
 
-  // Add in off-diagonal part
+  // Subtract diagonal part
   if (longRange)
     tmpV -= vLong_r_spline(r);
 
@@ -89,7 +89,7 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
 
   double tmpDU = du_xy_spline(x,y);
 
-  // Add in off-diagonal part
+  // Subtract diagonal part
   if (longRange)
     tmpDU -= 0.5*(duLong_r_spline(r) + duLong_r_spline(rp));
 

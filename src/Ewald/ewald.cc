@@ -765,7 +765,12 @@ public:
           Vl0 = Vl/Z1Z2;
         } else {
           rs(ri) = r;
-          Vss(ri) = (1./r) - Vl/Z1Z2;
+          double Vc;
+          if (breakupObject == 1)
+            Vc = tau/r;
+          else
+            Vc = 1./r;
+          Vss(ri) = Vc - Vl/Z1Z2;
           ri += 1;
         }
       }
