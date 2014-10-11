@@ -351,11 +351,9 @@ public:
     for (int ki=0; ki<numk; ki++) {
       double k = breakup.kpoints(ki)[0];
       Xk(ki) = CalcXk(VSpline, rCut, k, rMax) / boxVol;
-      //cout << k << " " << Xk(ki) << endl;
-      //abort();
       //Xk(ki) = Xk_Coul(k, rCut) / boxVol;
-      if (ki % int(numk/10) == 0)
-        cout << ceil(100*double(ki)/double(numk)) << " % complete" << endl;
+      //if (ki % int(numk/10) == 0)
+      //  cout << ceil(100*double(ki)/double(numk)) << " % complete" << endl;
     }
 
     // Set boundary conditions at rCut:  For Maxe value and first and
@@ -928,9 +926,8 @@ int main(int argc, char* argv[])
   EwaldClass e(Z1Z2, box, kCut, rMin, rCut, nPoints, *grid, breakupType, breakupObject, paIndex, nKnots, tau);
   e.DoBreakup();
   e.ComputeMadelung();
-  e.ComputeMadelungNaive(nImages/4);
-  e.ComputeMadelungNaive(nImages/2);
   e.ComputeMadelungNaive(nImages);
-  e.PrintExactCoulombMadelung();
+  if (breakupObject == 0)
+    e.PrintExactCoulombMadelung();
 
 }

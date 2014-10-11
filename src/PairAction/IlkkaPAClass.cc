@@ -22,26 +22,27 @@ double IlkkaPAClass::U (double q, double z, double s2, int level)
   double s = sqrt(s2);
   double x = q + 0.5*s;
   double y = q - 0.5*s;
-  double r = q + 0.5*z;
-  double rp = q - 0.5*z;
-
-  // Limits
-  double rMax = uLong_r_spline.grid->End;
-  if (r > rMax)
-    r = rMax;
-  if (rp > rMax)
-    rp = rMax;
-  double rMin = uLong_r_spline.grid->Start;
-  if (r < rMin)
-    r = rMin;
-  if (rp < rMin)
-    rp = rMin;
 
   double tmpU = u_xy_spline(x,y);
 
   // Subtract diagonal part
-  if (longRange)
+  if (longRange) {
+    double r = q + 0.5*z;
+    double rp = q - 0.5*z;
+
+    // Limits
+    double rMax = uLong_r_spline.grid->End;
+    if (r > rMax)
+      r = rMax;
+    if (rp > rMax)
+      rp = rMax;
+    double rMin = uLong_r_spline.grid->Start;
+    if (r < rMin)
+      r = rMin;
+    if (rp < rMin)
+      rp = rMin;
     tmpU -= 0.5*(uLong_r_spline(r) + uLong_r_spline(rp));
+  }
 
   return tmpU;
 }
@@ -72,26 +73,27 @@ double IlkkaPAClass::dU(double q, double z, double s2, int level)
   double s = sqrt(s2);
   double x = q + 0.5*s;
   double y = q - 0.5*s;
-  double r = q + 0.5*z;
-  double rp = q - 0.5*z;
-
-  // Limits
-  double rMax = duLong_r_spline.grid->End;
-  if (r > rMax)
-    r = rMax;
-  if (rp > rMax)
-    rp = rMax;
-  double rMin = duLong_r_spline.grid->Start;
-  if (r < rMin)
-    r = rMin;
-  if (rp < rMin)
-    rp = rMin;
 
   double tmpDU = du_xy_spline(x,y);
 
   // Subtract diagonal part
-  if (longRange)
+  if (longRange) {
+    double r = q + 0.5*z;
+    double rp = q - 0.5*z;
+  
+    // Limits
+    double rMax = duLong_r_spline.grid->End;
+    if (r > rMax)
+      r = rMax;
+    if (rp > rMax)
+      rp = rMax;
+    double rMin = duLong_r_spline.grid->Start;
+    if (r < rMin)
+      r = rMin;
+    if (rp < rMin)
+      rp = rMin;
     tmpDU -= 0.5*(duLong_r_spline(r) + duLong_r_spline(rp));
+  }
 
   return tmpDU;
 }
