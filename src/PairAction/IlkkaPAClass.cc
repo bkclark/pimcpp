@@ -154,8 +154,8 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   u_xy_spline.Init(&x_u_grid, &y_u_grid, u_xy);
 
   // Read in du
+  assert(h5In.OpenSection("du"));
   if (longRange) {
-    assert(h5In.OpenSection("du"));
     assert(h5In.OpenSection("diag"));
     assert(h5In.ReadVar("r",r_du));
     assert(h5In.ReadVar("du_r",du_r));
