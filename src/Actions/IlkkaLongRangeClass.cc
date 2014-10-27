@@ -198,10 +198,10 @@ double IlkkaLongRangeClass::SingleAction (int slice1, int slice2, const Array<in
   //}
 
   // Homogolous terms
-  for (int ki=0; ki<Path.kVecs.size(); ki++) {
-    for (int slice=startSlice; slice<=endSlice; slice+=skip) {
-      for(set<int>::iterator it = speciesList.begin(); it!=speciesList.end(); it++) {
-        int species = *it;
+  for (int slice=startSlice; slice<=endSlice; slice+=skip) {
+    for(set<int>::iterator it = speciesList.begin(); it!=speciesList.end(); it++) {
+      int species = *it;
+      for (int ki=0; ki<Path.kVecs.size(); ki++) {
         double rhok2 = mag2(Path.Rho_k(slice,species,ki));
         total += 1.0*rhok2*uk(PairIndex(species,species),ki);
       }
@@ -264,6 +264,7 @@ double IlkkaLongRangeClass::d_dBeta (int slice1, int slice2,  int level)
     else
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
+      Path.CalcRho_ks_Fast(slice,species);
       for (int ki=0; ki<Path.kVecs.size(); ki++) {
          double rhok2 = mag2(Path.Rho_k(slice,species,ki));
          sliceTotal += factor*rhok2*duk(PairIndex(species,species),ki);
@@ -305,6 +306,7 @@ double IlkkaLongRangeClass::V (int slice1, int slice2,  int level)
     else
       factor = 1.0;
     for (int species=0; species<Path.NumSpecies(); species++) {
+      Path.CalcRho_ks_Fast(slice,species);
       for (int ki=0; ki<Path.kVecs.size(); ki++) {
          double rhok2 = mag2(Path.Rho_k(slice,species,ki));
          sliceTotal += factor*rhok2*Vlong_k(PairIndex(species,species),ki);
