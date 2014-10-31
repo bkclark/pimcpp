@@ -36,6 +36,7 @@ private:
 
   vector<double> PermEnergy, SectorCount;
   Array<double,1> EnergyHistogramSum;
+  Array<double,1> vLong_k0, vLong_r0, duLong_k0, duLong_r0;
 
   int numEnergies;
 

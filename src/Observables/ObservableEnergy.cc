@@ -92,10 +92,10 @@ void EnergyClass::ShiftData(int NumTimeSlices)
 
 void EnergyClass::WriteBlock()
 {
+  int nPair = PathData.Actions.PairArray.size();
   if (FirstTime) {
     FirstTime = false;
-    int nPair = PathData.Actions.PairArray.size();
-    Array<double,1> vLong_k0(nPair), vLong_r0(nPair), duLong_k0(nPair), duLong_r0(nPair);
+    vLong_r0.resize(nPair); vLong_k0.resize(nPair); duLong_r0.resize(nPair); duLong_k0.resize(nPair);
     for (int iPair=0; iPair<nPair; iPair++) {
       if (Path.DavidLongRange) {
         vLong_r0(iPair) = ((DavidPAClass *) (PathData.Actions.PairArray(iPair)))->Vimage;
@@ -147,8 +147,15 @@ void EnergyClass::WriteBlock()
   int nslices = Path.TotalNumSlices;
   double norm = 1.0 / ((double) NumSamples * (double) nslices);
 
+  // Sum constants
+  double constants = 0.;
+  for (int iPair=0; iPair<nPair; iPair++) {
+    constants += duLong_k0(iPair);
+    constants += duLong_r0(iPair);
+  }
+
   // Write out energies
-  TotalVar.Write(Prefactor * Path.Communicator.Sum(TotalSum) * norm);
+  TotalVar.Write((Prefactor * Path.Communicator.Sum(TotalSum) * norm) + constants);
   VShortVar.Write(Prefactor * Path.Communicator.Sum(VShortSum) * norm);
   VLongVar.Write(Prefactor * Path.Communicator.Sum(VLongSum) * norm);
   VExtVar.Write(Prefactor * Path.Communicator.Sum(VExtSum) * norm);
