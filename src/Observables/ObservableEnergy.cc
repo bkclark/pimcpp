@@ -152,9 +152,9 @@ void EnergyClass::WriteBlock()
   double constants_V = 0.;
   for (int iPair=0; iPair<nPair; iPair++) {
     constants_dU += duLong_k0(iPair);
-    constants_V += duLong_k0(iPair);
+    constants_V += vLong_k0(iPair);
     constants_dU += duLong_r0(iPair);
-    constants_V += duLong_r0(iPair);
+    constants_V += vLong_r0(iPair);
   }
 
   // Write out energies
