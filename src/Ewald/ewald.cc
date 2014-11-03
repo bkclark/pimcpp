@@ -393,7 +393,7 @@ public:
           Vl(i) += t(n) * basis.h(n, r);
       }
       else {
-        cout << "WARNING: Why is r bigger than rCut?" << endl;
+        //cout << "WARNING: Why is r bigger than rCut?" << endl;
         Vl(i) = VSpline(r); // 0.0; //hack!  pa.V (r);
       }
     }
@@ -434,7 +434,7 @@ public:
     kFileName << objectString << "." << paIndex << ".k.txt";
     string kFileNameStr = kFileName.str();
     outfile.open(kFileNameStr.c_str());
-    outfile<<0.0<<" "<<(fVl0+fVs0)<<endl;
+    outfile<<0.0<<" "<<(-fVs0)<<endl;
     vector<pair<double, double> > fVls;
     for (int ki=0; ki < kVecs.size(); ki++) {
       double k = sqrt(dot(kVecs(ki),kVecs(ki)));
