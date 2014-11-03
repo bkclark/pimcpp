@@ -33,7 +33,7 @@ FreeNodalActionClass::FreeNodalActionClass (PathDataClass &pathData, int species
 
 double FreeNodalActionClass::ActionImageSum (double L, double lambdaBeta,  double disp)
 {
-  int numImages = 20;
+  int numImages = 10;
   double sum = 0.0;
   double fourLambdaBetaInv = (lambdaBeta!=0.0) ?  1.0/(4.0*lambdaBeta) : 0.0;
   // If the images won't contributed anything, let's not worry

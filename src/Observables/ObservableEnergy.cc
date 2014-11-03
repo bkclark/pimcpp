@@ -48,6 +48,7 @@ void EnergyClass::Accumulate()
   for (std::list<string>::iterator labelIt = PathData.Actions.ActionLabels.begin(); labelIt != PathData.Actions.ActionLabels.end(); labelIt++) {
     localSum += energies[*labelIt] * FullWeight;
     ESum[*labelIt] += energies[*labelIt] * FullWeight;
+    //cout << *labelIt << " " << actions[*labelIt] * FullWeight / (double) Path.TotalNumSlices << endl;
     energies[*labelIt] = 0.0;
   }
   TotalSum += localSum;
@@ -91,10 +92,10 @@ void EnergyClass::ShiftData(int NumTimeSlices)
 
 void EnergyClass::WriteBlock()
 {
+  int nPair = PathData.Actions.PairArray.size();
   if (FirstTime) {
     FirstTime = false;
-    int nPair = PathData.Actions.PairArray.size();
-    Array<double,1> vLong_k0(nPair), vLong_r0(nPair), duLong_k0(nPair), duLong_r0(nPair);
+    vLong_r0.resize(nPair); vLong_k0.resize(nPair); duLong_r0.resize(nPair); duLong_k0.resize(nPair);
     for (int iPair=0; iPair<nPair; iPair++) {
       if (Path.DavidLongRange) {
         vLong_r0(iPair) = ((DavidPAClass *) (PathData.Actions.PairArray(iPair)))->Vimage;
@@ -117,14 +118,14 @@ void EnergyClass::WriteBlock()
             N2 += Path.Species(iS).NumParticles;
         }
         if (lr->specNum1(iPair) == lr->specNum2(iPair)) { // homologous
-          duLong_k0(iPair) = 0.25*N1*N1*lr->duk0(iPair);
+          duLong_k0(iPair) = 0.5*N1*N1*lr->duk0(iPair);
           duLong_r0(iPair) = -0.5*N1*lr->dur0(iPair);
-          vLong_k0(iPair) = 0.25*N1*N1*lr->vk0(iPair);
+          vLong_k0(iPair) = 0.5*N1*N1*lr->vk0(iPair);
           vLong_r0(iPair) = -0.5*N1*lr->vr0(iPair);
         } else { // heterologous
-          duLong_k0(iPair) = 0.5*N1*N2*lr->duk0(iPair);
+          duLong_k0(iPair) = N1*N2*lr->duk0(iPair);
           duLong_r0(iPair) = 0.0*lr->dur0(iPair);
-          vLong_k0(iPair) = 0.5*N1*N2*lr->vk0(iPair);
+          vLong_k0(iPair) = N1*N2*lr->vk0(iPair);
           vLong_r0(iPair) = 0.0*lr->vr0(iPair);
         }
       } else {
@@ -146,8 +147,15 @@ void EnergyClass::WriteBlock()
   int nslices = Path.TotalNumSlices;
   double norm = 1.0 / ((double) NumSamples * (double) nslices);
 
+  // Sum constants
+  double constants = 0.;
+  for (int iPair=0; iPair<nPair; iPair++) {
+    constants += duLong_k0(iPair);
+    constants += duLong_r0(iPair);
+  }
+
   // Write out energies
-  TotalVar.Write(Prefactor * Path.Communicator.Sum(TotalSum) * norm);
+  TotalVar.Write((Prefactor * Path.Communicator.Sum(TotalSum) * norm) + constants);
   VShortVar.Write(Prefactor * Path.Communicator.Sum(VShortSum) * norm);
   VLongVar.Write(Prefactor * Path.Communicator.Sum(VLongSum) * norm);
   VExtVar.Write(Prefactor * Path.Communicator.Sum(VExtSum) * norm);

@@ -14,7 +14,7 @@ SET(QMC_BUILD_STATIC FALSE)
 #-------------------------------------------------------------------
 # Compilers
 #-------------------------------------------------------------------
-SET(C_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -DNDIM=${NDIM}")
+SET(C_FLAGS "-DH5_USE_16_API -O3 -msse3 -w -g -DNDIM=${NDIM}")
 IF(OPEN_LOOPS)
   SET(C_FLAGS "${C_FLAGS} -DOPEN_LOOPS=1")
 ELSE(OPEN_LOOPS)
