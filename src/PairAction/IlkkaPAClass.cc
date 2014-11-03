@@ -138,7 +138,6 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.OpenSection("offDiag"));
   assert(h5In.ReadVar("x",x_u));
   assert(h5In.ReadVar("y",y_u));
-  assert(h5In.ReadVar("uOffDiag",uOffDiag_xy));
   assert(h5In.ReadVar("u_xy",u_xy));
   h5In.CloseSection();
   h5In.CloseSection();
@@ -152,7 +151,6 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   }
   x_u_grid.Init(x_u);
   y_u_grid.Init(y_u);
-  uOffDiag_xy_spline.Init(&x_u_grid, &y_u_grid, uOffDiag_xy);
   u_xy_spline.Init(&x_u_grid, &y_u_grid, u_xy);
 
   // Read in du
@@ -172,7 +170,6 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   assert(h5In.OpenSection("offDiag"));
   assert(h5In.ReadVar("x",x_du));
   assert(h5In.ReadVar("y",y_du));
-  assert(h5In.ReadVar("duOffDiag",duOffDiag_xy));
   assert(h5In.ReadVar("du_xy",du_xy));
   h5In.CloseSection();
   h5In.CloseSection();
@@ -186,7 +183,6 @@ void IlkkaPAClass::ReadIlkkaHDF5(string fileName)
   }
   x_du_grid.Init(x_du);
   y_du_grid.Init(y_du);
-  duOffDiag_xy_spline.Init(&x_du_grid, &y_du_grid, duOffDiag_xy);
   du_xy_spline.Init(&x_du_grid, &y_du_grid, du_xy);
 
   // Read in v
