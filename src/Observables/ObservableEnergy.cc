@@ -148,16 +148,19 @@ void EnergyClass::WriteBlock()
   double norm = 1.0 / ((double) NumSamples * (double) nslices);
 
   // Sum constants
-  double constants = 0.;
+  double constants_dU = 0.;
+  double constants_V = 0.;
   for (int iPair=0; iPair<nPair; iPair++) {
-    constants += duLong_k0(iPair);
-    constants += duLong_r0(iPair);
+    constants_dU += duLong_k0(iPair);
+    constants_V += duLong_k0(iPair);
+    constants_dU += duLong_r0(iPair);
+    constants_V += duLong_r0(iPair);
   }
 
   // Write out energies
-  TotalVar.Write((Prefactor * Path.Communicator.Sum(TotalSum) * norm) + constants);
+  TotalVar.Write((Prefactor * Path.Communicator.Sum(TotalSum) * norm) + constants_dU);
   VShortVar.Write(Prefactor * Path.Communicator.Sum(VShortSum) * norm);
-  VLongVar.Write(Prefactor * Path.Communicator.Sum(VLongSum) * norm);
+  VLongVar.Write((Prefactor * Path.Communicator.Sum(VLongSum) * norm) + constants_V);
   VExtVar.Write(Prefactor * Path.Communicator.Sum(VExtSum) * norm);
   double localSum = 0.0;
   std::list<string>::iterator labelIt;
